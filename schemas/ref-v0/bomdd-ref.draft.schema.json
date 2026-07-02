@@ -1,0 +1,454 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/akiramei/BomDD/method/schemas/draft/bomdd-ref.draft.schema.json",
+  "title": "BomDD Reference Schema (ref-v0, draft)",
+  "description": "参照層のみを検査する JSON Schema。意味論は縛らない(全 $defs が additionalProperties:true / 最小 required)。正本は id-grammar.draft.yaml と ref-edges.draft.yaml であり、矛盾時はそちらが勝つ。クロスファイル参照整合(R-003 等)は JSON Schema では表現できないためリンタが担う。",
+  "$defs": {
+    "id": {
+      "reqId": { "type": "string", "pattern": "^REQ-[A-Za-z0-9._-]+$" },
+      "ebomId": { "type": "string", "pattern": "^E-[A-Za-z0-9._-]+$" },
+      "mbomId": { "type": "string", "pattern": "^M-[A-Za-z0-9._-]+$" },
+      "kbomId": { "type": "string", "pattern": "^K-[A-Za-z0-9._-]+$" },
+      "cpId": { "type": "string", "pattern": "^CP-[A-Za-z0-9._-]+$" },
+      "sbomId": { "type": "string", "pattern": "^SB-[A-Za-z0-9._-]+$" },
+      "oracleCaseId": { "type": "string", "pattern": "^S-?[0-9]+[A-Za-z0-9._-]*$" },
+      "migrationCaseId": { "type": "string", "pattern": "^M[0-9]+$" },
+      "eqId": { "type": "string", "pattern": "^EQ-[A-Za-z0-9._-]+$" },
+      "probeId": { "type": "string", "pattern": "^P-[A-Za-z0-9._-]+$" },
+      "fmeaId": { "type": "string", "pattern": "^FMEA-[A-Za-z0-9._-]+$" },
+      "teId": { "type": "string", "pattern": "^TE-[A-Za-z0-9._-]+$" },
+      "dcId": { "type": "string", "pattern": "^DC-[A-Za-z0-9._-]+$" },
+      "deId": { "type": "string", "pattern": "^DE-[A-Za-z0-9._-]+$" },
+      "routingId": { "type": "string", "pattern": "^ROUTING-[A-Za-z0-9._-]+$" },
+      "routeId": { "type": "string", "pattern": "^ROUTE-[A-Za-z0-9._-]+$" },
+      "abId": { "type": "string", "pattern": "^AB-[A-Za-z0-9._-]+$" },
+      "ecoId": { "type": "string", "pattern": "^(ECO|CAPA)-[A-Za-z0-9._-]+$" },
+      "cheatId": { "type": "string", "pattern": "^CHEAT-[A-Za-z0-9._-]+$" },
+      "tlId": { "type": "string", "pattern": "^TL-[A-Za-z0-9._-]+$" },
+      "uqId": { "type": "string", "pattern": "^UQ-[A-Za-z0-9._-]+$" },
+      "decId": { "type": "string", "pattern": "^DEC-[A-Za-z0-9._-]+$" },
+      "tmpUiPartNo": { "type": "string", "pattern": "^TMP-UI-(SCR|REG|CMP|OCC|ACT|INP|STA|DOM|LIV)-[A-Za-z0-9._-]+$" },
+      "uiId": { "type": "string", "pattern": "^(screen|region|component|button|action|input|state|modal)\\.[A-Za-z0-9._-]+$" },
+      "ebomOrMbomId": { "type": "string", "pattern": "^(E|M)-[A-Za-z0-9._-]+$" },
+      "displayRefId": { "type": "string", "pattern": "^(DC|DE)-[A-Za-z0-9._-]+$" },
+      "anyKnownId": { "type": "string", "pattern": "^(REQ|E|M|K|CP|SB|AB|S|GF|EQ|P|FMEA|TE|DC|DE|DEC|ECO|CAPA|CHEAT|TL|UQ|INV|OC|ADR|ROUTE|ROUTING|TMP-UI)[A-Za-z0-9._-]*$" }
+    },
+    "traceLink": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["trace_id", "from", "to"],
+      "properties": {
+        "trace_id": { "$ref": "#/$defs/id/tlId" },
+        "from": { "type": "string", "minLength": 1 },
+        "to": { "type": "string", "minLength": 1 },
+        "relation": { "type": "string" },
+        "status": { "type": "string" }
+      }
+    },
+    "refList": {
+      "reqRefs": { "type": "array", "items": { "$ref": "#/$defs/id/reqId" } },
+      "ebomRefs": { "type": "array", "items": { "$ref": "#/$defs/id/ebomId" } },
+      "mbomRefs": { "type": "array", "items": { "$ref": "#/$defs/id/mbomId" } },
+      "kbomRefs": { "type": "array", "items": { "$ref": "#/$defs/id/kbomId" } },
+      "cpRefs": { "type": "array", "items": { "$ref": "#/$defs/id/cpId" } },
+      "fmeaRefs": { "type": "array", "items": { "$ref": "#/$defs/id/fmeaId" } },
+      "displayRefs": { "type": "array", "items": { "$ref": "#/$defs/id/displayRefId" } }
+    },
+
+    "requirementsFile": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["requirements"],
+      "properties": {
+        "requirements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["id"],
+            "properties": {
+              "id": { "$ref": "#/$defs/id/reqId" },
+              "trace_links": { "type": "array", "items": { "$ref": "#/$defs/traceLink" } }
+            }
+          }
+        }
+      }
+    },
+
+    "ebomFile": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["ebom"],
+      "properties": {
+        "ebom": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["items"],
+          "properties": {
+            "display_contracts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "required": ["contract_id"],
+                "properties": {
+                  "contract_id": { "$ref": "#/$defs/id/dcId" },
+                  "elements": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": true,
+                      "required": ["element_id"],
+                      "properties": {
+                        "element_id": { "$ref": "#/$defs/id/deId" },
+                        "requirement_refs": { "$ref": "#/$defs/refList/reqRefs" },
+                        "ebom_item_ref": { "$ref": "#/$defs/id/ebomId" },
+                        "acceptance_ref": { "$ref": "#/$defs/id/cpId" }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "required": ["id"],
+                "properties": {
+                  "id": { "$ref": "#/$defs/id/ebomId" },
+                  "requirement_refs": { "$ref": "#/$defs/refList/reqRefs" },
+                  "kbom_refs": { "$ref": "#/$defs/refList/kbomRefs" },
+                  "depends_on": { "$ref": "#/$defs/refList/ebomRefs" },
+                  "acceptance_refs": { "$ref": "#/$defs/refList/cpRefs" },
+                  "display_contract_refs": { "$ref": "#/$defs/refList/displayRefs" },
+                  "graph_edges": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "properties": {
+                      "owner": { "oneOf": [{ "$ref": "#/$defs/id/ebomId" }, { "type": "null" }] },
+                      "consumers": { "$ref": "#/$defs/refList/ebomRefs" }
+                    }
+                  },
+                  "lineage": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "properties": {
+                      "supersedes": { "$ref": "#/$defs/refList/ebomRefs" },
+                      "superseded_by": { "$ref": "#/$defs/refList/ebomRefs" },
+                      "split_by": { "$ref": "#/$defs/refList/ebomRefs" }
+                    }
+                  },
+                  "trace_links": { "type": "array", "items": { "$ref": "#/$defs/traceLink" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "kbomFile": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["kbom"],
+      "properties": {
+        "kbom": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["items"],
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "required": ["id"],
+                "properties": {
+                  "id": { "$ref": "#/$defs/id/kbomId" },
+                  "consumers": { "type": "array", "items": { "$ref": "#/$defs/id/ebomOrMbomId" } },
+                  "depends_on": { "$ref": "#/$defs/refList/kbomRefs" },
+                  "acceptance_refs": { "$ref": "#/$defs/refList/cpRefs" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "mbomFile": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["mbom"],
+      "properties": {
+        "mbom": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["manufacturing_units"],
+          "properties": {
+            "manufacturing_units": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "required": ["id"],
+                "properties": {
+                  "id": { "$ref": "#/$defs/id/mbomId" },
+                  "ebom_refs": { "$ref": "#/$defs/refList/ebomRefs" },
+                  "kbom_refs": { "$ref": "#/$defs/refList/kbomRefs" },
+                  "acceptance_refs": { "$ref": "#/$defs/refList/cpRefs" },
+                  "fmea_refs": { "$ref": "#/$defs/refList/fmeaRefs" },
+                  "depends_on": { "$ref": "#/$defs/refList/mbomRefs" },
+                  "trace_links": { "type": "array", "items": { "$ref": "#/$defs/traceLink" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "controlPlanFile": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["control_plan"],
+      "properties": {
+        "control_plan": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["characteristics"],
+          "properties": {
+            "characteristics": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "required": ["id"],
+                "properties": {
+                  "id": { "$ref": "#/$defs/id/cpId" },
+                  "verifies": { "type": "array", "items": { "$ref": "#/$defs/id/ebomOrMbomId" } },
+                  "requirement_refs": { "$ref": "#/$defs/refList/reqRefs" },
+                  "trace_links": { "type": "array", "items": { "$ref": "#/$defs/traceLink" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "routingFile": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["routing"],
+      "properties": {
+        "routing": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "id": { "$ref": "#/$defs/id/routingId" },
+            "steps": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "properties": {
+                  "id": { "$ref": "#/$defs/id/routeId" },
+                  "consumes_refs": { "type": "array", "items": { "type": "string", "pattern": "^(M|K)-[A-Za-z0-9._-]+$" } },
+                  "acceptance_refs": { "$ref": "#/$defs/refList/cpRefs" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "fixedOracleFile": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["fixed_oracle"],
+      "properties": {
+        "fixed_oracle": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "equivalence_rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "required": ["id"],
+                "properties": { "id": { "$ref": "#/$defs/id/eqId" } }
+              }
+            },
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "required": ["id"],
+                "properties": {
+                  "id": { "$ref": "#/$defs/id/oracleCaseId" },
+                  "equivalence_ref": { "$ref": "#/$defs/id/eqId" },
+                  "display_contract_refs": { "$ref": "#/$defs/refList/displayRefs" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "asBuiltFile": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["as_built"],
+      "properties": {
+        "as_built": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["id"],
+            "properties": {
+              "id": { "$ref": "#/$defs/id/abId" },
+              "test_evidence_refs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "properties": {
+                    "evidence_id": { "$ref": "#/$defs/id/teId" },
+                    "cp_ref": { "$ref": "#/$defs/id/cpId" }
+                  }
+                }
+              },
+              "cheats": { "type": "array", "items": { "$ref": "#/$defs/id/cheatId" } },
+              "trace_links": { "type": "array", "items": { "$ref": "#/$defs/traceLink" } }
+            }
+          }
+        }
+      }
+    },
+
+    "serviceBomFile": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["service_bom"],
+      "properties": {
+        "service_bom": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["items"],
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "required": ["id"],
+                "properties": {
+                  "id": { "$ref": "#/$defs/id/sbomId" },
+                  "part_ref": { "$ref": "#/$defs/id/ebomId" },
+                  "as_built_ref": { "$ref": "#/$defs/id/abId" },
+                  "external_deps": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": true,
+                      "properties": { "kbom_ref": { "$ref": "#/$defs/id/kbomId" } }
+                    }
+                  },
+                  "reinspect_on_change": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": true,
+                      "properties": { "cp_ref": { "$ref": "#/$defs/id/cpId" } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "uiIrFile": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "screens": { "$ref": "#/$defs/uiIrCollection" },
+        "regions": { "$ref": "#/$defs/uiIrCollection" },
+        "components": { "$ref": "#/$defs/uiIrCollection" },
+        "occurrences": { "$ref": "#/$defs/uiIrCollection" },
+        "actions": { "$ref": "#/$defs/uiIrCollection" },
+        "inputs": { "$ref": "#/$defs/uiIrCollection" },
+        "states": { "$ref": "#/$defs/uiIrCollection" },
+        "domainConcepts": { "$ref": "#/$defs/uiIrCollection" },
+        "layoutInvariants": { "$ref": "#/$defs/uiIrCollection" }
+      }
+    },
+    "uiIrCollection": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["tempPartNo"],
+        "properties": {
+          "tempPartNo": { "$ref": "#/$defs/id/tmpUiPartNo" },
+          "uiId": { "$ref": "#/$defs/id/uiId" }
+        }
+      }
+    },
+
+    "uiTraceMapFile": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["entries"],
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "uiIr": { "$ref": "#/$defs/id/tmpUiPartNo" },
+              "uiBom": { "$ref": "#/$defs/id/tmpUiPartNo" },
+              "ebomItemRef": { "type": "array", "items": { "$ref": "#/$defs/id/ebomId" } }
+            }
+          }
+        }
+      }
+    },
+
+    "decisionRegisterFile": {
+      "$comment": "DEC ファミリーは reserved(承認待ち)。承認されたらこの $def が定義サイトになる。",
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["decisions"],
+      "properties": {
+        "decisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["id", "status"],
+            "properties": {
+              "id": { "$ref": "#/$defs/id/decId" },
+              "status": { "enum": ["open", "decided", "superseded"] },
+              "superseded_by": { "$ref": "#/$defs/id/decId" },
+              "binds": { "type": "array", "items": { "$ref": "#/$defs/id/anyKnownId" } },
+              "approver": { "type": "string" },
+              "decided_at": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

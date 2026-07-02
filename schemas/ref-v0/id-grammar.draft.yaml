@@ -1,0 +1,215 @@
+# BomDD ID Grammar (ref-v0, draft)
+# 品番ファミリーの台帳。参照層のみ — 意味論は縛らない。
+#
+# 共通文法:
+#   id        = family-prefix "-" tail        (例外: family_pattern を持つものはそちらが正)
+#   tail      = 1文字以上の [A-Za-z0-9._-]。採番方式(連番/意味名)は縛らない。
+#   一意性    = 同一プロジェクト内・同一ファミリー内で一意(リント R-002)
+#   厳格度    = strict   : 定義サイトが機械可読。壊れ参照 = error
+#               advisory : 定義が散文中(仕様・ログ)。壊れ参照 = warn
+#               reserved : ファミリー予約のみ。定義サイト未運用
+#
+# 出典: method/templates/* + ViewPrism2/bomdd 実物 + BomDD-LibraryLending-Sample + ui-ir-ui-bom.md
+# 実物優先の規律: 実プロジェクトの合法 ID を非合法にする変更は draft 期間中はスキーマ側の欠陥として扱う。
+
+grammar_version: ref-v0
+common_tail_pattern: "[A-Za-z0-9._-]+"
+
+families:
+  # ---- 要求・仕様層 ----
+  - prefix: REQ
+    name: 要求
+    defined_in: "bomdd/10-requirements.yaml#requirements[].id"
+    strictness: strict
+
+  - prefix: INV
+    name: 不変条件
+    defined_in: "bomdd/20-spec.md(§不変条件) / 30-ebom.yaml#items[].invariants(散文)"
+    strictness: advisory
+    note: 参照は E/M-BOM・仕様・ECO に頻出(ViewPrism2 で242回)。機械可読な定義サイトが無いのが現状。strict 化は候補(将来 20-spec の構造化とセット)。
+
+  - prefix: OC
+    name: 操作契約(operation contract)
+    defined_in: "bomdd/20-spec.md / 32-mbom.yaml#interface_contract(散文)"
+    strictness: advisory
+
+  - prefix: ADR
+    name: アーキテクチャ決定記録
+    defined_in: "docs/adr/ または 20-spec.md 内(散文)"
+    strictness: advisory
+
+  # ---- BOM 層 ----
+  - prefix: E
+    name: E-BOM 品目(設計部品)
+    defined_in: "bomdd/30-ebom.yaml#ebom.items[].id"
+    strictness: strict
+    note: "E-DESIGN-* は 35-design-system-bom.yaml が候補を先に持つことがある。正式定義は 30 への同期後(R-021)。"
+
+  - prefix: M
+    name: M-BOM 製造単位
+    defined_in: "bomdd/32-mbom.yaml#mbom.manufacturing_units[].id"
+    strictness: strict
+
+  - prefix: K
+    name: K-BOM 知識部品
+    defined_in: "bomdd/31-kbom.yaml#kbom.items[].id"
+    strictness: strict
+    note: "無番号 tail が合法(実例: K-DESIGN, K-AVALONIA, K-PHASH)。"
+
+  - prefix: SB
+    name: Service BOM 品目
+    defined_in: "bomdd/53-service-bom.yaml#service_bom.items[].id"
+    strictness: strict
+
+  # ---- 検査・観測層 ----
+  - prefix: CP
+    name: Control Plan 特性
+    defined_in: "bomdd/33-control-plan.yaml#control_plan.characteristics[].id"
+    strictness: strict
+
+  - prefix: S
+    name: 固定オラクル・ケース
+    family_pattern: "^S-?[0-9]+[A-Za-z0-9._-]*$"   # S1(旧) と S-01(新) の両方が実在。推奨は S-NN。
+    defined_in: "bomdd/41-fixed-oracle.yaml#fixed_oracle.cases[].id"
+    strictness: strict
+
+  - prefix: M0  # 移行オラクル(M01-M04 実例)。M-BOM と接頭辞衝突するため family_pattern で分離。
+    name: 移行オラクル・ケース
+    family_pattern: "^M[0-9]+$"
+    defined_in: "62-migration-oracle 準拠の移行オラクル定義"
+    strictness: strict
+    note: "ECO のデータ移行検査(forward-01.5 実例 M01-M04)。M-BOM(M-<name>)とは pattern で区別。"
+
+  - prefix: EQ
+    name: 等価規則
+    defined_in: "bomdd/41-fixed-oracle.yaml#fixed_oracle.equivalence_rules[].id"
+    strictness: strict
+    note: "無番号 tail 合法(実例: EQ-RANK)。"
+
+  - prefix: P
+    name: 探索プローブ
+    defined_in: "bomdd/42-exploratory-probes.yaml#exploratory_probes[].id"
+    strictness: strict
+
+  - prefix: FMEA
+    name: 故障モード
+    defined_in: "bomdd/33-control-plan.yaml(FMEA 節)"
+    strictness: advisory
+    note: "参照(fmea_refs)は 32/33 で機械可読だが、定義サイトの構造が題材間で揺れている。strict 化候補。"
+
+  - prefix: GF
+    name: golden finding / golden fact(視覚受入の所見・承認事実)
+    defined_in: "bomdd/43-visual-gap-analysis.md / 50-as-built.yaml(散文)"
+    strictness: advisory
+
+  - prefix: TE
+    name: テスト証跡
+    defined_in: "bomdd/50-as-built.yaml#as_built[].test_evidence_refs[].evidence_id"
+    strictness: strict
+
+  # ---- 表示契約・UI-CAD 層 ----
+  - prefix: DC
+    name: 表示契約(display contract)
+    defined_in: "bomdd/30-ebom.yaml#ebom.display_contracts[].contract_id"
+    strictness: strict
+
+  - prefix: DE
+    name: 表示要素(display element)
+    defined_in: "bomdd/30-ebom.yaml#ebom.display_contracts[].elements[].element_id"
+    strictness: strict
+
+  - prefix: TMP-UI-SCR
+    name: UI-IR 画面(仮品番)
+    defined_in: "bomdd/ui/**/ui-ir.json#screens[].tempPartNo"
+    strictness: strict
+  - prefix: TMP-UI-REG
+    name: UI-IR 領域(仮品番)
+    defined_in: "bomdd/ui/**/ui-ir.json#regions[].tempPartNo"
+    strictness: strict
+  - prefix: TMP-UI-CMP
+    name: UI-IR 部品マスター(仮品番)
+    defined_in: "bomdd/ui/**/ui-ir.json#components[].tempPartNo"
+    strictness: strict
+  - prefix: TMP-UI-OCC
+    name: UI-IR 出現(仮品番)
+    defined_in: "bomdd/ui/**/ui-ir.json#occurrences[].tempPartNo"
+    strictness: strict
+  - prefix: TMP-UI-ACT
+    name: UI-IR 操作(仮品番)
+    defined_in: "bomdd/ui/**/ui-ir.json#actions[].tempPartNo"
+    strictness: strict
+  - prefix: TMP-UI-INP
+    name: UI-IR 入力(仮品番)
+    defined_in: "bomdd/ui/**/ui-ir.json#inputs[].tempPartNo"
+    strictness: strict
+  - prefix: TMP-UI-STA
+    name: UI-IR 状態(仮品番)
+    defined_in: "bomdd/ui/**/ui-ir.json#states[].tempPartNo"
+    strictness: strict
+  - prefix: TMP-UI-DOM
+    name: UI-IR 業務概念候補(仮品番)
+    defined_in: "bomdd/ui/**/ui-ir.json#domainConcepts[].tempPartNo"
+    strictness: strict
+  - prefix: TMP-UI-LIV
+    name: UI-IR レイアウト不変条件(仮品番)
+    defined_in: "bomdd/ui/**/ui-ir.json#layoutInvariants[].tempPartNo"
+    strictness: strict
+
+  - prefix: ui-id  # data-ui-id 名前空間(screen.* / region.* / component.* / action.* / input.* / state.* / modal.*)
+    name: UI stable id
+    family_pattern: "^(screen|region|component|button|action|input|state|modal)\\.[A-Za-z0-9._-]+$"
+    defined_in: "bomdd/ui/**/ui-ir.json#*.uiId(HTML data-ui-id と対応)"
+    strictness: advisory
+
+  # ---- 工程・来歴層 ----
+  - prefix: ROUTING
+    name: 工程列
+    defined_in: "bomdd/34-routing.yaml#routing.id"
+    strictness: strict
+  - prefix: ROUTE
+    name: 工程ステップ
+    defined_in: "bomdd/34-routing.yaml#routing.steps[].id"
+    strictness: strict
+
+  - prefix: AB
+    name: As-Built 製造来歴
+    defined_in: "bomdd/50-as-built.yaml#as_built[].id"
+    strictness: strict
+
+  # ---- 変更・是正・記録層 ----
+  - prefix: ECO
+    name: 変更オーダー
+    defined_in: "bomdd/60-change-order-<id>.md / 60-change-register.yaml"
+    strictness: strict
+    note: "定義サイトが .md 単体の場合、ファイル名から ID を導出(60-change-order-eco-025.md → ECO-025)。register がある場合はそちらが正。"
+
+  - prefix: CAPA
+    name: 是正・予防処置
+    defined_in: "ECO と同じ台帳(60-*)"
+    strictness: strict
+
+  - prefix: CHEAT
+    name: ずる報告
+    defined_in: "bomdd/51-cheat-log.md(見出し)"
+    strictness: advisory
+    note: "実例の tail は複合(CHEAT-V4-04 / CHEAT-F01-H001 / CHEAT-SAGA-01-002)。見出し規約を固定すれば strict 化可能。"
+
+  - prefix: UQ
+    name: 未解決事項
+    defined_in: "各成果物の unresolved_questions[](分散定義)"
+    strictness: advisory
+
+  - prefix: TL
+    name: トレースリンク
+    defined_in: "各成果物の trace_links[].trace_id(分散定義)"
+    strictness: strict
+    note: "定義は分散だが機械可読。一意性はプロジェクト全体で検査(R-002)。"
+
+  - prefix: DEC
+    name: 裁定(decision register)
+    defined_in: "bomdd/65-decision-register.yaml#decisions[].id"
+    strictness: reserved
+    note: >
+      2026-07-03 承認(BomDD-Plm DEC-0001)。記録対象は「後で判断理由が問題になる裁定」
+      (参照スキーマ・lint gate・意味論境界・family strict 化など)に限定。
+      strictness は reserved のまま運用開始し、運用実績が揃ってから strict 化を裁定する。

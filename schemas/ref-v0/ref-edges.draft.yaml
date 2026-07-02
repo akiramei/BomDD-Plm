@@ -1,0 +1,342 @@
+# BomDD Reference Edges (ref-v0, draft)
+# 成果物ごとの「ID をどこで定義し、どのフィールドがどのファミリーを参照するか」の台帳。
+# セレクタ記法: ドット区切り+配列は []。リンタはこのセレクタで YAML/JSON を辿る。
+# severity は「参照先が解決できない時」の既定(ファミリーの strictness を上書きしない: advisory 先は最大 warn)。
+#
+# 意味論は縛らない: ここに無いフィールドは自由。ここに有るフィールドも「型と参照先ファミリー」だけを縛る。
+
+edges_version: ref-v0.1
+# ref-v0.1(2026-07-03): BomDD-Plm G3 ドライランで検出された欠陥の補正 —
+#   (a) kind 語彙の凡例を明文化 (b) trace_id の分散定義を distributed_defines へ正規化
+#   (c) 台帳3成果物(51/60-register/65)を artifacts に追加 (d) 60-*.md の散文抽出エッジを廃止
+#   (R-051 は 60-change-register.yaml の構造化フィールドで検査。register 不在= skip/info)
+
+# kind 凡例(参照エッジの種別):
+#   (無指定)   = ID 参照。対象 family の索引で解決
+#   path       = リポ内パス。存在検査
+#   id-or-path = ①ID として解決 → ②パスとして存在 → 両失敗で不解決
+#   path-at-rev= `パス@rev` 形式。パス部のみ存在検査(@rev は無視)
+#   none(severity: none) = 解決検査しない(表示・記録用)
+
+distributed_defines:      # 全成果物に分散して現れる定義サイト
+  - selector: "**.trace_links[].trace_id"
+    family: TL
+
+artifacts:
+  - file: bomdd/10-requirements.yaml
+    defines:
+      - selector: requirements[].id
+        family: REQ
+    refs:
+      - selector: requirements[].source_refs[]
+        kind: path            # リポ内パス。R-004 で存在検査
+      - selector: requirements[].trace_links[].(from|to)
+        kind: id-or-path      # 任意ファミリー ID または パス#断片
+
+  - file: bomdd/30-ebom.yaml
+    defines:
+      - selector: ebom.items[].id
+        family: E
+      - selector: ebom.display_contracts[].contract_id
+        family: DC
+      - selector: ebom.display_contracts[].elements[].element_id
+        family: DE
+    refs:
+      - { selector: "ebom.items[].requirement_refs[]",        family: REQ, severity: error }
+      - { selector: "ebom.items[].kbom_refs[]",               family: K,   severity: error }
+      - { selector: "ebom.items[].depends_on[]",              family: E,   severity: error }
+      - { selector: "ebom.items[].acceptance_refs[]",         family: CP,  severity: error }
+      - { selector: "ebom.items[].display_contract_refs[]",   family: [DC, DE], severity: error }
+      - { selector: "ebom.items[].design_system_refs[]",      family: [E, K],   severity: error }
+      - { selector: "ebom.items[].graph_edges.owner",         family: E,   severity: error }
+      - { selector: "ebom.items[].graph_edges.consumers[]",   family: E,   severity: error }
+      - { selector: "ebom.items[].lineage.supersedes[]",      family: E,   severity: error }
+      - { selector: "ebom.items[].lineage.superseded_by[]",   family: E,   severity: error }
+      - { selector: "ebom.items[].lineage.split_by[]",        family: E,   severity: error }
+      - { selector: "ebom.items[].lineage.change_ref",        family: [ECO, CAPA], severity: warn }
+      - { selector: "ebom.items[].external_source_ref",       kind: id-or-path, family: [K], severity: warn }
+      - { selector: "ebom.items[].planned_output_artifact_ref", kind: path, severity: warn }
+      - { selector: "ebom.display_contracts[].elements[].requirement_refs[]", family: REQ, severity: error }
+      - { selector: "ebom.display_contracts[].elements[].ebom_item_ref",      family: E,   severity: error }
+      - { selector: "ebom.display_contracts[].elements[].acceptance_ref",     family: CP,  severity: error }
+      - { selector: "ebom.ui_sources[].(ui_ir_ref|ui_bom_ref|ui_trace_map_ref|extraction_report_ref|design_system_bom_ref)", kind: path, severity: error }
+
+  - file: bomdd/31-kbom.yaml
+    defines:
+      - selector: kbom.items[].id
+        family: K
+    refs:
+      - { selector: "kbom.items[].consumers[]",       family: [E, M], severity: error }
+      - { selector: "kbom.items[].depends_on[]",      family: K,      severity: error }
+      - { selector: "kbom.items[].acceptance_refs[]", family: CP,     severity: warn }
+      - { selector: "kbom.items[].source",            kind: id-or-path, severity: none }
+
+  - file: bomdd/32-mbom.yaml
+    defines:
+      - selector: mbom.manufacturing_units[].id
+        family: M
+    refs:
+      - { selector: "mbom.manufacturing_units[].ebom_refs[]",       family: E,     severity: error }
+      - { selector: "mbom.manufacturing_units[].kbom_refs[]",       family: K,     severity: error }
+      - { selector: "mbom.manufacturing_units[].acceptance_refs[]", family: CP,    severity: error }
+      - { selector: "mbom.manufacturing_units[].fmea_refs[]",       family: FMEA,  severity: warn }
+      - { selector: "mbom.manufacturing_units[].depends_on[]",      family: M,     severity: error }
+      - { selector: "mbom.manufacturing_units[].routing_refs[]",    family: [ROUTE, ROUTING], severity: warn }
+      - { selector: "mbom.manufacturing_units[].display_contract.refs[]",              family: DC, severity: error }
+      - { selector: "mbom.manufacturing_units[].display_contract.required_elements[]", family: DE, severity: error }
+      - { selector: "mbom.manufacturing_units[].artifact.path", kind: path, severity: warn }
+
+  - file: bomdd/33-control-plan.yaml
+    defines:
+      - selector: control_plan.characteristics[].id
+        family: CP
+    refs:
+      - { selector: "control_plan.characteristics[].verifies[]",         family: [E, M], severity: error }
+      - { selector: "control_plan.characteristics[].requirement_refs[]", family: REQ,    severity: error }
+      - { selector: "control_plan.characteristics[].fixture",            kind: path,     severity: warn }
+
+  - file: bomdd/34-routing.yaml
+    defines:
+      - selector: routing.id
+        family: ROUTING
+      - selector: routing.steps[].id
+        family: ROUTE
+    refs:
+      - { selector: "routing.steps[].consumes_refs[]",   family: [M, K], severity: error }
+      - { selector: "routing.steps[].acceptance_refs[]", family: CP,     severity: error }
+      - { selector: "routing.steps[].produces_refs[]",   kind: path,     severity: none }
+
+  - file: bomdd/35-design-system-bom.yaml
+    defines:
+      - selector: design_system_bom.ebom_surface_parts[].id
+        family: E
+        candidate: true
+        note: >-
+          候補定義(ref-v0.1 で意味論を明文化): candidate:true の定義サイトは ID 索引に登録せず、
+          R-002 一意性の対象にもしない(30-ebom 側が正)。R-021 が 30 との同期を検査する。
+          BomDD-Plm G3 第2回で「30/35 二重定義が常時 R-002 発火」の欠陥として検出された補正。
+    refs:
+      - { selector: "design_system_bom.root.ebom_item_ref",  family: E, severity: warn }
+      - { selector: "design_system_bom.root.kbom_pack_ref",  family: K, severity: warn }
+      - { selector: "design_system_bom.source_cad_refs.*",   kind: path, severity: warn }
+
+  - file: bomdd/41-fixed-oracle.yaml
+    defines:
+      - selector: fixed_oracle.cases[].id
+        family: S
+      - selector: fixed_oracle.equivalence_rules[].id
+        family: EQ
+    refs:
+      - { selector: "fixed_oracle.cases[].equivalence_ref",         family: EQ,       severity: error }
+      - { selector: "fixed_oracle.cases[].spec_ref",                kind: id-or-path, severity: error, note: "凍結ゲートでは必須(R-030): 期待値の典拠なきオラクル行は仕様の穴" }
+      - { selector: "fixed_oracle.cases[].display_contract_refs[]", family: [DC, DE], severity: error }
+
+  - file: bomdd/42-exploratory-probes.yaml
+    defines:
+      - selector: exploratory_probes[].id
+        family: P
+    refs:
+      - { selector: "exploratory_probes[].sweep_ref", kind: id-or-path, severity: warn }
+
+  - file: bomdd/50-as-built.yaml
+    defines:
+      - selector: as_built[].id
+        family: AB
+      - selector: as_built[].test_evidence_refs[].evidence_id
+        family: TE
+    refs:
+      - { selector: "as_built[].(work_order_ref|mbom_ref|routing_ref|control_plan_ref)", kind: path-at-rev, severity: warn }
+      - { selector: "as_built[].test_evidence_refs[].cp_ref",       family: CP,    severity: error }
+      - { selector: "as_built[].test_evidence_refs[].evidence_path", kind: path,   severity: warn }
+      - { selector: "as_built[].cheats[]",                          family: CHEAT, severity: warn }
+      - { selector: "as_built[].artifacts_sha256[].path",           kind: path,    severity: warn }
+
+  - file: bomdd/53-service-bom.yaml
+    defines:
+      - selector: service_bom.items[].id
+        family: SB
+    refs:
+      - { selector: "service_bom.items[].part_ref",                    family: E,  severity: error }
+      - { selector: "service_bom.items[].external_deps[].kbom_ref",    family: K,  severity: error }
+      - { selector: "service_bom.items[].as_built_ref",                family: AB, severity: error }
+      - { selector: "service_bom.items[].reinspect_on_change[].cp_ref", family: CP, severity: error }
+
+  - file: "bomdd/60-change-order-*.md"
+    defines:
+      - selector: "filename"          # 60-change-order-eco-025.md → ECO-025
+        family: [ECO, CAPA]
+    refs: []
+    note: "散文本文からの ID 抽出はしない(ref-v0.1 で散文エッジ廃止 — 誤検出132件の実測+G3 Q4)。影響分析の機械検査(R-051)は 60-change-register.yaml の構造化フィールドで行う。"
+
+  - file: "bomdd/60-change-register.yaml"
+    defines:
+      - selector: "changes[].id"
+        family: [ECO, CAPA]
+    refs:
+      - { selector: "changes[].affected_refs[]", family: [REQ, E, M, K, CP, DC, DE], severity: error, note: "R-051 の検査対象(gate=eco)。register 不在のプロジェクトでは R-051 = skip(info)" }
+      - { selector: "changes[].order_ref",       kind: path, severity: warn, note: "対応する 60-change-order-*.md" }
+
+  - file: "bomdd/51-cheat-log.md"
+    defines:
+      - selector: "headings"          # `#`〜`###` 見出し行の最初の family ID トークン(CHEAT)
+        family: CHEAT
+    refs: []
+    note: "advisory family。見出し抽出のみ(本文は読まない)。台帳ビューの表示ソース。"
+
+  - file: "bomdd/65-decision-register.yaml"
+    defines:
+      - selector: "decisions[].id"
+        family: DEC
+    refs:
+      - { selector: "decisions[].binds[]",         severity: none, note: "記録用(reserved family 運用中につき解決検査しない)" }
+      - { selector: "decisions[].superseded_by",   family: DEC, severity: warn }
+
+  # ---- UI-CAD 層(JSON) ----
+  - file: "bomdd/ui/**/ui-ir.json"
+    defines:
+      - selector: "(screens|regions|components|occurrences|actions|inputs|states|domainConcepts|layoutInvariants)[].tempPartNo"
+        family: [TMP-UI-SCR, TMP-UI-REG, TMP-UI-CMP, TMP-UI-OCC, TMP-UI-ACT, TMP-UI-INP, TMP-UI-STA, TMP-UI-DOM, TMP-UI-LIV]
+      - selector: "*[].uiId"
+        family: ui-id
+    refs:
+      - { selector: "meta.sources[].file", kind: path, severity: error, note: "モック HTML への参照。CAD の正本" }
+      - { selector: "regions[].screen",    family: TMP-UI-SCR, severity: error }
+
+  - file: "bomdd/ui/**/ui-bom.json"
+    refs:
+      - { selector: "items[].tempPartNo", family: [TMP-UI-SCR, TMP-UI-REG, TMP-UI-CMP, TMP-UI-OCC, TMP-UI-ACT, TMP-UI-INP, TMP-UI-STA, TMP-UI-DOM], severity: error, note: "UI-BOM は UI-IR の昇格 — 新規採番せず IR の仮品番を引き継ぐ" }
+
+  - file: "bomdd/ui/**/ui-trace-map.json"
+    refs:
+      - { selector: "entries[].uiIr",        family: [TMP-UI-SCR, TMP-UI-REG, TMP-UI-CMP, TMP-UI-OCC, TMP-UI-ACT, TMP-UI-INP, TMP-UI-STA, TMP-UI-DOM], severity: error }
+      - { selector: "entries[].uiBom",       family: [TMP-UI-SCR, TMP-UI-REG, TMP-UI-CMP, TMP-UI-OCC, TMP-UI-ACT, TMP-UI-INP, TMP-UI-STA, TMP-UI-DOM], severity: error }
+      - { selector: "entries[].ebomItemRef[]", family: E, severity: error, cross_repo: true, note: "UI-CAD リポ → 製造リポの越境参照。workspace 設定で解決" }
+
+# ---- クロスリポ解決 ----
+workspace:
+  file: bomdd-workspace.yaml           # 任意。プロジェクトルートまたはリンタ引数で供与
+  shape:
+    repos:
+      - name: <論理名 例 ui-cad>
+        path: <リポのルートパス>
+        role: ui-cad | manufacturing | method
+  resolution: "cross_repo: true の参照は、workspace 内の他リポの定義サイトも探索して解決する。"
+  note: workspace 未供与の場合、cross_repo 参照は skip(info)とし error にしない。
+
+# ---- リントルール台帳 ----
+# gate: always(常時) / G1(要求確定) / G3(BOM ドライラン=製造前) / freeze(オラクル凍結前) /
+#       acceptance(受入時) / eco(変更オーダー時)
+lint_rules:
+  - id: R-001
+    name: id-well-formed
+    rule: 全定義サイトの ID が id-grammar の family_pattern に適合する
+    gate: always
+    severity: error
+  - id: R-002
+    name: id-unique
+    rule: 同一ファミリーの ID がプロジェクト(+workspace)内で一意
+    gate: always
+    severity: error
+  - id: R-003
+    name: ref-resolves
+    rule: 全参照エッジの ID が定義サイトに解決できる(strict=error / advisory=warn)
+    gate: always
+    severity: per-family
+  - id: R-004
+    name: path-exists
+    rule: kind:path の参照先ファイルが存在する
+    gate: always
+    severity: per-edge
+  - id: R-005
+    name: no-orphan-definition
+    rule: 定義された ID のうち、どこからも参照されないものを報告(削除でなく可視化)
+    gate: always
+    severity: info
+    note: >-
+      記録系 family(TL/UQ/DEC/CHEAT/GF)は対象外(性質上被参照を持たない)。
+      lineage.* 経由の参照も被参照に数える。(BomDD-Plm オラクル実装時に確定・2026-07-03)
+
+  - id: R-010
+    name: req-covered-by-ebom
+    rule: 全 REQ が ≥1 の E 品目の requirement_refs から参照される
+    gate: G3
+    severity: error
+  - id: R-011
+    name: ebom-has-acceptance
+    rule: lifecycle_state が manufacturing-ready の E 品目は acceptance_refs ≥1
+    gate: G3
+    severity: error
+  - id: R-012
+    name: ebom-realized-by-mbom
+    rule: manufacturing-ready の E 品目は ≥1 の M unit の ebom_refs から参照される
+    gate: G3
+    severity: error
+  - id: R-013
+    name: core-surface-origin
+    rule: classification:core は requirement_refs ≥1 / surface は external_source_ref または kbom_refs ≥1
+    gate: G3
+    severity: error
+    note: FINDINGS §4 の E-BOM 規則1の参照層表現
+  - id: R-014
+    name: cp-has-test-vectors
+    rule: depth が unit/L2/L3 の CP 行は test_vectors ≥1(CHEAT-005 対策)
+    gate: freeze
+    severity: warn
+
+  - id: R-020
+    name: ui-surface-has-cad
+    rule: >
+      display_contract_refs または design_system_refs を持つ(=UI surface の)E 品目は、
+      workspace 内のいずれかの ui-trace-map.json の entries[].ebomItemRef から参照されている。
+      CAD(UI-IR)なしの UI surface は routing に入れない。
+    gate: G3
+    severity: error
+    note: ViewPrismUI 画像ビューアー事故(ECO-022 CAPA)の予防ゲート。遡及監査を常設ゲート化したもの。
+  - id: R-021
+    name: design-system-sync
+    rule: 35-design-system-bom の ebom_surface_parts[].id が 30-ebom.items にも存在する(coverage_status が理由付き out-of-scope の場合を除く)
+    gate: G3
+    severity: error
+
+  - id: R-030
+    name: oracle-case-has-spec-ref
+    rule: 固定オラクル全ケースが spec_ref を持つ(期待値の典拠なき行=仕様の穴)
+    gate: freeze
+    severity: error
+  - id: R-031
+    name: oracle-frozen-marker
+    rule: fixed_oracle.frozen_since と self_test が記入済み
+    gate: freeze
+    severity: error
+
+  - id: R-040
+    name: active-graph-integrity
+    rule: >
+      lifecycle_state が superseded/retired の品目を、active な参照
+      (depends_on / ebom_refs / verifies / consumers / acceptance_refs 等。lineage.* は除く)
+      が指していない
+    gate: always
+    severity: error
+    note: テンプレ64(part-lineage-reattribution)の機械検査版。
+  - id: R-041
+    name: trace-link-endpoints
+    rule: trace_links[].from/to が ID または実在パスに解決できる
+    gate: always
+    severity: warn
+
+  - id: R-050
+    name: acceptance-evidence-coverage
+    rule: 最新 AB エントリの test_evidence_refs が、対象 M unit の acceptance_refs の CP 行を全て被覆する
+    gate: acceptance
+    severity: error
+  - id: R-051
+    name: eco-impact-ids-resolve
+    rule: ECO の影響分析に列挙された ID が全て解決できる
+    gate: eco
+    severity: error
+  - id: R-052
+    name: eco-diff-within-impact
+    rule: ECO の実 diff(git)が宣言影響集合(+影響なし予測の否定)の内側にある(63-diff-audit の機械化)
+    gate: eco
+    severity: error
+    note: git 連携が要る。PLM v0 Phase 1 実装対象(v0 では手動 63 と併用)。
