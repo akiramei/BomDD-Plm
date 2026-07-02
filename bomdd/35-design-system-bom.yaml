@@ -1,0 +1,38 @@
+bomdd:
+  product: BomDD-Plm
+  experiment: plm-v0
+  layer: Design System BOM
+
+design_system_bom:
+  root:
+    ebom_item_ref: E-DESIGN-SEVCHIP-021   # 代表(全 parts は 30-ebom に同期済み — R-021)
+    kbom_pack_ref: K-DESIGN-PLM
+    name: PLM viewer design language
+    purpose: 検査工具の UI 部品言語。素の table/text への退化(S2)を製造不適合として検出可能にする
+    lifecycle: approved(モック v0.1=原器・2026-07-03)
+
+  source_cad_refs:
+    ui_mock_ref: bomdd/ui/mock/bomdd-plm-viewer.html
+    ui_ir_ref: bomdd/ui/viewer/ui-ir.json
+    ui_bom_ref: bomdd/ui/viewer/ui-bom.json
+    ui_trace_map_ref: bomdd/ui/viewer/ui-trace-map.json
+
+  ebom_surface_parts:
+    - { id: E-DESIGN-SEVCHIP-021,   name: SeverityChip,     required_states: [error, warn, info, suppressed],  notes: テキスト併記必須(色単独禁止) }
+    - { id: E-DESIGN-FAMCHIP-022,   name: FamilyChip,       required_states: [REQ, E, M, K, CP, SB],           notes: 品番テキスト常時表示 }
+    - { id: E-DESIGN-SUMCARD-023,   name: SummaryCard,      required_states: [通常, ゼロ],                     notes: 固定幅・tabular-nums(LIV-0002) }
+    - { id: E-DESIGN-FINDROW-024,   name: FindingRow,       required_states: [通常, suppressed],               notes: 是正先行含む(DE-F04) }
+    - { id: E-DESIGN-NODE-025,      name: GraphNode,        required_states: [default, selected, superseded],  notes: family色+破線表現 }
+    - { id: E-DESIGN-CALLOUT-026,   name: ViolationCallout, required_states: [R-040],                          notes: 赤+当事者品番+是正先 }
+    - { id: E-DESIGN-TRACECELL-027, name: TraceCell,        required_states: [covered, uncovered, na],         notes: 記号+色の二重符号化 }
+    - { id: E-DESIGN-LEDGERTBL-028, name: LedgerTable,      required_states: [構造化, 非構造fallback],         notes: StatusChip(open/decided/superseded/completed)含む }
+    - { id: E-DESIGN-EMPTY-029,     name: EmptyStateDone,   required_states: [達成表示],                       notes: ✓+文言+stats(空白にしない) }
+
+  coverage_matrix:
+    - { surface: E-VIEWER-FINDINGS-002, parts: [E-DESIGN-SEVCHIP-021, E-DESIGN-FAMCHIP-022, E-DESIGN-SUMCARD-023, E-DESIGN-FINDROW-024, E-DESIGN-EMPTY-029], coverage_status: covered }
+    - { surface: E-VIEWER-GRAPH-003,    parts: [E-DESIGN-NODE-025, E-DESIGN-CALLOUT-026, E-DESIGN-FAMCHIP-022],  coverage_status: covered }
+    - { surface: E-VIEWER-TRACE-004,    parts: [E-DESIGN-TRACECELL-027, E-DESIGN-FAMCHIP-022],                   coverage_status: covered }
+    - { surface: E-VIEWER-LEDGER-005,   parts: [E-DESIGN-LEDGERTBL-028, E-DESIGN-SEVCHIP-021],                   coverage_status: covered }
+    - { surface: E-VIEWER-SHELL-001,    parts: [E-DESIGN-FAMCHIP-022],                                            coverage_status: covered, notes: workspace チップ・READ-ONLY バッジはシェル固有(DC 外・モック準拠) }
+
+  acceptance: CP-DESIGN-SYSTEM-019(presence/variant/state)+CP-VISUAL-GAP-018(S1/S2/S3)

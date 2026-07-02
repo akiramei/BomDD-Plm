@@ -1,0 +1,229 @@
+bomdd:
+  product: BomDD-Plm
+  experiment: plm-v0
+  layer: Control Plan
+
+# オラクル・ファースト(製造より先・設計者側)。深さ: unit < L1 < L2 < L3 < G。
+# byte-exact 比較は「仕様化された正規形」(method-v1 §5 例外条項)。
+
+control_plan:
+  depth_ladder:
+    unit: fixture 入力に対する関数/CLI 出力の期待値一致(node:test)
+    L1: プロセス起動・出力ファイル存在・exit code
+    L2: 出力の JSON Schema 適合・DOM/データ突合・引数マトリクス
+    L3: 実行観測 — 前後ハッシュ比較・2回実行 byte-diff・実測時間
+    G: golden(スクリーンショット+DOM。pixel-exact 不採用・表示契約の存在+意味一致)+承認者 akira
+
+  fmea:
+    - { id: FMEA-001, mode: 決定性破れ(並列・列挙順・時刻/絶対パス混入),        detected_by: CP-OUTPUT-010 }
+    - { id: FMEA-002, mode: パーサクラッシュ・巨大/不正入力でのハング,           detected_by: CP-PARSE-003 }
+    - { id: FMEA-003, mode: 誤検出(advisory の error 化・散文語の ID 誤認),      detected_by: [CP-LINT-007, CP-RESOLVE-005] }
+    - { id: FMEA-004, mode: 見逃し(R-020 複数 trace-map・入れ子 ui ディレクトリ), detected_by: CP-LINT-007 }
+    - { id: FMEA-005, mode: OS 差(パス大小文字・CRLF 行番号ずれ・日本語パス),    detected_by: [CP-RESOLVE-005, CP-NFR-017] }
+    - { id: FMEA-006, mode: 抑制の無力化(理由なし・死抑制の放置),                detected_by: CP-SUPPRESS-009 }
+    - { id: FMEA-007, mode: グラフ規模での描画破綻・レイアウト非決定,            detected_by: CP-VIEW-GRAPH-014 }
+    - { id: FMEA-008, mode: マトリクス✗セル≠所見(INV-010 破れ),                 detected_by: CP-VIEW-TRACE-015 }
+    - { id: FMEA-009, mode: 対象リポへの書込・残留物,                            detected_by: CP-READONLY-001 }
+    - { id: FMEA-010, mode: スキーマ焼き込み(ref-v0 改訂に不追随),               detected_by: CP-SCHEMA-004 }
+
+  characteristics:
+    - id: CP-READONLY-001
+      characteristic: 実行前後で対象リポ全ファイル SHA-256 不変+残留物は出力先のみ+リポ内出力先は exit 2
+      classification: core
+      verifies: [E-CORE-READONLY-001]
+      requirement_refs: [REQ-001, REQ-002]
+      depth: L3
+      tolerance: exact(hash 差ゼロ・残留物ゼロ)
+      fixture: oracle/harness/readonly-check
+      approver: automated
+      fmea_refs: [FMEA-009]
+      test_vectors: [通常実行, --out 省略, --out がリポ内(exit 2), 異常終了時の temp 掃除]
+    - id: CP-DISCOVER-002
+      characteristic: 発見ファイル→型の写像が期待一致(1ファイル=1型・配列順先勝ち・パターン外無視)
+      classification: surface
+      verifies: [E-CORE-DISCOVER-002]
+      requirement_refs: [REQ-003]
+      depth: unit
+      tolerance: exact
+      fixture: oracle/fixtures/discover-*
+      approver: automated
+      test_vectors: [標準構成, 複数パターン一致(先勝ち), 入れ子 ui/**, パターン外ファイル混在]
+    - id: CP-PARSE-003
+      characteristic: 壊れ入力全件でクラッシュ0・X-PARSE(行列+原因)・罠3型は hint 正準文言・処理継続
+      classification: core
+      verifies: [E-CORE-PARSE-003]
+      requirement_refs: [REQ-004, REQ-005]
+      depth: unit
+      tolerance: exact(hint 文言込み)
+      fixture: oracle/fixtures/parse-broken
+      approver: automated
+      fmea_refs: [FMEA-002]
+      test_vectors: [罠1(*始まり), 罠2(行末コロン), 罠3(引用符始まり), 不正UTF-8, 空ファイル, BOM付き, 巨大ファイル(1MB級), 未知フィールド(所見なし), 型不一致(X-TYPE), 重複キー(X-TYPE+後勝ち)]
+    - id: CP-SCHEMA-004
+      characteristic: スキーマ差替で再ビルドなし追随 / 未対応記法= X-SCHEMA-001 / 読込不能= exit 2
+      classification: core
+      verifies: [E-CORE-SCHEMA-004]
+      requirement_refs: [REQ-006]
+      depth: unit
+      tolerance: exact(3分岐)
+      fixture: oracle/fixtures/schema-*
+      approver: automated
+      fmea_refs: [FMEA-010]
+      test_vectors: [family 追加, pattern 変更, 未対応 selector, トップキー欠落(exit 2)]
+    - id: CP-RESOLVE-005
+      characteristic: 定義/解決/不解決とその所見(rule 込み)の完全一致。IDトークン貪欲・散文は定義サイトのみ
+      classification: surface
+      verifies: [E-CORE-RESOLVE-005]
+      requirement_refs: [REQ-007]
+      depth: unit
+      tolerance: exact
+      fixture: oracle/fixtures/resolve-*
+      approver: automated
+      fmea_refs: [FMEA-003, FMEA-005]
+      test_vectors: [id-or-path 4分岐, family tie(定義順), M01 vs M-BOM 分離, 散文中「E-BOM」語の非抽出, ECOファイル名右端一致, 大小文字違いパス(同定OK), ECO-001-child(1トークン)]
+    - id: CP-WORKSPACE-006
+      characteristic: cross_repo 解決 / 候補リポ不在 skip(X-XREPO) / R-002 workspace 全域
+      classification: surface
+      verifies: [E-CORE-WORKSPACE-006]
+      requirement_refs: [REQ-009]
+      depth: unit
+      tolerance: exact
+      fixture: oracle/fixtures/workspace-*
+      approver: automated
+      test_vectors: [2リポ解決, 単一リポ skip, 別リポ同 family 同 ID(R-002)]
+    - id: CP-LINT-007
+      characteristic: R-*(R-052除く)+X-* 全規則 — 規則ごとに違反/クリーン fixture 対で期待所見プロファイル完全一致(message/fixTarget 凍結文言込み)
+      classification: surface
+      verifies: [E-CORE-LINT-007]
+      requirement_refs: [REQ-010, REQ-011, REQ-026]
+      depth: unit
+      tolerance: exact(過検出・過少検出とも FAIL)
+      fixture: oracle/fixtures/rules/R-*/{violation,clean}
+      approver: automated
+      fmea_refs: [FMEA-003, FMEA-004]
+      test_vectors: [R-020 複数 trace-map, R-040 lineage 除外, R-010 retired 除外, advisory=warn 止まり, reserved=info]
+    - id: CP-GATE-008
+      characteristic: ゲート×規則マトリクス+eco 合成+不正値 exit 2
+      classification: core
+      verifies: [E-CORE-GATE-008]
+      requirement_refs: [REQ-012]
+      depth: unit
+      tolerance: exact
+      fixture: oracle/fixtures/gate-matrix
+      approver: automated
+      test_vectors: [always 既定, G3=always+G1+G3, acceptance 全含み, --eco 単独加算, --gate 不正値]
+    - id: CP-SUPPRESS-009
+      characteristic: 降格(+exit 変化)・reason 転記・理由なし無効(X-SUPPRESS-001)・死抑制(X-SUPPRESS-002)
+      classification: core
+      verifies: [E-CORE-SUPPRESS-009]
+      requirement_refs: [REQ-015]
+      depth: unit
+      tolerance: exact
+      fixture: oracle/fixtures/suppress-*
+      approver: automated
+      fmea_refs: [FMEA-006]
+      test_vectors: [error→info+exit 0, パス target(case-insensitive 同定), ID target(case-sensitive), reason 空, 死抑制]
+    - id: CP-OUTPUT-010
+      characteristic: 2回実行+列挙順撹乱で対象出力 byte-diff 0 / 自スキーマ適合 / 時刻・絶対パス不含
+      classification: core
+      verifies: [E-CORE-OUTPUT-010, E-CONTRACT-DIAG-018]
+      requirement_refs: [REQ-008, REQ-013, REQ-017]
+      depth: L3
+      tolerance: byte-exact(仕様化された正規形)
+      fixture: oracle/harness/determinism-check
+      approver: automated
+      fmea_refs: [FMEA-001]
+      test_vectors: [同一入力2回, readdir 順撹乱, line 欠損所見の順序, 絶対パス/時刻の grep 検査]
+    - id: CP-CLI-011
+      characteristic: 引数×挙動マトリクス全行(exit code・stdout/stderr 分離・--fail-on)
+      classification: surface
+      verifies: [E-CLI-011]
+      requirement_refs: [REQ-014, REQ-016]
+      depth: L2
+      tolerance: exact
+      fixture: oracle/fixtures/cli-matrix.yaml
+      approver: automated
+      test_vectors: [正常 text/json, error あり exit 1, --fail-on warn, 不正 gate exit 2, 不存在パス exit 2, --help/--version 優先, 日本語パス]
+    - id: CP-VIEWER-012
+      characteristic: plm-view.html が外部参照ゼロ・埋込 JSON のみで全ビュー描画・永続状態ゼロ
+      classification: core
+      verifies: [E-VIEWER-SHELL-001]
+      requirement_refs: [REQ-018]
+      depth: L2
+      tolerance: exact(外部 URL 参照の静的 grep=0・リポ不在描画)
+      fixture: oracle/harness/viewer-selfcontained
+      approver: automated
+      test_vectors: [http/https 参照ゼロ, fetch/XHR 不使用, localStorage 不使用]
+    - id: CP-VIEW-FINDINGS-013
+      characteristic: DC-FINDINGS-001 全 DE 存在+件数一致(排他計上)+ページング
+      classification: surface
+      verifies: [E-VIEWER-FINDINGS-002]
+      requirement_refs: [REQ-019]
+      depth: L2
+      tolerance: DE 全行 required-elements-present+件数 exact
+      fixture: oracle/harness/view-findings(DOM 検査)
+      approver: automated
+      test_vectors: [通常, 空状態(達成表示), 抑制行, 201件(ページング)]
+    - id: CP-VIEW-GRAPH-014
+      characteristic: 表示ノード/エッジ= graph.json+近傍定義(無向≤2)の計算結果と一致+DC-GRAPH-001 全 DE
+      classification: surface
+      verifies: [E-VIEWER-GRAPH-003]
+      requirement_refs: [REQ-020]
+      depth: L2
+      tolerance: 集合 exact
+      fixture: oracle/harness/view-graph
+      approver: automated
+      fmea_refs: [FMEA-007]
+      test_vectors: [初期選択規則(error あり/なし/ノードゼロ), superseded 表現, R-040 コールアウト, レイアウト決定性(2回生成同一)]
+    - id: CP-VIEW-TRACE-015
+      characteristic: ✗セル集合= R-010/011/012/050 所見集合と1対1(INV-010)+DC-TRACE-001 全 DE
+      classification: surface
+      verifies: [E-VIEWER-TRACE-004]
+      requirement_refs: [REQ-021]
+      depth: L2
+      tolerance: 集合 exact
+      fixture: oracle/harness/view-trace
+      approver: automated
+      fmea_refs: [FMEA-008]
+      test_vectors: [未被覆あり, 全被覆, draft 灰, 複数所見1セル]
+    - id: CP-VIEW-LEDGER-016
+      characteristic: 台帳抽出エントリ(ID+タイトル)一致+非構造 fallback+DC-LEDGER-001 全 DE
+      classification: surface
+      verifies: [E-VIEWER-LEDGER-005]
+      requirement_refs: [REQ-022]
+      depth: L2
+      tolerance: 集合 exact
+      fixture: oracle/fixtures/ledger-*
+      approver: automated
+      test_vectors: [ECO md+register 併存, register なし, 見出し複数 ID(最初採用), family ID 見出しゼロ(非構造)]
+    - id: CP-NFR-017
+      characteristic: 基準機で lint ≤10s / viewer ≤15s(3回中央値)+Windows/Linux 両 OS で固定オラクル全通過
+      classification: core
+      verifies: [E-NFR-017]
+      requirement_refs: [REQ-024, REQ-025]
+      depth: L3
+      tolerance: 閾値(≤10s / ≤15s)・OS=両方 pass
+      fixture: oracle/harness/perf-bench(基準 workspace)
+      approver: automated
+      fmea_refs: [FMEA-005]
+      test_vectors: [基準 workspace 実測, CRLF fixture, 日本語パス fixture]
+    - id: CP-VISUAL-GAP-018
+      characteristic: CAD(モック M1+UI-IR)と実機 plm-view.html の視覚突合 — S1/S2/S3 ゼロ
+      classification: surface
+      verifies: [E-VIEWER-SHELL-001, E-VIEWER-FINDINGS-002, E-VIEWER-GRAPH-003, E-VIEWER-TRACE-004, E-VIEWER-LEDGER-005]
+      requirement_refs: [REQ-023]
+      depth: G
+      tolerance: 表示契約要素の存在+意味一致(pixel-exact 不採用)。境界状態(空/4桁/長大パス)含む
+      fixture: 43-visual-gap-analysis.md(Phase 5)
+      approver: akira
+      test_vectors: [M1 と同データでのスクリーンショット突合, 空状態, 1204 件表示]
+    - id: CP-DESIGN-SYSTEM-019
+      characteristic: 35 の design parts が対象 surface に presence/variant/state で適用されている(素部品退化=S2)
+      classification: surface
+      verifies: [E-DESIGN-SEVCHIP-021, E-DESIGN-FAMCHIP-022, E-DESIGN-SUMCARD-023, E-DESIGN-FINDROW-024, E-DESIGN-NODE-025, E-DESIGN-CALLOUT-026, E-DESIGN-TRACECELL-027, E-DESIGN-LEDGERTBL-028, E-DESIGN-EMPTY-029]
+      requirement_refs: [REQ-023]
+      depth: L2
+      tolerance: coverage_matrix 全行 covered(DOM クラス/構造検査)+G(CP-VISUAL-GAP-018 と併走)
+      fixture: oracle/harness/design-parts-check
+      approver: automated
+      test_vectors: [required_states 全状態の出現, 二重符号化(記号+色)の存在]

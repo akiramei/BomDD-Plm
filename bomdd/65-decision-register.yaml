@@ -57,7 +57,9 @@ decisions:
 
   - id: DEC-0003
     title: viewer は静的生成(自己完結の単一 HTML)とする
-    status: open
+    status: decided
+    decided_at: "2026-07-03"
+    approver: akira
     binds: [UQ-SPEC-002]
     context: >
       charter UQ-004(静的生成 vs ローカルサーバ)。仕様 §2.11 は静的生成を採用して記述済み。
@@ -71,7 +73,9 @@ decisions:
 
   - id: DEC-0004
     title: 診断 JSON は独自スキーマ plm-diag/1 を一次とし SARIF は v0 対象外
-    status: open
+    status: decided
+    decided_at: "2026-07-03"
+    approver: akira
     binds: [UQ-SPEC-001]
     context: >
       REQ-017 の UQ(SARIF 2.1.0 互換にするか)。仕様 §2.9 は独自スキーマで記述済み。

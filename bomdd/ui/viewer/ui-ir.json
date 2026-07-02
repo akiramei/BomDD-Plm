@@ -3,7 +3,7 @@
     "schema": "ui-ir/candidate",
     "product": "BomDD-Plm",
     "scope": "read-only viewer(所見・品目グラフ・トレースマトリクス・台帳)",
-    "status": "draft — モックはたたき台 v0.1(akira の改稿前)",
+    "status": "approved — モック v0.1 を設計原器として akira 承認(2026-07-03)",
     "extractedAt": "2026-07-03",
     "sources": [
       { "id": "M1", "file": "bomdd/ui/mock/bomdd-plm-viewer.html", "role": "全4ビュー+シェルの実行可能モック(data-ui-id 埋込済み)" }

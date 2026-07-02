@@ -1,0 +1,47 @@
+bomdd:
+  product: BomDD-Plm
+  experiment: plm-v0
+  layer: Fixed Oracle          # ★設計者のみ。製造装置に渡さない
+
+# 期待値は全て仕様(20-spec)から導出。fixture 群と期待プロファイル(golden diagnostics/graph)は
+# oracle/ 配下に実装する(Phase 4 製造開始前に凍結)。charter の設計どおり、リンタという題材では
+# 「既知欠陥を植えた fixture への期待所見プロファイル一致」= 較正がそのまま製品オラクル。
+
+fixed_oracle:
+  frozen_since: pending        # 治具セルフテスト+較正の通過後に commit/tag で凍結(G3 後・Phase 4 前)
+  self_test: >-
+    ①治具セルフテスト: 判定ヘルパ(byte 比較器・DOM 検査器・hash 検査器)を合成データで検証。
+    ②較正(negative control): 正しい fixture=全 PASS / 欠陥植込 fixture=植えた行だけ FAIL の
+    期待プロファイルと突合してから凍結(playbook §4.4)。
+  equivalence_rules:
+    - id: EQ-BYTE-001
+      compares: [diagnostics.json 全体, graph.json 全体, plm-view.html 全体]
+      ignores: []
+      normalization: なし(正規シリアライズ仕様 §2.9 が正規形を一意化しているため)
+      rationale: 仕様化された正規形につき byte-exact(method-v1 §5 例外条項)。ignores を空にできること自体が正規形仕様の検証になる
+    - id: EQ-TEXT-002
+      compares: [stdout text の所見行・サマリ件数・exit code]
+      ignores: [stderr 全体(exploratory P-01)]
+      normalization: なし
+      rationale: stderr は仕様上自由(掃討で exploratory 宣言)
+
+  cases:
+    - { id: S-01, scenario: クリーン fixture リポを lint,               contract_expectation: 所見ゼロ・exit 0・空状態文言, spec_ref: "20-spec §2.6/2.10", depth: unit, fixture: oracle/fixtures/clean }
+    - { id: S-02, scenario: 壊れ参照(strict/advisory/path)を植えた fixture, contract_expectation: R-003(error/warn)/R-004 期待プロファイル一致, spec_ref: "§2.4", depth: unit, fixture: oracle/fixtures/rules/R-003 }
+    - { id: S-03, scenario: 同 family 重複 ID(リポ内+リポ間),           contract_expectation: R-002 error, spec_ref: "§2.5", depth: unit, fixture: oracle/fixtures/rules/R-002 }
+    - { id: S-04, scenario: 構文破壊 10 種(罠3型・不正UTF-8・BOM・重複キー等), contract_expectation: X-PARSE/X-TYPE(hint 正準文言込み)+継続+exit 1, spec_ref: "§2.2", depth: unit, fixture: oracle/fixtures/parse-broken }
+    - { id: S-05, scenario: UI surface 品目が trace map 未参照,          contract_expectation: R-020 error(fixTarget=UI-IR 作成指示), spec_ref: "§2.6/ref-v0 R-020", depth: unit, fixture: oracle/fixtures/rules/R-020 }
+    - { id: S-06, scenario: superseded への active 参照(lineage 参照は無罪), contract_expectation: R-040 error・lineage 経由は所見なし, spec_ref: "ref-v0 R-040", depth: unit, fixture: oracle/fixtures/rules/R-040 }
+    - { id: S-07, scenario: 同一 fixture を --gate always/G1/G3/acceptance/+eco で実行, contract_expectation: 適用集合とexit code が §2.7 の式どおり, spec_ref: "§2.7", depth: unit, fixture: oracle/fixtures/gate-matrix }
+    - { id: S-08, scenario: suppress 4 態(有効・理由なし・死抑制・パス target), contract_expectation: info 降格+X-SUPPRESS-001/002・exit 変化, spec_ref: "§2.8", depth: unit, fixture: oracle/fixtures/suppress }
+    - { id: S-09, scenario: 同一入力2回+readdir 撹乱,                    contract_expectation: 対象出力 byte-diff 0(EQ-BYTE-001), spec_ref: "§2.9", depth: L3, fixture: oracle/harness/determinism-check }
+    - { id: S-10, scenario: 実行前後の対象リポ SHA-256+残留物検査+リポ内 --out, contract_expectation: hash 不変・残留ゼロ・exit 2, spec_ref: "§2.0", depth: L3, fixture: oracle/harness/readonly-check }
+    - { id: S-11, scenario: CLI 引数マトリクス(正常/不正/優先順位/日本語パス), contract_expectation: cli-matrix.yaml の全行(exit/stdout/stderr), spec_ref: "§2.10", depth: L2, fixture: oracle/fixtures/cli-matrix.yaml }
+    - { id: S-12, scenario: 2リポ workspace の cross_repo 解決+単一リポ skip, contract_expectation: 解決/X-XREPO-001(info)/R-002 の3分岐, spec_ref: "§2.5", depth: unit, fixture: oracle/fixtures/workspace }
+    - { id: S-13, scenario: スキーマ差替(family 追加/pattern 変更/未対応記法/欠落), contract_expectation: 追随/X-SCHEMA-001/exit 2, spec_ref: "§2.3", depth: unit, fixture: oracle/fixtures/schema }
+    - { id: S-14, scenario: plm-view.html の自己完結検査+リポ不在描画,   contract_expectation: 外部参照0・全ビュー描画・永続状態0, spec_ref: "§2.11", depth: L2, fixture: oracle/harness/viewer-selfcontained }
+    - { id: S-15, scenario: マトリクス✗セル vs 所見の1対1(INV-010),      contract_expectation: 集合完全一致, spec_ref: "§2.14", depth: L2, fixture: oracle/harness/view-trace }
+    - { id: S-16, scenario: 台帳抽出(register 有無・複数 ID 見出し・非構造), contract_expectation: エントリ集合一致+fallback, spec_ref: "§2.15", depth: L2, fixture: oracle/fixtures/ledger }
+    - { id: S-17, scenario: DC 全 DE の DOM 存在+件数一致(4ビュー・境界状態込み), contract_expectation: DE 全行 present・排他計上, spec_ref: "§2.12-2.15", depth: L2, fixture: oracle/harness/view-* }
+    - { id: S-18, scenario: 基準 workspace 実測(基準機),                 contract_expectation: lint ≤10s・viewer ≤15s(3回中央値), spec_ref: "§2.16", depth: L3, fixture: oracle/harness/perf-bench }
+    - { id: S-19, scenario: 実リポ遡及(ViewPrism2+UI workspace / LibraryLending), contract_expectation: クラッシュ0・全所見が裁定可能(false positive はスキーマ or 実リポの欠陥として毎回裁定=ref-v0 検証データ), spec_ref: "charter 完了定義", depth: L3, fixture: 実リポ(受入時) }

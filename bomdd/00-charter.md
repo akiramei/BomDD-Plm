@@ -79,7 +79,7 @@
 | G1 Requirements | **pass**(2026-07-03) | [10-requirements.yaml](10-requirements.yaml) — 26 REQ(must 23/should 3・core 14/surface 12)・needs-refinement 0・blocker UQ 0・non-blocker UQ 6 は台帳内に持ち越し |
 | G2 Spec | **pass**(2026-07-03) | [20-spec.md](20-spec.md) — マルチリーダー監査2ラウンド(3体+2体)・26論点+8残差を補正・[監査記録](plm-intake/g2-audit-2026-07-03.md) |
 | G2' Measurement | **pass**(2026-07-03) | 20-spec.md ゲート記録 — 全REQ adequate(G部分は human-approval-required=akira)・unmeasurable 0 |
-| G3 BOM dry run | pending | `bomdd/plm-intake/00-index.md` |
+| G3 BOM dry run | **pass**(2026-07-03) | 20-spec.md ゲート記録 — fresh 装置2ラウンド(10問+3問→全回答)。ref-v0.1 改訂(台帳経路・kind 凡例・candidate 定義)と ledger.json/rule-messages.yaml 新設を誘発 |
 | Self-lint Gate | pending | 本リポの bomdd/ に対する bomdd-lint 実行結果(初回は手動検査で代替。self-hosting は v1 目標) |
 
 ## PLM 同期方針
@@ -94,7 +94,7 @@
 | UQ-001 | ref-v0 の ID ファミリー台帳(37 families)を承認するか。特に INV/OC/FMEA/GF の advisory 扱い・S(`S1`/`S-01` 両許容)・移行オラクル `M01` の pattern 分離 | blocker | human | BomDD/method/schemas/draft | **decided → [DEC-0001](65-decision-register.yaml)**(draft として承認・advisory 維持・実物互換優先・strict 化は段階的) |
 | UQ-002 | 裁定台帳(DEC- / `65-decision-register.yaml`)を各製品リポに新設するか。ビューの台帳一覧と R-系ルール追加に影響 | blocker | human | ref-v0 + 本製品スコープ | **decided → [DEC-0001](65-decision-register.yaml)**(新設。reserved 開始・記録対象を限定) |
 | UQ-003 | `bomdd-workspace.yaml` の置き場所(製造リポ側 or 独立)と複数製造リポの表現 | non-blocker | human | ref-v0 workspace 節 | 一部解消(20-spec §2.5 で書式・基準を規定。置き場所は任意=引数供与) |
-| UQ-004 | Web ビューの形態: 静的サイト生成 vs ローカルサーバ | non-blocker | human | 20-spec §2.11 | **proposed → [DEC-0003](65-decision-register.yaml)(open・静的生成で仕様記述済み・承認待ち)** |
+| UQ-004 | Web ビューの形態: 静的サイト生成 vs ローカルサーバ | non-blocker | human | 20-spec §2.11 | **decided → [DEC-0003](65-decision-register.yaml)(静的生成・2026-07-03 承認)** |
 | UQ-005 | 技術スタック(.NET / Node+TS / Python)。fixture・治具・CI 連携の言語も連動 | blocker | human | 32-mbom | **decided → [DEC-0002](65-decision-register.yaml)**(TypeScript。core/cli/viewer 分離) |
 | UQ-006 | 旧試作からの回収物(ArtifactType 分類学・ConformanceAnalyzer の検査アイデア→リントルール候補)を K-BOM 化するか | non-blocker | AI | 31-kbom | open |
 | UQ-007 | 対象リポの実 YAML がテンプレと乖離している場合(例 ViewPrism2 の独自フィールド)の受理方針 — draft 期間は「実物が正」で確定か | non-blocker | human | ref-v0 README §4 | open |

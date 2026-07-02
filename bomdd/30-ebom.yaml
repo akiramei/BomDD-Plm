@@ -1,0 +1,255 @@
+bomdd:
+  product: BomDD-Plm
+  experiment: plm-v0
+  layer: E-BOM
+
+# Phase 3 成果物(2026-07-03)。粒度規準: 独立に再製造・交換でき、単独で受入できる最小単位。
+# 核= requirement 由来 / 表面= ref-v0・CLI慣習・UI-CAD の知識転記(external_source_ref / kbom_refs 必須)。
+
+ebom:
+  ui_sources:
+    - ui_ir_ref: bomdd/ui/viewer/ui-ir.json
+      ui_bom_ref: bomdd/ui/viewer/ui-bom.json
+      ui_trace_map_ref: bomdd/ui/viewer/ui-trace-map.json
+      extraction_report_ref: bomdd/ui/viewer/extraction-report.md
+      design_system_bom_ref: bomdd/35-design-system-bom.yaml
+      approval: "モック v0.1 = 設計原器(2026-07-03 akira 承認)"
+
+  nfr_targets:
+    - id: NFR-PERF-001
+      target: "基準 workspace(ViewPrism2+ViewPrismUI)で lint ≤10s / viewer 生成込み ≤15s(基準機・コールド3回中央値)"
+      requirement_refs: [REQ-025]
+      verified_by: CP-NFR-017
+    - id: NFR-PORT-002
+      target: "Windows/Linux 両対応・Node ≥22 LTS・CRLF/BOM/日本語パス"
+      requirement_refs: [REQ-024]
+      verified_by: CP-NFR-017
+
+  display_contracts:
+    - contract_id: DC-FINDINGS-001
+      original_ref: bomdd/ui/mock/bomdd-plm-viewer.html#screen.findings
+      elements:
+        - { element_id: DE-F01, name: サマリカード4種(排他計上),        ebom_item_ref: E-VIEWER-FINDINGS-002, acceptance_ref: CP-VIEW-FINDINGS-013 }
+        - { element_id: DE-F02, name: severityチップ/ruleセレクト/検索, ebom_item_ref: E-VIEWER-FINDINGS-002, acceptance_ref: CP-VIEW-FINDINGS-013 }
+        - { element_id: DE-F03, name: 所見行(severity/rule/位置/対象/メッセージ), ebom_item_ref: E-VIEWER-FINDINGS-002, acceptance_ref: CP-VIEW-FINDINGS-013 }
+        - { element_id: DE-F04, name: 是正先表示(fixTarget),            ebom_item_ref: E-VIEWER-FINDINGS-002, acceptance_ref: CP-VIEW-FINDINGS-013 }
+        - { element_id: DE-F05, name: 抑制済み行(理由付き・非表示にしない), ebom_item_ref: E-VIEWER-FINDINGS-002, acceptance_ref: CP-VIEW-FINDINGS-013 }
+        - { element_id: DE-F06, name: 空状態=達成表示(✓+stats3値),      ebom_item_ref: E-VIEWER-FINDINGS-002, acceptance_ref: CP-VIEW-FINDINGS-013 }
+    - contract_id: DC-GRAPH-001
+      original_ref: bomdd/ui/mock/bomdd-plm-viewer.html#screen.item-graph
+      elements:
+        - { element_id: DE-G01, name: 品目ノード(family色+品番+短縮名), ebom_item_ref: E-VIEWER-GRAPH-003, acceptance_ref: CP-VIEW-GRAPH-014 }
+        - { element_id: DE-G02, name: 参照/lineage/不解決エッジ,        ebom_item_ref: E-VIEWER-GRAPH-003, acceptance_ref: CP-VIEW-GRAPH-014 }
+        - { element_id: DE-G03, name: supersededノード(灰破線),         ebom_item_ref: E-VIEWER-GRAPH-003, acceptance_ref: CP-VIEW-GRAPH-014 }
+        - { element_id: DE-G04, name: R-040違反エッジ(赤)+コールアウト, ebom_item_ref: E-VIEWER-GRAPH-003, acceptance_ref: CP-VIEW-GRAPH-014 }
+        - { element_id: DE-G05, name: 詳細パネル(8項目・固定幅300px),   ebom_item_ref: E-VIEWER-GRAPH-003, acceptance_ref: CP-VIEW-GRAPH-014 }
+        - { element_id: DE-G06, name: 検索/familyフィルタ/近傍深さ,     ebom_item_ref: E-VIEWER-GRAPH-003, acceptance_ref: CP-VIEW-GRAPH-014 }
+    - contract_id: DC-TRACE-001
+      original_ref: bomdd/ui/mock/bomdd-plm-viewer.html#screen.trace-matrix
+      elements:
+        - { element_id: DE-T01, name: REQ行×5列マトリクス,             ebom_item_ref: E-VIEWER-TRACE-004, acceptance_ref: CP-VIEW-TRACE-015 }
+        - { element_id: DE-T02, name: セル3状態(✓品番/✗赤/—灰),        ebom_item_ref: E-VIEWER-TRACE-004, acceptance_ref: CP-VIEW-TRACE-015 }
+        - { element_id: DE-T03, name: 被覆率サマリ3種,                  ebom_item_ref: E-VIEWER-TRACE-004, acceptance_ref: CP-VIEW-TRACE-015 }
+        - { element_id: DE-T04, name: 未被覆のみトグル+凡例,            ebom_item_ref: E-VIEWER-TRACE-004, acceptance_ref: CP-VIEW-TRACE-015 }
+    - contract_id: DC-LEDGER-001
+      original_ref: bomdd/ui/mock/bomdd-plm-viewer.html#screen.ledgers
+      elements:
+        - { element_id: DE-L01, name: サブタブ3種+全件数,               ebom_item_ref: E-VIEWER-LEDGER-005, acceptance_ref: CP-VIEW-LEDGER-016 }
+        - { element_id: DE-L02, name: ECO表(ID/タイトル+register時追加列), ebom_item_ref: E-VIEWER-LEDGER-005, acceptance_ref: CP-VIEW-LEDGER-016 }
+        - { element_id: DE-L03, name: ずる表(ID/タイトル),              ebom_item_ref: E-VIEWER-LEDGER-005, acceptance_ref: CP-VIEW-LEDGER-016 }
+        - { element_id: DE-L04, name: 裁定表(ID/タイトル/状態/binds/承認者), ebom_item_ref: E-VIEWER-LEDGER-005, acceptance_ref: CP-VIEW-LEDGER-016 }
+        - { element_id: DE-L05, name: 見出し抽出注記,                   ebom_item_ref: E-VIEWER-LEDGER-005, acceptance_ref: CP-VIEW-LEDGER-016 }
+
+  items:
+    # ================= core =================
+    - id: E-CORE-READONLY-001
+      name: 正本直読・read-only 実行機構
+      classification: core
+      rationale_type: requirement
+      requirement_refs: [REQ-001, REQ-002]
+      invariants: [INV-001, INV-002]
+      granularity: { level: component, rationale: 出力先検証・temp管理・書込禁止を単独で受入可能(CP-READONLY-001) }
+      acceptance_refs: [CP-READONLY-001]
+      planned_output_artifact_ref: packages/core/src/runtime/
+    - id: E-CORE-DISCOVER-002
+      name: 成果物発見・型付け(1ファイル=1型・配列順先勝ち)
+      classification: surface
+      rationale_type: external-knowledge
+      external_source_ref: K-REFV0
+      requirement_refs: [REQ-003]
+      kbom_refs: [K-REFV0, K-TS-DETERMINISM]
+      acceptance_refs: [CP-DISCOVER-002]
+      planned_output_artifact_ref: packages/core/src/discover/
+    - id: E-CORE-PARSE-003
+      name: 頑健パーサ(X-PARSE/X-TYPE・罠3型ヒント・継続)
+      classification: core
+      rationale_type: requirement
+      requirement_refs: [REQ-004, REQ-005]
+      kbom_refs: [K-YAML-AUTHORING, K-TS-DETERMINISM]
+      invariants: ["重複キーは X-TYPE-001(warn)+後勝ち採用(K-TS-DETERMINISM)"]
+      acceptance_refs: [CP-PARSE-003]
+      planned_output_artifact_ref: packages/core/src/parse/
+    - id: E-CORE-SCHEMA-004
+      name: ref-v0 実行時読込(焼き込み禁止・exit2/X-SCHEMA境界)
+      classification: core
+      rationale_type: requirement
+      requirement_refs: [REQ-006]
+      kbom_refs: [K-REFV0]
+      invariants: [INV-007]
+      acceptance_refs: [CP-SCHEMA-004]
+      planned_output_artifact_ref: packages/core/src/schema/
+    - id: E-CORE-RESOLVE-005
+      name: ID索引・参照解決(family判定・IDトークン貪欲・散文規律)
+      classification: surface
+      rationale_type: external-knowledge
+      external_source_ref: K-REFV0
+      requirement_refs: [REQ-007]
+      kbom_refs: [K-REFV0, K-TS-DETERMINISM]
+      invariants: [INV-004]
+      acceptance_refs: [CP-RESOLVE-005]
+      planned_output_artifact_ref: packages/core/src/resolve/
+    - id: E-CORE-WORKSPACE-006
+      name: workspace解決(cross_repo・skip・R-002全域適用)
+      classification: surface
+      rationale_type: external-knowledge
+      external_source_ref: K-REFV0
+      requirement_refs: [REQ-009]
+      kbom_refs: [K-REFV0]
+      acceptance_refs: [CP-WORKSPACE-006]
+      planned_output_artifact_ref: packages/core/src/workspace/
+    - id: E-CORE-LINT-007
+      name: リント規則エンジン(R-*全評価・X-*7種・message凍結文言)
+      classification: surface
+      rationale_type: external-knowledge
+      external_source_ref: K-REFV0
+      requirement_refs: [REQ-010, REQ-011, REQ-026]
+      kbom_refs: [K-REFV0]
+      acceptance_refs: [CP-LINT-007]
+      planned_output_artifact_ref: packages/core/src/rules/
+    - id: E-CORE-GATE-008
+      name: ゲート合成(梯子+eco直交)
+      classification: core
+      rationale_type: requirement
+      requirement_refs: [REQ-012]
+      acceptance_refs: [CP-GATE-008]
+      planned_output_artifact_ref: packages/core/src/gate/
+    - id: E-CORE-SUPPRESS-009
+      name: 抑制(3必須・info降格・無効行/死抑制の所見化)
+      classification: core
+      rationale_type: requirement
+      requirement_refs: [REQ-015]
+      invariants: [INV-005]
+      acceptance_refs: [CP-SUPPRESS-009]
+      planned_output_artifact_ref: packages/core/src/suppress/
+    - id: E-CORE-OUTPUT-010
+      name: 正規シリアライザ+diagnostics/graph生成
+      classification: core
+      rationale_type: requirement
+      requirement_refs: [REQ-008, REQ-013]
+      kbom_refs: [K-TS-DETERMINISM]
+      invariants: [INV-003, INV-009]
+      graph_edges: { owner: ~, consumers: [E-CLI-011, E-VIEWER-SHELL-001] }
+      acceptance_refs: [CP-OUTPUT-010]
+      planned_output_artifact_ref: packages/core/src/output/
+    - id: E-CONTRACT-DIAG-018
+      name: 出力契約スキーマ(plm-diag/1・plm-graph/1・plm-ledger/1 JSON Schema)
+      classification: core
+      rationale_type: requirement
+      requirement_refs: [REQ-017]
+      graph_edges: { owner: E-CORE-OUTPUT-010, consumers: [E-CLI-011, E-VIEWER-SHELL-001] }
+      acceptance_refs: [CP-OUTPUT-010]
+      planned_output_artifact_ref: schemas/
+      notes: DEC-0002 consequences の「一級品目」。woven — CLI/viewer/外部CI の共有契約。
+
+    # ================= cli =================
+    - id: E-CLI-011
+      name: CLI(引数・exit code・stdout/stderr 契約)
+      classification: surface
+      rationale_type: external-knowledge
+      external_source_ref: K-NODE-CLI
+      requirement_refs: [REQ-014, REQ-016]
+      kbom_refs: [K-NODE-CLI, K-NODE-PORTABILITY]
+      invariants: [INV-006]
+      depends_on: [E-CORE-OUTPUT-010, E-CONTRACT-DIAG-018]
+      acceptance_refs: [CP-CLI-011]
+      planned_output_artifact_ref: packages/cli/
+
+    # ================= viewer =================
+    - id: E-VIEWER-SHELL-001
+      name: viewer静的生成機構+シェル(topbar/nav/フッタ)
+      classification: surface
+      rationale_type: design-token
+      external_source_ref: bomdd/ui/viewer/ui-ir.json#region.shell-topbar
+      requirement_refs: [REQ-018, REQ-023]
+      kbom_refs: [K-VIEWER-VANILLA, K-DESIGN-PLM]
+      invariants: [INV-008, "LIV-0001 単一スクロール"]
+      depends_on: [E-CONTRACT-DIAG-018]
+      acceptance_refs: [CP-VIEWER-012]
+      planned_output_artifact_ref: packages/viewer/
+    - id: E-VIEWER-FINDINGS-002
+      name: 所見ビュー
+      classification: surface
+      rationale_type: design-token
+      external_source_ref: bomdd/ui/viewer/ui-ir.json#screen.findings
+      requirement_refs: [REQ-019]
+      kbom_refs: [K-VIEWER-VANILLA, K-DESIGN-PLM]
+      display_contract_refs: [DC-FINDINGS-001]
+      design_system_refs: [E-DESIGN-SEVCHIP-021, E-DESIGN-FAMCHIP-022, E-DESIGN-SUMCARD-023, E-DESIGN-FINDROW-024, E-DESIGN-EMPTY-029]
+      invariants: ["LIV-0002 サマリ固定幅", "LIV-0004 パス中央省略"]
+      acceptance_refs: [CP-VIEW-FINDINGS-013]
+      planned_output_artifact_ref: packages/viewer/src/views/findings/
+    - id: E-VIEWER-GRAPH-003
+      name: 品目グラフビュー
+      classification: surface
+      rationale_type: design-token
+      external_source_ref: bomdd/ui/viewer/ui-ir.json#screen.item-graph
+      requirement_refs: [REQ-020]
+      kbom_refs: [K-VIEWER-VANILLA, K-DESIGN-PLM]
+      display_contract_refs: [DC-GRAPH-001]
+      design_system_refs: [E-DESIGN-NODE-025, E-DESIGN-CALLOUT-026, E-DESIGN-FAMCHIP-022]
+      invariants: ["LIV-0003 詳細パネル固定幅300px"]
+      acceptance_refs: [CP-VIEW-GRAPH-014]
+      planned_output_artifact_ref: packages/viewer/src/views/graph/
+    - id: E-VIEWER-TRACE-004
+      name: トレースマトリクスビュー
+      classification: surface
+      rationale_type: design-token
+      external_source_ref: bomdd/ui/viewer/ui-ir.json#screen.trace-matrix
+      requirement_refs: [REQ-021]
+      kbom_refs: [K-VIEWER-VANILLA, K-DESIGN-PLM]
+      display_contract_refs: [DC-TRACE-001]
+      design_system_refs: [E-DESIGN-TRACECELL-027, E-DESIGN-FAMCHIP-022]
+      invariants: [INV-010]
+      acceptance_refs: [CP-VIEW-TRACE-015]
+      planned_output_artifact_ref: packages/viewer/src/views/trace/
+    - id: E-VIEWER-LEDGER-005
+      name: 台帳ビュー
+      classification: surface
+      rationale_type: design-token
+      external_source_ref: bomdd/ui/viewer/ui-ir.json#screen.ledgers
+      requirement_refs: [REQ-022]
+      kbom_refs: [K-VIEWER-VANILLA, K-DESIGN-PLM]
+      display_contract_refs: [DC-LEDGER-001]
+      design_system_refs: [E-DESIGN-LEDGERTBL-028, E-DESIGN-SEVCHIP-021]
+      acceptance_refs: [CP-VIEW-LEDGER-016]
+      planned_output_artifact_ref: packages/viewer/src/views/ledgers/
+
+    # ================= design system parts(35 と同期。R-021) =================
+    - { id: E-DESIGN-SEVCHIP-021,   name: SeverityChip,   classification: surface, rationale_type: design-token, external_source_ref: K-DESIGN-PLM, kbom_refs: [K-DESIGN-PLM], acceptance_refs: [CP-DESIGN-SYSTEM-019], granularity: { level: component } }
+    - { id: E-DESIGN-FAMCHIP-022,   name: FamilyChip,     classification: surface, rationale_type: design-token, external_source_ref: K-DESIGN-PLM, kbom_refs: [K-DESIGN-PLM], acceptance_refs: [CP-DESIGN-SYSTEM-019], granularity: { level: component } }
+    - { id: E-DESIGN-SUMCARD-023,   name: SummaryCard,    classification: surface, rationale_type: design-token, external_source_ref: K-DESIGN-PLM, kbom_refs: [K-DESIGN-PLM], acceptance_refs: [CP-DESIGN-SYSTEM-019], granularity: { level: component } }
+    - { id: E-DESIGN-FINDROW-024,   name: FindingRow,     classification: surface, rationale_type: design-token, external_source_ref: K-DESIGN-PLM, kbom_refs: [K-DESIGN-PLM], acceptance_refs: [CP-DESIGN-SYSTEM-019], granularity: { level: component } }
+    - { id: E-DESIGN-NODE-025,      name: GraphNode,      classification: surface, rationale_type: design-token, external_source_ref: K-DESIGN-PLM, kbom_refs: [K-DESIGN-PLM], acceptance_refs: [CP-DESIGN-SYSTEM-019], granularity: { level: component } }
+    - { id: E-DESIGN-CALLOUT-026,   name: ViolationCallout, classification: surface, rationale_type: design-token, external_source_ref: K-DESIGN-PLM, kbom_refs: [K-DESIGN-PLM], acceptance_refs: [CP-DESIGN-SYSTEM-019], granularity: { level: component } }
+    - { id: E-DESIGN-TRACECELL-027, name: TraceCell,      classification: surface, rationale_type: design-token, external_source_ref: K-DESIGN-PLM, kbom_refs: [K-DESIGN-PLM], acceptance_refs: [CP-DESIGN-SYSTEM-019], granularity: { level: component } }
+    - { id: E-DESIGN-LEDGERTBL-028, name: LedgerTable(StatusChip込み), classification: surface, rationale_type: design-token, external_source_ref: K-DESIGN-PLM, kbom_refs: [K-DESIGN-PLM], acceptance_refs: [CP-DESIGN-SYSTEM-019], granularity: { level: component } }
+    - { id: E-DESIGN-EMPTY-029,     name: EmptyStateDone(達成表示), classification: surface, rationale_type: design-token, external_source_ref: K-DESIGN-PLM, kbom_refs: [K-DESIGN-PLM], acceptance_refs: [CP-DESIGN-SYSTEM-019], granularity: { level: component } }
+
+    # ================= NFR =================
+    - id: E-NFR-017
+      name: 性能・可搬性目標(nfr_targets 参照)
+      classification: core
+      rationale_type: constraint
+      requirement_refs: [REQ-024, REQ-025]
+      acceptance_refs: [CP-NFR-017]
+      notes: 目標値は nfr_targets(NFR-PERF-001/NFR-PORT-002)。実現手段は 32-mbom 各 unit・検証は CP-NFR-017。

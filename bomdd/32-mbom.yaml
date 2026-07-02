@@ -1,0 +1,121 @@
+bomdd:
+  product: BomDD-Plm
+  experiment: plm-v0
+  layer: M-BOM
+
+# 受入3条件: 完全性(test_vectors)・無矛盾性・Control Plan 列。FMEA は 33 に前倒し済み。
+# 粒度: 独立に再製造・交換でき単独で自己受入できる単位(fresh factory に単体で渡せるか)。
+
+mbom:
+  procurement:                 # 列挙外パッケージの採用= ずる報告対象(40-work-order)
+    runtime:
+      - { package: yaml, version: "2.8.0", pin: exact, rationale: 位置情報(line/col)取得・重複キー検出・YAML1.2 core schema, alternative: js-yaml(位置情報が弱く不採用), license: ISC }
+    dev:
+      - { package: typescript, version: "5.8.x", pin: minor, rationale: ビルド= tsc 単独, license: Apache-2.0 }
+      - { package: "@types/node", version: "22.x", pin: major, rationale: Node22 型定義, license: MIT }
+    policy:
+      - テスト= node:test / 引数= node:util parseArgs / グラフ描画= 自前 SVG(K-VIEWER-VANILLA) — いずれも調達ゼロ(UQ-SPEC-003 は「自前 SVG」で解決)
+      - viewer の実行時依存= ゼロ(自己完結 INV-008)
+
+  manufacturing_units:
+    - id: M-CORE-INGEST-001
+      name: 発見+頑健パース
+      ebom_refs: [E-CORE-READONLY-001, E-CORE-DISCOVER-002, E-CORE-PARSE-003]
+      kbom_refs: [K-REFV0, K-TS-DETERMINISM, K-YAML-AUTHORING, K-NODE-PORTABILITY]
+      artifact: { path: packages/core/src/(runtime/, discover/, parse/), type: ts-module }
+      interface_contract:
+        discover: "discover(ws: Workspace, schema: RefSchema): Artifact[]  // Artifact={repo, canonicalPath, type}。ソート済み"
+        parse: "parseArtifact(a: Artifact): {doc?: unknown, findings: Finding[]}  // クラッシュしない。X-PARSE/X-TYPE"
+      invariants: [INV-001, INV-002, "重複キー= X-TYPE-001+後勝ち"]
+      acceptance_refs: [CP-READONLY-001, CP-DISCOVER-002, CP-PARSE-003]
+      fmea_refs: [FMEA-002, FMEA-009]
+    - id: M-CORE-GRAPH-002
+      name: スキーマ読込+索引+参照解決+workspace
+      ebom_refs: [E-CORE-SCHEMA-004, E-CORE-RESOLVE-005, E-CORE-WORKSPACE-006]
+      kbom_refs: [K-REFV0, K-TS-DETERMINISM, K-NODE-PORTABILITY]
+      artifact: { path: packages/core/src/(schema/, resolve/, workspace/), type: ts-module }
+      interface_contract:
+        loadSchema: "loadSchema(dir: string): RefSchema | ExitError(2)  // 未対応記法= X-SCHEMA 所見"
+        buildModel: "buildModel(docs, schema, ws): {index, edges, findings}  // family 判定・id-or-path・X-ID/X-XREPO"
+      invariants: [INV-004, INV-007]
+      acceptance_refs: [CP-SCHEMA-004, CP-RESOLVE-005, CP-WORKSPACE-006]
+      fmea_refs: [FMEA-003, FMEA-005, FMEA-010]
+    - id: M-CORE-RULES-003
+      name: リント規則+ゲート+抑制
+      ebom_refs: [E-CORE-LINT-007, E-CORE-GATE-008, E-CORE-SUPPRESS-009]
+      kbom_refs: [K-REFV0]
+      artifact: { path: packages/core/src/(rules/, gate/, suppress/), type: ts-module }
+      interface_contract:
+        evaluate: "evaluate(model, schema): Finding[]  // R-* 全評価+gate 付与"
+        applyGate: "appliedRules(gate, eco): Set<RuleId>  // §2.7 の式"
+        applySuppress: "applySuppress(findings, cfg): {findings, findings X-SUPPRESS}  // info 降格・reason 転記"
+      acceptance_refs: [CP-LINT-007, CP-GATE-008, CP-SUPPRESS-009]
+      fmea_refs: [FMEA-003, FMEA-004, FMEA-006]
+    - id: M-CORE-OUTPUT-004
+      name: 正規シリアライザ+出力契約スキーマ
+      ebom_refs: [E-CORE-OUTPUT-010, E-CONTRACT-DIAG-018]
+      kbom_refs: [K-TS-DETERMINISM]
+      artifact: { path: "packages/core/src/output/ + schemas/(plm-diag-1.schema.json, plm-graph-1.schema.json)", type: ts-module+json-schema }
+      interface_contract:
+        serialize: "serializeDiagnostics(model): string / serializeGraph(model): string / serializeLedger(model): string  // §2.9 正規形(3出力)"
+      invariants: [INV-003, INV-009]
+      acceptance_refs: [CP-OUTPUT-010]
+      fmea_refs: [FMEA-001]
+    - id: M-CLI-005
+      name: CLI
+      ebom_refs: [E-CLI-011]
+      kbom_refs: [K-NODE-CLI, K-NODE-PORTABILITY]
+      artifact: { path: packages/cli/, type: ts-cli(bin=bomdd-lint) }
+      interface_contract:
+        main: "main(argv): exitCode 0|1|2  // §2.10 マトリクス。stdout=データ/stderr=ログ"
+      invariants: [INV-006]
+      acceptance_refs: [CP-CLI-011]
+    - id: M-VIEWER-GEN-006
+      name: viewer 静的生成+シェル
+      ebom_refs: [E-VIEWER-SHELL-001]
+      kbom_refs: [K-VIEWER-VANILLA, K-DESIGN-PLM]
+      artifact: { path: packages/viewer/src/(generate.ts, shell/), type: ts-module }
+      interface_contract:
+        generate: "generateView(diagJson: string, graphJson: string, ledgerJson: string): string  // 自己完結 HTML。純粋関数(I/O なし)"
+      invariants: [INV-008, "LIV-0001"]
+      acceptance_refs: [CP-VIEWER-012]
+    - id: M-VIEWER-UI-007
+      name: viewer 4ビュー UI(design parts 込み)
+      ebom_refs: [E-VIEWER-FINDINGS-002, E-VIEWER-GRAPH-003, E-VIEWER-TRACE-004, E-VIEWER-LEDGER-005,
+                  E-DESIGN-SEVCHIP-021, E-DESIGN-FAMCHIP-022, E-DESIGN-SUMCARD-023, E-DESIGN-FINDROW-024,
+                  E-DESIGN-NODE-025, E-DESIGN-CALLOUT-026, E-DESIGN-TRACECELL-027, E-DESIGN-LEDGERTBL-028, E-DESIGN-EMPTY-029]
+      kbom_refs: [K-VIEWER-VANILLA, K-DESIGN-PLM]
+      artifact: { path: packages/viewer/src/views/, type: 埋込 JS/CSS(生成 HTML に内包) }
+      display_contract:
+        refs: [DC-FINDINGS-001, DC-GRAPH-001, DC-TRACE-001, DC-LEDGER-001]
+        required_elements: [DE-F01, DE-F02, DE-F03, DE-F04, DE-F05, DE-F06, DE-G01, DE-G02, DE-G03, DE-G04, DE-G05, DE-G06, DE-T01, DE-T02, DE-T03, DE-T04, DE-L01, DE-L02, DE-L03, DE-L04, DE-L05]
+      invariants: [INV-010, "LIV-0002/0003/0004", "SVG レイアウト決定的(乱数禁止)"]
+      acceptance_refs: [CP-VIEW-FINDINGS-013, CP-VIEW-GRAPH-014, CP-VIEW-TRACE-015, CP-VIEW-LEDGER-016, CP-DESIGN-SYSTEM-019]
+      fmea_refs: [FMEA-007, FMEA-008]
+    - id: M-HARNESS-008
+      name: 自己受入ハーネス(治具 — 製品と同格管理)
+      ebom_refs: []
+      kbom_refs: [K-TS-DETERMINISM]
+      artifact: { path: test/, type: node:test スイート }
+      interface_contract:
+        run: "node --test  // CP の unit/L2 行 test_vectors 全被覆+L1 スモーク(下記)"
+      acceptance_refs: []
+      notes: "L1 スモーク= 同梱ミニ fixture に対し CLI 実行→ exit code/出力ファイル存在/plm-view.html 生成を1本通す(unit 緑のまま表面全滅の盲点対策・forward-01)。治具セルフテスト(比較器の合成データ検証)を含む"
+
+  silence_sweep:   # 第2回掃討(全行3択。第1回の deferred-to-phase3 を解消)
+    - { dimension: 表示要素集合・CAD パリティ, declaration: specified, ref: "30 display_contracts / CP-VISUAL-GAP-018" }
+    - { dimension: エラー語彙, declaration: specified, ref: "R-*+X-* 7種(閉集合)" }
+    - { dimension: 文字コード・改行, declaration: specified, ref: "K-TS-DETERMINISM / 仕様 §2.2・2.9" }
+    - { dimension: パス表現・照合・ソート, declaration: specified, ref: "INV-004 / §2.9 比較器" }
+    - { dimension: 日時表現, declaration: specified, ref: "出力に時刻なし(INV-003)。Date 使用禁止(K-TS-DETERMINISM)" }
+    - { dimension: 識別子, declaration: specified, ref: 入力 ID 原表記転記・独自採番なし }
+    - { dimension: 調達部品, declaration: specified, ref: "procurement(第1回 deferred → 解消: yaml 2.8.0 exact・グラフ自前 SVG)" }
+    - { dimension: アクセシビリティ(色覚), declaration: specified, ref: "K-DESIGN-PLM 二重符号化(第1回 deferred → 解消)" }
+    - { dimension: viewer 内部構造(DOM/CSS), declaration: exploratory, ref: P-03 }
+    - { dimension: コード規約・ファイル構成, declaration: exploratory, ref: P-04 }
+    - { dimension: ログ(stderr), declaration: exploratory, ref: P-01 }
+    - { dimension: 並行性, declaration: exploratory, ref: "P-02(INV-003 違反は CP-OUTPUT-010 が検出)" }
+    - { dimension: i18n, declaration: out-of-scope, ref: 日本語のみ(charter) }
+    - { dimension: セキュリティ・権限, declaration: out-of-scope, ref: ローカル信頼入力(クラッシュ耐性のみ §2.2) }
+    - { dimension: 永続化・DB, declaration: out-of-scope, ref: DB なしが要件 }
+    - { dimension: ネットワーク, declaration: out-of-scope, ref: 全機能オフライン(INV-008) }

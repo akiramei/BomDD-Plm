@@ -1,0 +1,129 @@
+bomdd:
+  product: BomDD-Plm
+  experiment: plm-v0
+  layer: K-BOM
+
+# K-BOM 事前抽出(playbook §4.3): クリーンな3エージェントに「BOM記載なしなら慣習で埋める判断」を
+# 列挙させ(CLI 45件 / viewer 37件 / TS決定性 37件・[決定性]13件)、設計者が裁定して固定。
+# 固定しない判断は 42-exploratory-probes へ。K-BOM に無い判断は CHEAT として記録(method-v1 §2)。
+
+kbom:
+  items:
+    - id: K-REFV0
+      name: ref-v0 参照スキーマ(入力仕様スナップショット)
+      knowledge_kind: tool-grammar
+      version: ref-v0@329e57d
+      source: BomDD/method/schemas/draft/(同梱スナップショット schemas/ref-v0/)
+      managed_knowledge:
+        - id-grammar(37 families・strictness)/ ref-edges(defines/refs/lint_rules)が判定の唯一の正
+        - family_pattern は JS RegExp 方言で解釈(仕様 §2.3)
+        - 改訂は S-BOM の知識更新イベント(コード変更なしで追随=INV-007)
+      risk_if_implicit: スキーマ焼き込み=旧試作のパーサ地獄が再発
+      consumers: [E-CORE-DISCOVER-002, E-CORE-RESOLVE-005, E-CORE-WORKSPACE-006, E-CORE-LINT-007]
+
+    - id: K-TS-DETERMINISM
+      name: TypeScript 決定性・プロジェクト規約
+      knowledge_kind: domain-convention
+      version: v1
+      source: K-BOM事前抽出(2026-07-03・[決定性]13件の裁定)
+      managed_knowledge:
+        - "構成: npm workspaces(packages/core・cli・viewer)。追加ツール(pnpm/turbo/lerna)不採用。全パッケージ同一バージョン"
+        - "tsconfig: target ES2022 / module NodeNext / strict true。ビルド= tsc 単独"
+        - "テスト= node:test(調達ゼロ)。lint/formatter は v0 不採用"
+        - "[決定性] 文字列の正準比較= UTF-8 バイト列(Buffer.compare)。localeCompare / Intl.Collator 禁止"
+        - "[決定性] 出力オブジェクトのキーはスキーマ定義順で明示構築(挿入順依存・整数風キー禁止)"
+        - "[決定性] fs.readdir 結果は必ずソートしてから処理。Map/Object の列挙順に依存しない"
+        - "[決定性] Math.random / Date.now / new Date を製品コードで使用禁止(出力に混入し得るため)"
+        - "[決定性] 出力= LF・末尾改行1個・UTF-8 BOMなし・2スペース。os.EOL 不使用"
+        - "[決定性] -0 は 0 に正規化。数値はJS既定表現(本製品の出力数値は整数のみ)"
+        - "[決定性] Unicode 正規化(NFC/NFD)はしない — 原表記素通し(INV-004)"
+        - "[決定性] Array.sort は ES2019 安定ソート保証を前提に使用可。比較器は仕様 §2.9 の型固定"
+        - "YAML パーサ= yaml(eemeli)。重複キー= X-TYPE-001(warn)+後勝ち採用。アンカーはパーサ既定で展開。スカラー解釈= YAML 1.2 core schema"
+        - "エラー方針: core は throw せず診断リストを返す(例外=バグ)。exit code 変換は CLI 層のみ"
+        - "正規表現に u/v フラグを付けない(ref-v0 パターンは ASCII。付けると挙動が変わる)"
+      risk_if_implicit: byte 同一契約(INV-003)が工場ごとの慣習差で即座に破れる
+      consumers: [E-CORE-DISCOVER-002, E-CORE-PARSE-003, E-CORE-RESOLVE-005, E-CORE-OUTPUT-010]
+
+    - id: K-NODE-CLI
+      name: Node CLI 慣習パック
+      knowledge_kind: tool-grammar
+      version: v1
+      source: K-BOM事前抽出(2026-07-03・45件の裁定)
+      managed_knowledge:
+        - "引数パーサ= node:util parseArgs(調達ゼロ)。サブコマンドなし・位置引数は1個のみ"
+        - "--help: Usage/Options/Examples の3段・stdout・exit 0。--version: package.json 実行時読込・`bomdd-lint <ver>` 1行・stdout・exit 0。両者は他バリデーションより優先"
+        - "不正引数: stderr に日本語1行+簡易 usage → exit 2(フル help は出さない)"
+        - "色付き出力: v0 なし(常時無色。NO_COLOR/CI 検出も実装しない)"
+        - "stdin(-) 非対応・シェル glob 非依存(発見は ref-edges 側)・設定ファイル自動探索なし"
+        - "--out: 常に書く(--format 無関係)。上書き。親ディレクトリは自動作成(mkdir -p 相当)"
+        - "--out 指定時も stdout 契約は不変(--format に従って出す)"
+        - "text 行書式: `<severity> <rule> <file>:<line> <targetId> <message>` 1行+次行 `  → 是正先: <fixTarget>`"
+        - "text の空所見: 「現ゲートで所見なし」+ stats 1行(DE-F06 と同文言)"
+        - "メッセージ言語= 日本語(仕様掃討で宣言済み)。ログにタイムスタンプを付けない"
+        - "シグナル= Node 既定動作。未捕捉例外= stderr にメッセージ → exit 2"
+        - "サマリ・所見一覧は stdout(text 形式の本体)。進捗・警告ログのみ stderr"
+      risk_if_implicit: exit code 境界(抽出で「1にまとめる実装も多い」)・stdout/stderr 混在・--gate の意味の取り違え(抽出 #26-27 で実際に別解釈が出た)
+      consumers: [E-CLI-011]
+
+    - id: K-NODE-PORTABILITY
+      name: Windows/Linux 可搬性パック
+      knowledge_kind: domain-convention
+      version: v1
+      source: K-BOM事前抽出+plm-intake/id-inventory(CRLF 実測)
+      managed_knowledge:
+        - パス連結は node:path、ただし出力・比較は常に正準パス(`/` 区切り)へ変換してから
+        - パス同定は case-insensitive(INV-004)。glob 照合は case-sensitive(仕様 §2.1)
+        - 入力の CRLF/LF 混在・BOM を透過処理。行番号は改行形式非依存
+        - 日本語・空白入りパスをテスト対象に含める(REQ-024 反例)
+        - シンボリックリンクは辿らない(realpath 解決しない — 循環と環境差の回避)
+      risk_if_implicit: 開発機(Windows)と CI(Linux)で挙動・行番号が割れる
+      consumers: [E-CLI-011, E-CORE-DISCOVER-002, E-CORE-RESOLVE-005]
+
+    - id: K-YAML-AUTHORING
+      name: BomDD 台帳 YAML 記述規律(罠パック)
+      knowledge_kind: domain-convention
+      version: v1
+      source: bomdd/plm-intake/yaml-authoring-traps.md(実地3件)
+      managed_knowledge:
+        - "罠1: `*` 始まりリスト項目= alias 誤解釈 → hint: `*` 始まりの項目は引用符で囲む"
+        - "罠2: 複数行 plain scalar の行末コロン → hint: 行末の `:` を含む文は `>-` ブロックにするか引用符で囲む"
+        - "罠3: 引用符始まり+後続テキスト → hint: 項目全体を引用符で囲むか、引用符を先頭から外す"
+        - hint 文言は上記が正準(仕様 §2.2 に転記済み。変更は仕様改訂)
+      risk_if_implicit: 人間+AI が書く台帳で恒常再発。生スタックトレースでは自己修正できない
+      consumers: [E-CORE-PARSE-003]
+
+    - id: K-VIEWER-VANILLA
+      name: 自己完結 viewer 実装規約(生JS/CSS/SVG)
+      knowledge_kind: design-system
+      version: v1
+      source: K-BOM事前抽出(2026-07-03・37件の裁定)
+      managed_knowledge:
+        - "埋込データ読み出し= <script type=application/json> + JSON.parse(textContent)"
+        - "状態= 単一 state オブジェクト+全再描画(update() が各 render を呼ぶ)。URL ハッシュ・localStorage 不使用(INV-008)"
+        - "再レンダー= コンテナ innerHTML 全置換。**全データ文字列は escapeHtml(&<>\"')を通す**(XSS/表示壊れ)"
+        - "[決定性] SVG グラフレイアウト= **決定的層状配置**(乱数・力学シミュレーション禁止): 列= family の固定順(REQ,E,M,K,CP,SB,その他)、列内= (family,id) バイト列順に等間隔。エッジ= 直線+marker 矢印"
+        - "ノードイベント= SVG ルート1個のリスナーで委譲(closest('[data-node-id]'))"
+        - "ズーム/パン= viewBox 手動書換(wheel+drag)。初期表示= 近傍集合の bounding box に fit"
+        - "テーブル= 汎用レンダラー1本を列定義パラメータで使い回す(所見/台帳/マトリクス)"
+        - "ページング= slice+前後/番号ボタン。フィルタ= 小文字化 includes・AND。ソート比較器= core と同一規則(localeCompare 禁止)"
+        - "CSS= :root カスタムプロパティ(トークンはモック M1 から転記)+フラットクラス名。ライトモード固定"
+        - "フォント= モック M1 のスタック。数値= tabular-nums"
+        - "スクロール= main のみ(LIV-0001)。各パネル内は overflow:auto"
+        - "行キー= データ id。日付・数値の整形なし(原表記)"
+        - "JS 構成= IIFE 名前空間(ビュー単位)。エラー= 欠損データは「-」表示(握りつぶさず console.error)"
+      risk_if_implicit: 抽出で最大分散と自己申告された3点(SVGレイアウト・状態同期・エスケープ徹底度)がそのまま工場分散になる。特にレイアウトの乱数使用は golden を非決定化する
+      consumers: [E-VIEWER-SHELL-001, E-VIEWER-FINDINGS-002, E-VIEWER-GRAPH-003, E-VIEWER-TRACE-004, E-VIEWER-LEDGER-005]
+
+    - id: K-DESIGN-PLM
+      name: PLM viewer デザイン言語(トークン+色覚二重符号化)
+      knowledge_kind: design-system
+      version: v1
+      source: bomdd/ui/mock/bomdd-plm-viewer.html(DESIGN DIRECTION・承認済み原器)
+      managed_knowledge:
+        - "severity 色言語: error=#c53030 / warn=#b7791f / info=#4a6b8a / suppressed=#8a8f98+打消線。**常にテキストラベル併記**(色単独に依存しない=色覚対応)"
+        - "family 色言語: REQ=#64748b / E=#2f5aa8 / M=#2f855a / K=#7c3aed / CP=#c05621 / SB=#0e7490。**チップは常に品番テキストを表示**"
+        - "トークン: --bg/--surface/--border/--text 系・radius 6px・基準 13px・mono=Consolas系(モック :root が正)"
+        - superseded= 灰+破線 / 違反= 赤+コールアウト / 空状態= 達成表示(✓)。suppressed は非表示にしない
+        - マトリクスセル= 記号(✓/✗/—)+色の二重符号化(色単独禁止)
+      risk_if_implicit: 素の panel/text へ退化(S2)・色単独符号化で色覚非対応
+      consumers: [E-DESIGN-SEVCHIP-021, E-DESIGN-FAMCHIP-022, E-DESIGN-SUMCARD-023, E-DESIGN-FINDROW-024, E-DESIGN-NODE-025, E-DESIGN-CALLOUT-026, E-DESIGN-TRACECELL-027, E-DESIGN-LEDGERTBL-028, E-DESIGN-EMPTY-029]
