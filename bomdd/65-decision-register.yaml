@@ -1,0 +1,56 @@
+# Decision Register — BomDD-Plm(裁定台帳)
+# 記録対象: 後で判断理由が問題になる裁定のみ(参照スキーマ・lint gate・意味論境界・ID family strict 化など)。
+# 日常の実装判断・ずるの裁定は対象外(それぞれ ECO / 51-cheat-log が持つ)。
+# DEC- ファミリーは ref-v0 で reserved: リントは参照解決を強制しない(運用実績後に strict 化を裁定)。
+
+decisions:
+  - id: DEC-0001
+    title: ref-v0 参照スキーマの draft 承認と境界の確定
+    status: decided
+    decided_at: "2026-07-03"
+    approver: akira
+    binds: [UQ-001, UQ-002]
+    context: >
+      BomDD/method/schemas/draft/ の ref-v0(id-grammar 37 families / ref-edges 15成果物+19リント規則 /
+      bomdd-ref.draft.schema.json)を BomDD-Plm v0 の入力スキーマとして承認するか(charter UQ-001)、
+      および DEC- 裁定台帳を新設するか(UQ-002)。
+    decision:
+      - ref-v0 を **draft として承認**する(正式仕様ではない)。対象は参照層(ID 文法・参照エッジ・整合検査)に
+        限定し、**意味論は縛らない**方針を維持する(schema-candidates-index §5 の意味論保留と両立。§7 addendum)。
+      - INV / OC / FMEA / GF は **advisory のまま**。散文由来・定義サイトが不安定な family を
+        この段階で strict にしない。
+      - K-DESIGN 無番号・CP-UI-G1・S-01/S1 揺れ・M01 移行オラクル pattern は**実物互換を優先して受理**する。
+      - draft 卒業条件 = **実リポ遡及リントで false positive が収束**(schemas/draft/README §4)。
+        strict 化は実例と定義サイトが揃った family から**段階的に**行う。
+      - DEC- 裁定台帳を新設する。**reserved から開始**し、記録対象は「後で判断理由が問題になる裁定」に限定する。
+        初回の裁定として本件(ref-v0 draft 承認・advisory family 方針・意味論 Schema 化保留との整合)を記録する。
+    consequences:
+      - BomDD-Plm v0 は ref-v0 を固定入力とする。スキーマと実物の衝突は毎回「どちらが欠陥か」を裁定・記録する
+        (charter UQ-007 の運用。draft 期間は実物が正)。
+      - method 全体への DEC- 展開(BomDD リポ側の台帳新設・R-系ルール追加)は将来の別裁定とする。
+    refs:
+      - BomDD/method/schemas/draft/
+      - BomDD/method/schema-candidates-index.md#7-addendum
+      - bomdd/00-charter.md
+
+  - id: DEC-0002
+    title: 技術スタックとパッケージ構成(core / cli / viewer)
+    status: decided
+    decided_at: "2026-07-03"
+    approver: akira
+    binds: [UQ-005]
+    context: >
+      bomdd-lint と read-only ビューの実装言語・構成(charter UQ-005)。fixture・治具・CI 連携の言語も連動する。
+    decision:
+      - "**TypeScript 系**で実装する。"
+      - >-
+        構成は **core / cli / viewer の3分割**。
+        core = 参照グラフ構築と lint 診断 JSON の生成(唯一の判定主体)。
+        cli = core の消費者(exit code + JSON レポート出力)。
+        viewer = core の消費者(read-only Web ビュー。形態=静的生成 vs サーバは UQ-004 で未決)。
+      - DB・書き込み・git ミラー・AI 助言生成は charter どおり **v0 の範囲外**。
+    consequences:
+      - 診断 JSON が CLI / viewer 間の契約になる(E-BOM 上は core の出力契約として一級の品目になる見込み)。
+      - fixture リポ・治具・CI も TypeScript/Node 前提で設計する。
+    refs:
+      - bomdd/00-charter.md
