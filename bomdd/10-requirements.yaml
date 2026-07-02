@@ -1,0 +1,519 @@
+bomdd:
+  product: BomDD-Plm
+  experiment: plm-v0
+  layer: Requirements
+
+# G1 成果物(2026-07-03)。典拠: method/prompts/phase1-brainstorm.md / templates/10-requirements.yaml
+# 根拠精度の規律: rationale だけから検査深さ(unit/L1-L3/G)と許容差が決められること。
+# trace_links は 20-spec / 30-ebom 作成時に張る(G1 時点では空)。
+# 反例(counterexamples)は FMEA の種として Phase 3 へ引き継ぐ。
+
+requirements:
+
+  # ============================================================
+  # A. 正本直読の原則(旧試作の失敗帰属への直接対策)
+  # ============================================================
+
+  - id: REQ-001
+    statement: >-
+      リンタ・ビューアは対象リポジトリのファイルを毎回直読し、実行間で永続状態
+      (DB・キャッシュファイル・ミラー)を一切持たない。同一入力に対し同一出力を返す。
+    rationale: >-
+      旧試作の失敗根因1=YAML→DB コピーによる正本の二重化(SRC-02 前史)。状態を持たなければ
+      鮮度管理という工程自体が存在せず、再実行=常に正本と一致が構造的に保証される。
+      検査は「実行前後で環境に残るものが指定出力のみ」を確認すればよい(深さ L3・許容差ゼロ)。
+    rationale_precision: ok
+    classification_hint: core
+    priority: must
+    source_refs: [bomdd/plm-intake/00-index.md]
+    acceptance_intent: { depth_hint: L3, tolerance_hint: "実行後の残留物=指定出力のみ(temp含めゼロ)", approver_hint: automated }
+    counterexamples:
+      - OS の一時ディレクトリに中間ファイルを書いて消し忘れる
+      - 「高速化のため」の incremental キャッシュが古い定義インデックスを返す
+      - viewer がブラウザ localStorage に状態を持ち、リポ更新後も古いグラフを表示する
+    unresolved_questions: []
+
+  - id: REQ-002
+    statement: >-
+      対象リポジトリ配下へは一切書き込まない(内容変更ゼロ)。全ての出力(診断・グラフ・ビュー)は
+      利用者が指定したリポ外の出力先にのみ生成する。
+    rationale: >-
+      read-only は charter の製品定義そのもの。検査可能な形=「実行前後で対象リポ全ファイルの
+      ハッシュが不変」(深さ L3・許容差 exact)。ファイルメタデータ(atime)は対象外と明記する。
+    rationale_precision: ok
+    classification_hint: core
+    priority: must
+    source_refs: [bomdd/plm-intake/00-index.md]
+    acceptance_intent: { depth_hint: L3, tolerance_hint: "対象リポ全ファイルの content hash 不変", approver_hint: automated }
+    counterexamples:
+      - 出力先の既定値がリポ内(bomdd/plm-output/ 等)になっていて事実上書き込む
+      - ログファイルをカレントディレクトリ=リポルートに吐く
+    unresolved_questions: []
+
+  # ============================================================
+  # B. 入力の発見とパース
+  # ============================================================
+
+  - id: REQ-003
+    statement: >-
+      ref-v0 ref-edges の artifacts[].file パターンに従い、bomdd/ 配下の成果物を発見し型付けする。
+      パターン外のファイルは処理対象外とし、所見を出さない。
+    rationale: >-
+      発見規則はスキーマ(SRC-01)に既に列挙されており、それが唯一の典拠。深さ unit
+      (既知構成のフィクスチャで発見結果の集合一致・許容差 exact)。
+    rationale_precision: ok
+    classification_hint: surface
+    external_source: "BomDD/method/schemas/draft/ref-edges.draft.yaml(ref-v0)"
+    priority: must
+    source_refs: [bomdd/plm-intake/00-index.md]
+    acceptance_intent: { depth_hint: unit, tolerance_hint: "発見ファイル集合の完全一致", approver_hint: automated }
+    counterexamples:
+      - 60-change-order-*.md の glob が 60-change-register.yaml を誤って掴む
+      - ui/**/ui-ir.json が入れ子ディレクトリ(ui/image-tab/)で見つからない
+    unresolved_questions: []
+
+  - id: REQ-004
+    statement: >-
+      YAML/JSON の構文エラーはファイル単位の診断(severity=error、行・列・原因・修正ヒント付き)として
+      報告し、残りのファイルの処理を継続する。いかなる入力でもプロセスはクラッシュしない。
+    rationale: >-
+      台帳は人間+AI が手で書き、SRC-05 の罠2件(alias 誤解釈・行末コロン)は恒常的に再発する。
+      パーサ例外の生スタックトレースは読み物にならない。既知罠はパターン認識してヒントを付ける。
+      深さ unit(壊れ入力コーパス全件で「診断が出て・継続して・exit 2 にならない」)。
+    rationale_precision: ok
+    classification_hint: core
+    priority: must
+    source_refs: [bomdd/plm-intake/yaml-authoring-traps.md]
+    acceptance_intent: { depth_hint: unit, tolerance_hint: "壊れ入力コーパス全件でクラッシュ0・診断1件以上・位置情報あり", approver_hint: automated }
+    counterexamples:
+      - BOM 付き UTF-8 で先頭キーの解釈がずれる
+      - 空ファイル・ディレクトリだけ存在・シンボリックリンク循環
+      - 巨大ファイル(数十MB の as-built)でメモリ枯渇
+    unresolved_questions: []
+
+  - id: REQ-005
+    statement: >-
+      未知のフィールドは無視し、所見を出さない(意味論を縛らない)。ref-v0 が型を規定するフィールド
+      (id・*_refs 等)の型不一致のみ warn とする。スキーマと実物が衝突した場合の既定は「実物が正」。
+    rationale: >-
+      DEC-0001 の draft 規律。実リポはテンプレより先に進化する(SRC-04)。深さ unit
+      (未知フィールド入りフィクスチャで所見ゼロ・既知フィールド型違いで warn 1件)。
+    rationale_precision: ok
+    classification_hint: core
+    priority: must
+    source_refs: [bomdd/65-decision-register.yaml, bomdd/plm-intake/id-inventory-2026-07-03.md]
+    acceptance_intent: { depth_hint: unit, tolerance_hint: exact, approver_hint: automated }
+    counterexamples:
+      - typo フィールド(requirment_refs)が黙って無視され参照検査から漏れる — v0 は許容し、typo 検出は将来要求
+    unresolved_questions:
+      - question_id: UQ-REQ-005-001
+        question: 既知フィールド名との編集距離が近い未知フィールド(typo 疑い)への info 通知を v0 に含めるか
+        severity: non-blocker
+
+  # ============================================================
+  # C. ID 抽出と参照グラフ
+  # ============================================================
+
+  - id: REQ-006
+    statement: >-
+      ID 文法(37 families・family_pattern・厳格度)と参照エッジ定義は、ref-v0 の
+      id-grammar.draft.yaml / ref-edges.draft.yaml を実行時入力として読み込む。
+      文法・エッジをコードに焼き込まず、ref-v0 の改訂にコード変更なしで追随する。
+    rationale: >-
+      旧試作の失敗根因3=スキーマ進化をパーサのハードコードが追いかける地獄(SRC-02 前史)。
+      スキーマをデータにすれば ref-v0 改訂は S-BOM の知識更新イベントになる。
+      深さ unit(id-grammar の family を1件変えたコピーを与え、挙動が追随することを確認)。
+    rationale_precision: ok
+    classification_hint: core
+    priority: must
+    source_refs: [bomdd/plm-intake/00-index.md]
+    acceptance_intent: { depth_hint: unit, tolerance_hint: "スキーマ差し替えテストで再ビルドなしに挙動変化", approver_hint: automated }
+    counterexamples:
+      - family_pattern の正規表現方言差(PCRE vs JS RegExp)で挙動が変わる
+      - スキーマ側の selector 記法拡張に実装が黙って未対応(→ 未対応 selector は error 診断にする)
+    unresolved_questions: []
+
+  - id: REQ-007
+    statement: >-
+      定義サイトから全 ID を抽出してファミリー別インデックスを作り、参照エッジの全参照を
+      解決する。kind:path はファイル存在、kind:id-or-path は ID 解決とパス存在の両様で判定する。
+    rationale: >-
+      本製品の中核機能。正しさの基準はスキーマ(SRC-01)と実リポ(SRC-04)。
+      深さ unit(合成フィクスチャで定義数・解決数・不解決数の完全一致)。
+    rationale_precision: ok
+    classification_hint: surface
+    external_source: "BomDD/method/schemas/draft/(ref-v0)"
+    priority: must
+    source_refs: [bomdd/plm-intake/id-inventory-2026-07-03.md]
+    acceptance_intent: { depth_hint: unit, tolerance_hint: "期待インデックス・期待解決結果との完全一致", approver_hint: automated }
+    counterexamples:
+      - 散文(.md)からの ID 抽出で「E-BOM」等の文書名語を ID と誤認(SRC-04 で 132 件実在)
+      - 同一 ID が2ファイルで定義(R-002 対象)なのに後勝ちで黙って上書き
+      - M01(移行オラクル)を M-BOM family に誤分類
+    unresolved_questions: []
+
+  - id: REQ-008
+    statement: >-
+      品目(全ファミリー)・参照エッジ・lineage(supersedes 等)・lifecycle_state を含む
+      参照グラフを機械可読 JSON として出力する。これが viewer への唯一の入力契約の一部となる。
+    rationale: >-
+      DEC-0002 の構成(core が生成・viewer が消費)。グラフ JSON があれば viewer 以外
+      (将来の影響分析・メトリクス)も同じ出力を消費できる。深さ unit+L2
+      (フィクスチャで期待グラフ一致・JSON スキーマ適合)。
+    rationale_precision: ok
+    classification_hint: core
+    priority: must
+    source_refs: [bomdd/65-decision-register.yaml]
+    acceptance_intent: { depth_hint: L2, tolerance_hint: "グラフ JSON がスキーマ適合+期待値一致", approver_hint: automated }
+    counterexamples:
+      - ノード数万でファイルが肥大し viewer 読込が破綻(→ 規模上限は REQ-025 の計測対象)
+    unresolved_questions: []
+
+  - id: REQ-009
+    statement: >-
+      bomdd-workspace.yaml が供与された場合、複数リポ(ui-cad / manufacturing)を束ねて
+      cross_repo 参照(ui-trace-map の ebomItemRef 等)を解決する。未供与時は cross_repo 参照を
+      skip(info)とし error にしない。
+    rationale: >-
+      クロスリポ照合の不在が実害(IR 2系統分裂・UI-IR なし製造)を生んだ(SRC-02)。
+      挙動は ref-v0 workspace 節に規定済み。深さ unit(2リポ合成フィクスチャで解決/skip の両分岐)。
+    rationale_precision: ok
+    classification_hint: surface
+    external_source: "BomDD/method/schemas/draft/ref-edges.draft.yaml#workspace"
+    priority: must
+    source_refs: [bomdd/plm-intake/00-index.md]
+    acceptance_intent: { depth_hint: unit, tolerance_hint: exact, approver_hint: automated }
+    counterexamples:
+      - workspace 内の同名ファミリー ID 衝突(ui-cad と manufacturing 両方に E-XXX)の扱いが未規定
+      - 相対パスの基準(workspace ファイル位置 vs 実行 cwd)の取り違え
+    unresolved_questions:
+      - question_id: UQ-REQ-009-001
+        question: workspace 内リポ間で同一 family の ID が衝突した場合の規則(リポ修飾 or error)
+        severity: non-blocker
+      - question_id: UQ-REQ-009-002
+        question: bomdd-workspace.yaml の置き場所の確定(charter UQ-003 の継承)
+        severity: non-blocker
+
+  # ============================================================
+  # D. リント診断
+  # ============================================================
+
+  - id: REQ-010
+    statement: >-
+      ref-v0 リント規則 R-001〜R-051 のうち git 履歴を要しない全規則を実装する(R-052 は v0 対象外)。
+      各所見は rule id・severity・ファイル・位置(行または selector)・対象 ID・メッセージを持つ。
+    rationale: >-
+      規則の正体・severity・ゲートは全て ref-v0 に規定済みで、本要求は「その忠実な実装」。
+      深さ unit(規則ごとに違反フィクスチャ+クリーンフィクスチャの対で期待所見一致)。
+      これが較正=製品オラクル(charter 完了定義)の実体。
+    rationale_precision: ok
+    classification_hint: surface
+    external_source: "BomDD/method/schemas/draft/ref-edges.draft.yaml#lint_rules"
+    priority: must
+    source_refs: [bomdd/plm-intake/00-index.md]
+    acceptance_intent: { depth_hint: unit, tolerance_hint: "規則ごとの期待所見プロファイル完全一致(過検出も過少検出も FAIL)", approver_hint: automated }
+    counterexamples:
+      - R-040 で lineage.* 経由の参照を active 参照と誤認して false positive
+      - R-020 で ui-trace-map が複数ある場合に片方しか見ない
+      - R-010 で retired の REQ を未被覆と誤検出(lifecycle 考慮漏れ)
+    unresolved_questions: []
+
+  - id: REQ-011
+    statement: >-
+      severity は ref-v0 の規律に従う — strict family の壊れ参照=error、advisory family=最大 warn、
+      per-edge 指定はエッジ定義に従う。実装側で severity を独自に上書きしない。
+    rationale: >-
+      DEC-0001(advisory 方針)の実装面。深さ unit(advisory 違反フィクスチャが warn で出ることの確認)。
+    rationale_precision: ok
+    classification_hint: surface
+    external_source: "BomDD/method/schemas/draft/id-grammar.draft.yaml(strictness)"
+    priority: must
+    source_refs: [bomdd/65-decision-register.yaml]
+    acceptance_intent: { depth_hint: unit, tolerance_hint: exact, approver_hint: automated }
+    counterexamples:
+      - INV への壊れ参照を error にしてしまい実リポが赤だらけ(DEC-0001 違反)
+    unresolved_questions: []
+
+  - id: REQ-012
+    statement: >-
+      --gate {always|G1|G3|freeze|acceptance|eco} で適用規則集合を選ぶ。無指定=always のみ。
+      ゲートは梯子として累積する(G3 指定=always+G1+G3)。eco のみ独立フラグとして加算する。
+    rationale: >-
+      draft 状態の BOM に完全性を要求しない(D1「重いから使わない」対策)。累積規則は
+      「後のゲートは前のゲートを含む」という playbook の運用に一致。深さ unit(ゲートごとの
+      適用規則集合の期待一致)。
+    rationale_precision: ok
+    classification_hint: core
+    priority: must
+    source_refs: [bomdd/plm-intake/00-index.md]
+    acceptance_intent: { depth_hint: unit, tolerance_hint: "ゲート×規則の適用マトリクス完全一致", approver_hint: automated }
+    counterexamples:
+      - freeze 指定で acceptance 規則まで走り、製造前リポが常に赤になる
+    unresolved_questions: []
+
+  - id: REQ-013
+    statement: >-
+      診断 JSON・グラフ JSON は同一入力に対しバイト同一とする(所見・ノードの安定ソート順と
+      正規シリアライズ形式を仕様で固定する)。
+    rationale: >-
+      較正オラクル(期待所見プロファイル一致)と CI diff の前提。method-v1 §5 の L0 例外条項
+      「仕様化された正規形は L0/exact 採用可」に該当する数少ないケース。
+      深さ L3(同一リポに2回実行して byte diff ゼロ、ファイル列挙順を撹乱しても同一)。
+    rationale_precision: ok
+    classification_hint: core
+    priority: must
+    source_refs: [bomdd/plm-intake/00-index.md]
+    acceptance_intent: { depth_hint: L3, tolerance_hint: "2回実行の出力 byte-diff = 0(タイムスタンプ等の可変要素を含まない)", approver_hint: automated }
+    counterexamples:
+      - 出力に実行時刻・絶対パス・ホスト名が混入して毎回変わる
+      - OS のディレクトリ列挙順の差(Windows/Linux)で所見順が入れ替わる
+      - 並列処理の完了順で順序が非決定になる
+    unresolved_questions: []
+
+  - id: REQ-014
+    statement: >-
+      CLI の exit code 契約 — 0=error 所見なし(warn/info は許容) / 1=error 所見あり /
+      2=実行障害(入力不正・内部エラー)。--fail-on warn で warn も exit 1 に昇格できる。
+    rationale: >-
+      CI ゲートの配線仕様。warn を既定で fail にしない理由=advisory family(DEC-0001)が
+      実リポで常在するため、既定 fail だと導入初日に全リポ赤で終わる。深さ L2
+      (CLI 実行の exit code とレポートの突合)。
+    rationale_precision: ok
+    classification_hint: core
+    priority: must
+    source_refs: [bomdd/65-decision-register.yaml]
+    acceptance_intent: { depth_hint: L2, tolerance_hint: exact, approver_hint: automated }
+    counterexamples:
+      - 構文エラー(REQ-004 の診断)を error 所見(exit 1)と実行障害(exit 2)のどちらに数えるかの取り違え — 規定は「診断として exit 1」
+    unresolved_questions: []
+
+  - id: REQ-015
+    statement: >-
+      設定ファイルで規則×対象(rule id + ID or path)の明示的抑制(suppress)を宣言できる。
+      抑制には reason 必須。抑制された所見は消えず severity=info で出力に残る。
+    rationale: >-
+      draft 期間の運用=スキーマと実物の衝突を毎回裁定する(DEC-0001 consequences)。裁定までの間
+      リントを回し続けるには抑制が要るが、黙った抑制はリントを無力化するため「理由必須+可視」。
+      深さ unit(抑制設定ありフィクスチャで error→info 降格と reason 転記を確認)。
+    rationale_precision: ok
+    classification_hint: core
+    priority: should
+    source_refs: [bomdd/65-decision-register.yaml]
+    acceptance_intent: { depth_hint: unit, tolerance_hint: exact, approver_hint: automated }
+    counterexamples:
+      - ワイルドカード抑制(rule:* )で全所見が info 化しリントが飾りになる(→ v0 はワイルドカード不許可)
+      - reason が空文字で通る
+    unresolved_questions: []
+
+  # ============================================================
+  # E. CLI と出力契約
+  # ============================================================
+
+  - id: REQ-016
+    statement: >-
+      CLI は引数で 対象(リポパス or workspace ファイル)・--gate・--format {json|text}・--out を受け、
+      text 形式は要約(件数 by severity/rule)+所見一覧を stdout に出す。診断 JSON と分離した
+      ログ・進捗は stderr に出す。--help を備える。
+    rationale: >-
+      Node CLI 慣習(stdout=データ / stderr=ログ)の転記。深さ L2(引数マトリクスの実行検査)。
+    rationale_precision: ok
+    classification_hint: surface
+    external_source: "POSIX/Node CLI 慣習(K-BOM 候補: K-NODE-CLI)"
+    priority: must
+    source_refs: [bomdd/65-decision-register.yaml]
+    acceptance_intent: { depth_hint: L2, tolerance_hint: "引数×挙動マトリクス全行 pass", approver_hint: automated }
+    counterexamples:
+      - 進捗表示が stdout に混ざり --format json がパース不能になる
+      - Windows で日本語パス(ドキュメント等)・スペース入りパスが壊れる
+    unresolved_questions: []
+
+  - id: REQ-017
+    statement: >-
+      診断 JSON・グラフ JSON 自体のスキーマを versioned な成果物(JSON Schema)として本リポで管理し、
+      出力にスキーマバージョンを埋め込む。後方非互換の変更はメジャー版上げとする。
+    rationale: >-
+      DEC-0002 consequences「診断 JSON が CLI/viewer 間の契約になる」の実装。viewer・CI・将来の
+      消費者が依存する境界。深さ L2(出力が自スキーマに適合)。
+    rationale_precision: ok
+    classification_hint: core
+    priority: must
+    source_refs: [bomdd/65-decision-register.yaml]
+    acceptance_intent: { depth_hint: L2, tolerance_hint: "全出力が同梱スキーマに適合+version フィールドあり", approver_hint: automated }
+    counterexamples:
+      - SARIF 等の既存標準と独自形式の二重管理に陥る(採否は spec で裁定)
+    unresolved_questions:
+      - question_id: UQ-REQ-017-001
+        question: 診断 JSON を独自スキーマとするか SARIF 2.1.0 互換(または両出力)とするか
+        severity: non-blocker
+
+  # ============================================================
+  # F. Viewer(read-only)
+  # ============================================================
+
+  - id: REQ-018
+    statement: >-
+      viewer は core の出力(診断 JSON+グラフ JSON)のみを入力とし、対象リポへ直接アクセスしない。
+      ローカル環境で閲覧でき、閲覧操作がいかなる書き込みも発生させない。
+    rationale: >-
+      DEC-0002 の 3 分割(viewer は消費者)の要求面。入力を JSON に限定すれば viewer は
+      リポアクセス権も要らず read-only が構造保証される。形態(静的生成 vs ローカルサーバ)は
+      20-spec で確定(UQ-004。推奨=静的生成)。深さ L2(viewer 生成物がリポ非参照で完結)。
+    rationale_precision: ok
+    classification_hint: core
+    priority: must
+    source_refs: [bomdd/65-decision-register.yaml]
+    acceptance_intent: { depth_hint: L2, tolerance_hint: "JSON 入力のみで全ビュー描画可(リポ不在でも動く)", approver_hint: automated }
+    counterexamples:
+      - ビューがモック HTML を直接読み に行き、リポ無しで開けない(リンクは可・読込は不可)
+    unresolved_questions:
+      - question_id: UQ-REQ-018-001
+        question: 静的サイト生成 vs ローカルサーバ(charter UQ-004 の継承。spec で確定)
+        severity: non-blocker
+
+  - id: REQ-019
+    statement: >-
+      リント所見ビュー — severity・gate・rule・ファイルでフィルタできる所見一覧と件数サマリを表示する。
+      抑制済み所見(REQ-015)は理由付きで区別表示する。
+    rationale: >-
+      人間が生 YAML でなく所見を読む、が製品目的(SRC-02)。表示要素集合は 20-spec の表示契約
+      (display contract)で確定し、検査は表示契約行の存在+意味一致(深さ G は視覚全体、
+      要素存在は L2 DOM 検査可)。
+    rationale_precision: ok
+    classification_hint: surface
+    external_source: "UI-CAD(Phase 2-3 で作成するモック+UI-IR)"
+    priority: must
+    source_refs: [bomdd/65-decision-register.yaml]
+    acceptance_intent: { depth_hint: G, tolerance_hint: "表示契約の required elements 全数存在+golden 承認", approver_hint: akira }
+    counterexamples:
+      - 所見1万件で一覧が固まる(仮想化 or ページング — ViewPrism2 REQ-041 と同型の罠)
+    unresolved_questions: []
+
+  - id: REQ-020
+    statement: >-
+      品目グラフビュー — 品目(E/M/K/CP/SB 他)をノード、参照をエッジとして可視化し、
+      lifecycle_state(superseded/retired の灰色化等)と lineage を表現する。R-040 違反
+      (superseded への active 参照)を強調表示する。
+    rationale: >-
+      「人間が読む対象がソースから YAML に移っただけ」問題への回答の中核。Active Graph Integrity
+      (BomDD 直近の手動運用)を目視可能にする。視覚は G(golden+akira)、グラフの内容正当性は
+      L2(グラフ JSON との突合)。
+    rationale_precision: ok
+    classification_hint: surface
+    external_source: "UI-CAD(Phase 2-3 で作成)"
+    priority: must
+    source_refs: [bomdd/plm-intake/00-index.md]
+    acceptance_intent: { depth_hint: G, tolerance_hint: "表示ノード/エッジ集合=グラフ JSON と一致(L2)+golden 承認", approver_hint: akira }
+    counterexamples:
+      - ViewPrism2 規模(ID 数千)で描画が破綻 → 初期表示は近傍(選択品目から距離 N)に限定する等の contentVariance を UI-IR に明記
+    unresolved_questions: []
+
+  - id: REQ-021
+    statement: >-
+      トレースマトリクスビュー — REQ→E→M→CP→証跡(As-Built TE)の被覆を行列で表示し、
+      未被覆セル(R-010/011/012/050 所見に対応)を強調する。
+    rationale: >-
+      製造業のトレーサビリティマトリクス相当。所見(点)とマトリクス(面)は同じデータの2表示で、
+      整合していること自体が検査対象(L2: マトリクスの未被覆セル集合=対応する lint 所見集合)。
+      視覚は G。
+    rationale_precision: ok
+    classification_hint: surface
+    external_source: "UI-CAD(Phase 2-3 で作成)"
+    priority: must
+    source_refs: [bomdd/plm-intake/00-index.md]
+    acceptance_intent: { depth_hint: G, tolerance_hint: "未被覆セル集合と lint 所見の完全一致(L2)+golden 承認", approver_hint: akira }
+    counterexamples:
+      - lifecycle=draft の品目を未被覆と赤表示してノイズ化(ゲート概念の表示への反映漏れ)
+    unresolved_questions: []
+
+  - id: REQ-022
+    statement: >-
+      台帳ビュー — ECO 台帳(60-*)・ずる台帳(51)・裁定台帳(65)の一覧(ID・タイトル・状態・日付)を
+      表示する。散文台帳(.md)からは見出しと ID のみ抽出し、全文の構造化パースはしない。
+    rationale: >-
+      台帳の一覧性が PLM の基本価値。散文の全文パースは旧試作の轍(壊れやすい抽出器)なので
+      見出しレベルに限定する。深さ L2(フィクスチャ台帳で抽出行数・ID 一致)+G。
+    rationale_precision: ok
+    classification_hint: surface
+    external_source: "UI-CAD(Phase 2-3 で作成)"
+    priority: should
+    source_refs: [bomdd/plm-intake/id-inventory-2026-07-03.md]
+    acceptance_intent: { depth_hint: L2, tolerance_hint: "抽出エントリ集合の期待一致", approver_hint: automated }
+    counterexamples:
+      - 51-cheat-log.md の見出し規約が題材間で揺れて抽出漏れ(→ 抽出できない台帳は「非構造」として件数のみ表示)
+    unresolved_questions: []
+
+  - id: REQ-023
+    statement: >-
+      viewer の UI surface は本プロジェクト自身の UI-CAD パッケージ(モック+UI-IR+UI-BOM+trace map)
+      に適合する。UI-CAD なしの surface を製造しない(R-020 を自製品へ適用)。
+    rationale: >-
+      charter のドッグフーディング宣言。ViewPrismUI で実証済みの経路の2周目であり、
+      UI-CAD 経路自体の外部妥当性データにもなる。検査は R-020(L2)+visual gap analysis(G)。
+    rationale_precision: ok
+    classification_hint: surface
+    external_source: "BomDD/method/ui-ir-ui-bom.md(UI-CAD 経路)"
+    priority: must
+    source_refs: [bomdd/plm-intake/00-index.md]
+    acceptance_intent: { depth_hint: G, tolerance_hint: "R-020 pass + visual gap S1/S2 ゼロ", approver_hint: akira }
+    counterexamples:
+      - 「工具だから見た目は適当でいい」と素の HTML に退化(S2 設計言語欠落の再演)
+    unresolved_questions: []
+
+  # ============================================================
+  # G. 非機能・環境
+  # ============================================================
+
+  - id: REQ-024
+    statement: >-
+      実行環境 — Node.js LTS(v22 以上)。Windows と Linux の両方で全受入が通る。
+      CRLF/LF 混在・BOM 付き UTF-8・日本語やスペースを含むパスを正しく処理する。
+    rationale: >-
+      開発機=Windows(実リポは CRLF 混在を実測済み)、CI=Linux 想定。行番号報告は
+      改行形式に依存しないこと。深さ L2(両 OS での受入実行+エンコーディング系フィクスチャ)。
+    rationale_precision: ok
+    classification_hint: surface
+    external_source: "Node.js LTS リリース表 / OS ファイルシステム差(K-BOM 候補: K-NODE-PORTABILITY)"
+    priority: must
+    source_refs: [bomdd/plm-intake/00-index.md]
+    acceptance_intent: { depth_hint: L2, tolerance_hint: "Windows/Linux 両方で固定オラクル全通過", approver_hint: automated }
+    counterexamples:
+      - CRLF ファイルで行番号が1ずれる
+      - 日本語+空白を含むパス(OneDrive のドキュメント配下等)で glob が失敗
+    unresolved_questions: []
+
+  - id: REQ-025
+    statement: >-
+      性能 — ViewPrism2+ViewPrismUI workspace(実測: 約50ファイル・ID数千・参照数万)に対し、
+      コールドスタートで lint 完了 10 秒以内、viewer 生成 15 秒以内(ローカル SSD・Node LTS)。
+    rationale: >-
+      pre-commit / CI 毎コミット常駐が使われる条件(D1 対策)。基準リポと数値を固定したので
+      L3 execution measurement で機械判定できる。将来の regression 検知にも同じ行を使う。
+    rationale_precision: ok
+    classification_hint: core
+    priority: must
+    source_refs: [bomdd/plm-intake/id-inventory-2026-07-03.md]
+    acceptance_intent: { depth_hint: L3, tolerance_hint: "lint ≤10s / viewer ≤15s(基準リポ・3回実行の中央値)", approver_hint: automated }
+    counterexamples:
+      - スキーマを実行時読込(REQ-006)にした結果、正規表現コンパイルが支配項になる
+      - OneDrive 配下のリポでファイル I/O が桁で遅い(→ 測定条件はローカル SSD と明記済み)
+    unresolved_questions:
+      - question_id: UQ-REQ-025-001
+        question: 数値(10s/15s)の妥当性確認。より厳しくすべきか(akira の体感基準)
+        severity: non-blocker
+
+  - id: REQ-026
+    statement: >-
+      所見メッセージの自己説明性 — 各所見は「何が・どこで・なぜ問題か・どの成果物を直すべきか」を
+      含む。ref-v0 の rule note(是正先の指示)をメッセージに転記する。
+    rationale: >-
+      「人間はソースを読まない」世界では所見が一次インターフェース。是正先の指示
+      (例: R-020 → UI-IR を作れ、実装を直すな)は ref-v0 に既にあるので転記で足りる。
+      深さ unit(全 rule のメッセージが4要素を含むことの機械検査+文面は G2 監査)。
+    rationale_precision: ok
+    classification_hint: core
+    priority: should
+    source_refs: [bomdd/plm-intake/yaml-authoring-traps.md]
+    acceptance_intent: { depth_hint: unit, tolerance_hint: "全 rule メッセージに4要素(what/where/why/fix-target)", approver_hint: automated }
+    counterexamples:
+      - メッセージが reference not found の一言だけの所見(どの台帳を直すか不明)が量産される
+    unresolved_questions: []

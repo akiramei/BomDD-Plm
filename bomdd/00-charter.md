@@ -75,8 +75,8 @@
 ## 実装開始 Gate
 | Gate | 判定 | 証跡 |
 |---|---|---|
-| G0 Intake | pending | ref-v0 スキーマ一式・旧試作の失敗帰属(本書前史)・実リポ ID 棚卸し(2026-07-03) |
-| G1 Requirements | pending | `10-requirements.yaml` |
+| G0 Intake | **pass**(2026-07-03) | [plm-intake/00-index.md](plm-intake/00-index.md) — SRC-01〜06 |
+| G1 Requirements | **pass**(2026-07-03) | [10-requirements.yaml](10-requirements.yaml) — 26 REQ(must 23/should 3・core 14/surface 12)・needs-refinement 0・blocker UQ 0・non-blocker UQ 6 は台帳内に持ち越し |
 | G2 Spec | pending | `20-spec.md` |
 | G2' Measurement | pending | `33-control-plan.yaml` |
 | G3 BOM dry run | pending | `bomdd/plm-intake/00-index.md` |

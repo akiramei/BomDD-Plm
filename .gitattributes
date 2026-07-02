@@ -1,0 +1,5 @@
+# 改行は LF に統一(リント出力の決定性 REQ-013・行番号報告 REQ-024 の前提を単純化)
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
