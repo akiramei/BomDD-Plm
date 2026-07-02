@@ -1,0 +1,8 @@
+{
+  "case": "S-01",
+  "fixture": "fixtures/clean/repo",
+  "gate": "G3",
+  "expect_exit": 0,
+  "findings": [],
+  "note": "findings = error+warn の完全集合。info は infos 宣言時のみ検査"
+}

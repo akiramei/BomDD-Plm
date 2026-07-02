@@ -1,0 +1,7 @@
+ebom:
+  items:
+    - id: E-G-001
+      name: part with broken ref
+      classification: core
+      lifecycle_state: draft
+      requirement_refs: [REQ-001, REQ-999]

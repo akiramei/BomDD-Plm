@@ -1,0 +1,25 @@
+{
+  "case": "S-02",
+  "fixture": "fixtures/rules/R-003/repo",
+  "gate": "always",
+  "expect_exit": 1,
+  "findings": [
+    {
+      "rule": "R-003",
+      "severity": "error",
+      "file": "repo/bomdd/30-ebom.yaml",
+      "targetId": "REQ-999"
+    },
+    {
+      "rule": "R-003",
+      "severity": "warn",
+      "file": "repo/bomdd/32-mbom.yaml",
+      "targetId": "FMEA-999"
+    },
+    {
+      "rule": "R-004",
+      "severity": "warn",
+      "file": "repo/bomdd/30-ebom.yaml"
+    }
+  ]
+}

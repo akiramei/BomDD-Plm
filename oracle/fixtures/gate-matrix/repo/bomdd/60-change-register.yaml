@@ -1,0 +1,4 @@
+changes:
+  - id: ECO-001
+    title: sample change
+    affected_refs: [E-GONE-9]

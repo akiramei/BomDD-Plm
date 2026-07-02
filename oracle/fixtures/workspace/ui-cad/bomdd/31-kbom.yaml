@@ -1,0 +1,4 @@
+kbom:
+  items:
+    - id: K-DUP
+      name: duplicated across repos (second definition)

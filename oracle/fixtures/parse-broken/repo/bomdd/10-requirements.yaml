@@ -1,0 +1,4 @@
+requirements:
+  - id: REQ-001
+    statement: line ending with a colon:
+      continued on next line

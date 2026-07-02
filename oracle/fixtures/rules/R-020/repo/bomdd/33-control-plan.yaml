@@ -1,0 +1,7 @@
+control_plan:
+  characteristics:
+    - id: CP-UI-001
+      characteristic: ui check
+      verifies: [E-UI-001, E-OTHER-002]
+      requirement_refs: [REQ-001]
+      depth: G

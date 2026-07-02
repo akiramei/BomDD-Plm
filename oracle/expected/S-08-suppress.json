@@ -1,0 +1,40 @@
+{
+  "case": "S-08",
+  "fixture": "fixtures/suppress/bomdd-workspace.yaml",
+  "gate": "always",
+  "expect_exit": 1,
+  "findings": [
+    {
+      "rule": "X-SUPPRESS-001",
+      "severity": "error",
+      "file": "bomdd-workspace.yaml"
+    },
+    {
+      "rule": "X-SUPPRESS-002",
+      "severity": "warn",
+      "file": "bomdd-workspace.yaml"
+    },
+    {
+      "rule": "R-003",
+      "severity": "warn",
+      "file": "repo/bomdd/32-mbom.yaml",
+      "targetId": "FMEA-999"
+    },
+    {
+      "rule": "R-004",
+      "severity": "warn",
+      "file": "repo/bomdd/30-ebom.yaml"
+    }
+  ],
+  "infos": [
+    {
+      "rule": "R-003",
+      "severity": "info",
+      "file": "repo/bomdd/30-ebom.yaml",
+      "targetId": "REQ-999",
+      "suppressed": true,
+      "suppressRef_contains": "suppress[0]"
+    }
+  ],
+  "note": "exit 1 の源泉は X-SUPPRESS-001(抑制対象の R-003 error は info 降格済み)"
+}

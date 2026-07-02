@@ -1,0 +1,44 @@
+{
+  "case": "S-04",
+  "fixture": "fixtures/parse-broken/repo",
+  "gate": "always",
+  "expect_exit": 1,
+  "findings": [
+    {
+      "rule": "X-PARSE-001",
+      "severity": "error",
+      "file": "repo/bomdd/10-requirements.yaml",
+      "message_contains": "hint:"
+    },
+    {
+      "rule": "X-PARSE-001",
+      "severity": "error",
+      "file": "repo/bomdd/31-kbom.yaml",
+      "message_contains": "hint:"
+    },
+    {
+      "rule": "X-PARSE-001",
+      "severity": "error",
+      "file": "repo/bomdd/33-control-plan.yaml",
+      "message_contains": "hint:"
+    },
+    {
+      "rule": "X-PARSE-001",
+      "severity": "error",
+      "file": "repo/bomdd/32-mbom.yaml"
+    },
+    {
+      "rule": "X-TYPE-001",
+      "severity": "warn",
+      "file": "repo/bomdd/53-service-bom.yaml"
+    },
+    {
+      "rule": "X-TYPE-001",
+      "severity": "warn",
+      "file": "repo/bomdd/35-design-system-bom.yaml"
+    }
+  ],
+  "checks": [
+    "all X-PARSE findings have line and column"
+  ]
+}

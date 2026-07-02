@@ -1,0 +1,14 @@
+ebom:
+  items:
+    - id: E-CORE-001
+      name: first definition
+      classification: core
+      lifecycle_state: manufacturing-ready
+      requirement_refs: [REQ-001]
+      kbom_refs: [K-TEST]
+      acceptance_refs: [CP-CORE-001]
+    - id: E-CORE-001
+      name: duplicate definition
+      classification: core
+      lifecycle_state: draft
+      requirement_refs: [REQ-001]

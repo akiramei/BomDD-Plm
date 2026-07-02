@@ -1,0 +1,6 @@
+repos:
+  - { name: repo, path: ./repo, role: manufacturing }
+suppress:
+  - { rule: R-003, target: REQ-999, reason: "known gap - adjudicated" }
+  - { rule: R-010, target: REQ-001, reason: "" }
+  - { rule: R-040, target: E-NOPE-1, reason: "dead suppression example" }

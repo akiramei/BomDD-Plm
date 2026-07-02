@@ -1,0 +1,6 @@
+decisions:
+  - id: DEC-0001
+    title: sample decision
+    status: decided
+    approver: tester
+    binds: [UQ-001]

@@ -1,0 +1,6 @@
+changes:
+  - id: ECO-001
+    title: sample change
+    status: completed
+    affected_refs: [E-L-001]
+    order_ref: bomdd/60-change-order-eco-001.md

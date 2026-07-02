@@ -1,0 +1,4 @@
+fixed_oracle:
+  cases:
+    - id: S-1
+      scenario: case without spec_ref (R-030 at freeze)

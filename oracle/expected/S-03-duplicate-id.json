@@ -1,0 +1,15 @@
+{
+  "case": "S-03",
+  "fixture": "fixtures/rules/R-002/repo",
+  "gate": "always",
+  "expect_exit": 1,
+  "findings": [
+    {
+      "rule": "R-002",
+      "severity": "error",
+      "file": "repo/bomdd/30-ebom.yaml",
+      "targetId": "E-CORE-001"
+    }
+  ],
+  "note": "カウント規約: 後発定義1件につき1所見"
+}

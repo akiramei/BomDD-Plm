@@ -1,0 +1,5 @@
+mbom:
+  manufacturing_units:
+    - id: M-X-001
+      ebom_refs: [E-OLD-001, E-NEW-002]
+      acceptance_refs: [CP-N-001]

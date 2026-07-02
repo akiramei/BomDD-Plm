@@ -1,0 +1,7 @@
+ebom:
+  items:
+    - id: E-L-001
+      name: affected part
+      classification: core
+      lifecycle_state: draft
+      requirement_refs: [REQ-001]

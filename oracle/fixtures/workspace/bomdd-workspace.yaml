@@ -1,0 +1,3 @@
+repos:
+  - { name: ui-cad, path: ./ui-cad, role: ui-cad }
+  - { name: mfg, path: ./mfg, role: manufacturing }

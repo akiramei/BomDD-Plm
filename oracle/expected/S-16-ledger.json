@@ -1,0 +1,32 @@
+{
+  "case": "S-16",
+  "fixture": "fixtures/ledger/repo",
+  "gate": "always",
+  "expect_exit": 0,
+  "findings": [],
+  "ledger": {
+    "eco": [
+      {
+        "id": "ECO-001",
+        "title": "sample change",
+        "status": "completed",
+        "affectedCount": 1
+      }
+    ],
+    "cheat": [
+      {
+        "id": "CHEAT-01"
+      },
+      {
+        "id": "CHEAT-F01-H001"
+      }
+    ],
+    "decision": [
+      {
+        "id": "DEC-0001",
+        "status": "decided",
+        "approver": "tester"
+      }
+    ]
+  }
+}

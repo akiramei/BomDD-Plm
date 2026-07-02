@@ -1,0 +1,6 @@
+mbom:
+  manufacturing_units:
+    - id: M-CORE-001
+      ebom_refs: [E-CORE-001]
+      acceptance_refs: [CP-CORE-001]
+      fmea_refs: [FMEA-999]

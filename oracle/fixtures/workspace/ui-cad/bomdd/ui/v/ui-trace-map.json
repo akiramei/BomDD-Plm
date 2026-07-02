@@ -1,0 +1,14 @@
+{
+  "entries": [
+    {
+      "file": "M1",
+      "locator": "[data-ui-id='component.y']",
+      "uiIr": "TMP-UI-CMP-0001",
+      "uiBom": "TMP-UI-CMP-0001",
+      "ebomItemRef": [
+        "E-M-001"
+      ],
+      "handling": "bom"
+    }
+  ]
+}

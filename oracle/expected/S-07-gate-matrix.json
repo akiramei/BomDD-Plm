@@ -1,0 +1,90 @@
+{
+  "case": "S-07",
+  "fixture": "fixtures/gate-matrix/repo",
+  "runs": [
+    {
+      "gate": "always",
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-003",
+          "severity": "error",
+          "file": "repo/bomdd/30-ebom.yaml",
+          "targetId": "REQ-999"
+        }
+      ]
+    },
+    {
+      "gate": "G3",
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-003",
+          "severity": "error",
+          "file": "repo/bomdd/30-ebom.yaml",
+          "targetId": "REQ-999"
+        },
+        {
+          "rule": "R-010",
+          "severity": "error",
+          "file": "repo/bomdd/10-requirements.yaml",
+          "targetId": "REQ-002"
+        }
+      ]
+    },
+    {
+      "gate": "freeze",
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-003",
+          "severity": "error",
+          "file": "repo/bomdd/30-ebom.yaml",
+          "targetId": "REQ-999"
+        },
+        {
+          "rule": "R-010",
+          "severity": "error",
+          "file": "repo/bomdd/10-requirements.yaml",
+          "targetId": "REQ-002"
+        },
+        {
+          "rule": "R-030",
+          "severity": "error",
+          "file": "repo/bomdd/41-fixed-oracle.yaml",
+          "targetId": "S-1"
+        },
+        {
+          "rule": "R-031",
+          "severity": "error",
+          "file": "repo/bomdd/41-fixed-oracle.yaml"
+        }
+      ]
+    },
+    {
+      "gate": "G3",
+      "eco": true,
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-003",
+          "severity": "error",
+          "file": "repo/bomdd/30-ebom.yaml",
+          "targetId": "REQ-999"
+        },
+        {
+          "rule": "R-010",
+          "severity": "error",
+          "file": "repo/bomdd/10-requirements.yaml",
+          "targetId": "REQ-002"
+        },
+        {
+          "rule": "R-051",
+          "severity": "error",
+          "file": "repo/bomdd/60-change-register.yaml",
+          "targetId": "ECO-001"
+        }
+      ]
+    }
+  ]
+}

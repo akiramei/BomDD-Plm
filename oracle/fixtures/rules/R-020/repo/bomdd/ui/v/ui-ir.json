@@ -1,0 +1,16 @@
+{
+  "meta": {
+    "sources": [
+      {
+        "id": "M1",
+        "file": "bomdd/ui/mock/m.html"
+      }
+    ]
+  },
+  "components": [
+    {
+      "tempPartNo": "TMP-UI-CMP-0001",
+      "uiId": "component.x"
+    }
+  ]
+}

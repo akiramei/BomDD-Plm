@@ -1,0 +1,20 @@
+ebom:
+  display_contracts:
+    - contract_id: DC-X-001
+      elements:
+        - { element_id: DE-X-001, name: sample element, requirement_refs: [REQ-001], ebom_item_ref: E-UI-001, acceptance_ref: CP-UI-001 }
+  items:
+    - id: E-UI-001
+      name: ui surface WITHOUT cad trace
+      classification: surface
+      kbom_refs: [K-TEST]
+      display_contract_refs: [DC-X-001]
+      acceptance_refs: [CP-UI-001]
+      requirement_refs: [REQ-001]
+    - id: E-OTHER-002
+      name: ui surface WITH cad trace
+      classification: surface
+      kbom_refs: [K-TEST]
+      display_contract_refs: [DC-X-001]
+      acceptance_refs: [CP-UI-001]
+      requirement_refs: [REQ-001]

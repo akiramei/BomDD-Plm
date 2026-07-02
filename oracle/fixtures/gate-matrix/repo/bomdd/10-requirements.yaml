@@ -1,0 +1,5 @@
+requirements:
+  - id: REQ-001
+    statement: covered
+  - id: REQ-002
+    statement: uncovered (R-010 at G3)

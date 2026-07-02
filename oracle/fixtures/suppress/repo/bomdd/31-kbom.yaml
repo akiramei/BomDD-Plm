@@ -1,0 +1,5 @@
+kbom:
+  items:
+    - id: K-TEST
+      name: test knowledge
+      consumers: [E-CORE-001]

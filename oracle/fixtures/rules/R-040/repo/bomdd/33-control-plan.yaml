@@ -1,0 +1,8 @@
+control_plan:
+  characteristics:
+    - id: CP-N-001
+      characteristic: c
+      verifies: [E-NEW-002, M-X-001]
+      requirement_refs: [REQ-001]
+      depth: unit
+      test_vectors: [a]

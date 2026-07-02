@@ -1,0 +1,14 @@
+{
+  "case": "S-05",
+  "fixture": "fixtures/rules/R-020/repo",
+  "gate": "G3",
+  "expect_exit": 1,
+  "findings": [
+    {
+      "rule": "R-020",
+      "severity": "error",
+      "file": "repo/bomdd/30-ebom.yaml",
+      "targetId": "E-UI-001"
+    }
+  ]
+}

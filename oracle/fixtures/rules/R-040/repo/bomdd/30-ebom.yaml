@@ -1,0 +1,15 @@
+ebom:
+  items:
+    - id: E-OLD-001
+      name: superseded part
+      classification: core
+      lifecycle_state: superseded
+      requirement_refs: [REQ-001]
+      lineage: { superseded_by: [E-NEW-002] }
+    - id: E-NEW-002
+      name: successor part
+      classification: core
+      lifecycle_state: manufacturing-ready
+      requirement_refs: [REQ-001]
+      acceptance_refs: [CP-N-001]
+      lineage: { supersedes: [E-OLD-001] }

@@ -1,0 +1,7 @@
+ebom:
+  items:
+    - id: E-M-001
+      name: target of cross-repo ref
+      classification: core
+      lifecycle_state: draft
+      requirement_refs: [REQ-001]

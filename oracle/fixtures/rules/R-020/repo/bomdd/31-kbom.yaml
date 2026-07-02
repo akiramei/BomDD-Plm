@@ -1,0 +1,5 @@
+kbom:
+  items:
+    - id: K-TEST
+      name: k
+      consumers: [E-UI-001, E-OTHER-002]

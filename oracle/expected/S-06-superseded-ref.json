@@ -1,0 +1,15 @@
+{
+  "case": "S-06",
+  "fixture": "fixtures/rules/R-040/repo",
+  "gate": "always",
+  "expect_exit": 1,
+  "findings": [
+    {
+      "rule": "R-040",
+      "severity": "error",
+      "file": "repo/bomdd/32-mbom.yaml",
+      "targetId": "M-X-001"
+    }
+  ],
+  "note": "lineage.supersedes 経由の参照が無罪であることも完全集合比較で担保"
+}

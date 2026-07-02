@@ -8,11 +8,12 @@ bomdd:
 # 「既知欠陥を植えた fixture への期待所見プロファイル一致」= 較正がそのまま製品オラクル。
 
 fixed_oracle:
-  frozen_since: pending        # 治具セルフテスト+較正の通過後に commit/tag で凍結(G3 後・Phase 4 前)
+  frozen_since: "tag plm-v0-input(2026-07-03)"
   self_test: >-
-    ①治具セルフテスト: 判定ヘルパ(byte 比較器・DOM 検査器・hash 検査器)を合成データで検証。
-    ②較正(negative control): 正しい fixture=全 PASS / 欠陥植込 fixture=植えた行だけ FAIL の
-    期待プロファイルと突合してから凍結(playbook §4.4)。
+    oracle/harness/selftest.mjs — 11 tests PASS(2026-07-03)。比較器(完全集合/subset/message部分一致)・
+    hashツリー差分・byte比較・自己完結検査器を合成データで検証済み。
+    較正(初回製造後の帰属規律)は oracle/README.md 凍結プロトコル §3 に定義。
+  implementation: oracle/(fixtures 10ケース+expected 11プロファイル+harness 3治具。比較規約は oracle/README.md)
   equivalence_rules:
     - id: EQ-BYTE-001
       compares: [diagnostics.json 全体, graph.json 全体, plm-view.html 全体]

@@ -1,0 +1,64 @@
+{
+  "case": "S-11",
+  "runs": [
+    {
+      "args": [
+        "fixtures/clean/repo",
+        "--gate",
+        "G3"
+      ],
+      "expect_exit": 0
+    },
+    {
+      "args": [
+        "fixtures/rules/R-003/repo"
+      ],
+      "expect_exit": 1
+    },
+    {
+      "args": [
+        "fixtures/clean/repo",
+        "--gate",
+        "INVALID"
+      ],
+      "expect_exit": 2
+    },
+    {
+      "args": [
+        "fixtures/does-not-exist"
+      ],
+      "expect_exit": 2
+    },
+    {
+      "args": [
+        "--help"
+      ],
+      "expect_exit": 0,
+      "stdout_contains": "Usage"
+    },
+    {
+      "args": [
+        "--version"
+      ],
+      "expect_exit": 0,
+      "stdout_contains": "bomdd-lint"
+    },
+    {
+      "args": [
+        "fixtures/clean/repo",
+        "--format",
+        "json"
+      ],
+      "expect_exit": 0,
+      "stdout_is_json": true
+    },
+    {
+      "args": [
+        "fixtures/clean/repo",
+        "--out",
+        "fixtures/clean/repo/out"
+      ],
+      "expect_exit": 2
+    }
+  ]
+}
