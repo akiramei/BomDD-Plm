@@ -54,3 +54,30 @@ decisions:
       - fixture リポ・治具・CI も TypeScript/Node 前提で設計する。
     refs:
       - bomdd/00-charter.md
+
+  - id: DEC-0003
+    title: viewer は静的生成(自己完結の単一 HTML)とする
+    status: open
+    binds: [UQ-SPEC-002]
+    context: >
+      charter UQ-004(静的生成 vs ローカルサーバ)。仕様 §2.11 は静的生成を採用して記述済み。
+    decision:
+      - "提案: --view で自己完結の plm-view.html を生成。診断/グラフ JSON を埋め込み、外部リソース参照ゼロ・file:// で開ける。"
+      - 根拠 = 状態レス原則(INV-002/008)と構造的 read-only(viewer がリポアクセス権を持たない)。サーバ運用・ポート管理が不要。
+    consequences:
+      - ゲート切替等のビュー操作は埋込済み全所見のクライアント側フィルタになる(再実行しない)。
+    refs:
+      - bomdd/20-spec.md#211-viewer-生成方式
+
+  - id: DEC-0004
+    title: 診断 JSON は独自スキーマ plm-diag/1 を一次とし SARIF は v0 対象外
+    status: open
+    binds: [UQ-SPEC-001]
+    context: >
+      REQ-017 の UQ(SARIF 2.1.0 互換にするか)。仕様 §2.9 は独自スキーマで記述済み。
+    decision:
+      - "提案: 独自 plm-diag/1 を一次契約とする。family・gate・fixTarget・suppress など BomDD 固有次元を一級フィールドで持つため。"
+      - SARIF エクスポートは将来の追加出力(v0.5 候補)として ECO で扱う。
+    refs:
+      - bomdd/20-spec.md#29-出力と決定性
+

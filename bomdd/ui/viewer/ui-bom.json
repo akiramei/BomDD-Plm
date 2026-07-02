@@ -1,0 +1,42 @@
+{
+  "meta": {
+    "schema": "ui-bom/candidate",
+    "product": "BomDD-Plm",
+    "source_ui_ir": "bomdd/ui/viewer/ui-ir.json",
+    "status": "draft — E-BOM 昇格前の候補部品表",
+    "extractedAt": "2026-07-03"
+  },
+  "items": [
+    { "tempPartNo": "TMP-UI-SCR-0001", "kind": "screen", "name": "所見ビュー",             "ebomCandidate": "E-VIEWER-FINDINGS-002", "specRef": "SPEC-VIEW-FINDINGS-001" },
+    { "tempPartNo": "TMP-UI-SCR-0002", "kind": "screen", "name": "品目グラフビュー",       "ebomCandidate": "E-VIEWER-GRAPH-003",    "specRef": "SPEC-VIEW-GRAPH-001" },
+    { "tempPartNo": "TMP-UI-SCR-0003", "kind": "screen", "name": "トレースマトリクスビュー", "ebomCandidate": "E-VIEWER-TRACE-004",   "specRef": "SPEC-VIEW-TRACE-001" },
+    { "tempPartNo": "TMP-UI-SCR-0004", "kind": "screen", "name": "台帳ビュー",             "ebomCandidate": "E-VIEWER-LEDGER-005",   "specRef": "SPEC-VIEW-LEDGER-001" },
+    { "tempPartNo": "TMP-UI-REG-0001", "kind": "region", "name": "シェル上部バー",         "ebomCandidate": "E-VIEWER-SHELL-001" },
+    { "tempPartNo": "TMP-UI-REG-0002", "kind": "region", "name": "ビュー切替ナビ",         "ebomCandidate": "E-VIEWER-SHELL-001" },
+    { "tempPartNo": "TMP-UI-REG-0007", "kind": "region", "name": "品目詳細パネル",         "ebomCandidate": "E-VIEWER-GRAPH-003" },
+    { "tempPartNo": "TMP-UI-REG-0010", "kind": "region", "name": "実行メタ情報フッタ",     "ebomCandidate": "E-VIEWER-SHELL-001" },
+    { "tempPartNo": "TMP-UI-CMP-0002", "kind": "component", "name": "サマリカード",        "designSystemCandidate": "SummaryCard" },
+    { "tempPartNo": "TMP-UI-CMP-0004", "kind": "component", "name": "所見行",              "designSystemCandidate": "FindingRow" },
+    { "tempPartNo": "TMP-UI-CMP-0005", "kind": "component", "name": "severity チップ",     "designSystemCandidate": "SeverityChip" },
+    { "tempPartNo": "TMP-UI-CMP-0006", "kind": "component", "name": "family チップ",       "designSystemCandidate": "FamilyChip" },
+    { "tempPartNo": "TMP-UI-CMP-0008", "kind": "component", "name": "品目ノード",          "designSystemCandidate": "GraphNode" },
+    { "tempPartNo": "TMP-UI-CMP-0009", "kind": "component", "name": "違反コールアウト",    "designSystemCandidate": "ViolationCallout" },
+    { "tempPartNo": "TMP-UI-CMP-0011", "kind": "component", "name": "被覆セル",            "designSystemCandidate": "TraceCell" },
+    { "tempPartNo": "TMP-UI-CMP-0012", "kind": "component", "name": "台帳テーブル",        "designSystemCandidate": "LedgerTable" },
+    { "tempPartNo": "TMP-UI-CMP-0014", "kind": "component", "name": "空状態(達成表示)",    "designSystemCandidate": "EmptyStateDone" },
+    { "tempPartNo": "TMP-UI-ACT-0002", "kind": "action", "name": "ゲート選択",             "notes": "表示フィルタであり再実行ではない(仕様 SPEC-VIEWER-001)" },
+    { "tempPartNo": "TMP-UI-ACT-0005", "kind": "action", "name": "品目ノード選択" },
+    { "tempPartNo": "TMP-UI-ACT-0006", "kind": "action", "name": "未被覆のみ表示" },
+    { "tempPartNo": "TMP-UI-STA-0001", "kind": "state", "name": "READ-ONLY バッジ" },
+    { "tempPartNo": "TMP-UI-STA-0003", "kind": "state", "name": "抑制済み所見行" },
+    { "tempPartNo": "TMP-UI-STA-0004", "kind": "state", "name": "superseded ノード" },
+    { "tempPartNo": "TMP-UI-STA-0006", "kind": "state", "name": "未被覆セル" },
+    { "tempPartNo": "TMP-UI-LIV-0001", "kind": "layoutInvariant", "name": "単一スクロール" },
+    { "tempPartNo": "TMP-UI-LIV-0002", "kind": "layoutInvariant", "name": "サマリカード固定幅(桁分散不変)" },
+    { "tempPartNo": "TMP-UI-LIV-0003", "kind": "layoutInvariant", "name": "詳細パネル固定幅" },
+    { "tempPartNo": "TMP-UI-LIV-0004", "kind": "layoutInvariant", "name": "パス中央省略(長大パス不変)" }
+  ],
+  "nonBom": [
+    { "locator": "region.design-direction", "handling": "designIntent", "reason": "設計憲章 → design-intent 相当は本ファイル群と仕様 §2.12 の表示契約に転記済み" }
+  ]
+}

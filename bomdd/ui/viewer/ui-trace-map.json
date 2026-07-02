@@ -1,0 +1,32 @@
+{
+  "meta": {
+    "schema": "ui-trace-map/candidate",
+    "files": { "M1": "bomdd/ui/mock/bomdd-plm-viewer.html" },
+    "status": "draft",
+    "note": "モックは data-ui-id を埋込済みのため locator = data-ui-id セレクタ",
+    "conventions": "部品マスターと出現: マスター uiId はモック上の出現 data-ui-id の前方一致で対応する(例 component.summary-card ← component.summary-card.error)。パリティ突合は前方一致で判定する"
+  },
+  "entries": [
+    { "file": "M1", "locator": "[data-ui-id='screen.findings']",                 "uiIr": "TMP-UI-SCR-0001", "uiBom": "TMP-UI-SCR-0001", "ebomItemRef": [], "handling": "bom", "note": "昇格候補 E-VIEWER-FINDINGS-002(Phase 3 で確定)" },
+    { "file": "M1", "locator": "[data-ui-id='screen.item-graph']",               "uiIr": "TMP-UI-SCR-0002", "uiBom": "TMP-UI-SCR-0002", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='screen.trace-matrix']",             "uiIr": "TMP-UI-SCR-0003", "uiBom": "TMP-UI-SCR-0003", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='screen.ledgers']",                  "uiIr": "TMP-UI-SCR-0004", "uiBom": "TMP-UI-SCR-0004", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='region.shell-topbar']",             "uiIr": "TMP-UI-REG-0001", "uiBom": "TMP-UI-REG-0001", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='region.shell-nav']",                "uiIr": "TMP-UI-REG-0002", "uiBom": "TMP-UI-REG-0002", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='region.design-direction']",         "uiIr": "TMP-UI-REG-0003", "uiBom": null,              "ebomItemRef": [], "handling": "designIntent" },
+    { "file": "M1", "locator": "[data-ui-id='region.graph-detail']",             "uiIr": "TMP-UI-REG-0007", "uiBom": "TMP-UI-REG-0007", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='region.run-meta']",                 "uiIr": "TMP-UI-REG-0010", "uiBom": "TMP-UI-REG-0010", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='component.summary-card.error']",    "uiIr": "TMP-UI-CMP-0002", "uiBom": "TMP-UI-CMP-0002", "ebomItemRef": [], "handling": "bom", "note": "出現4(error/warn/info/suppressed)" },
+    { "file": "M1", "locator": "[data-ui-id='component.findings-table']",        "uiIr": "TMP-UI-CMP-0003", "uiBom": "TMP-UI-CMP-0004", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='component.finding-row.suppressed']","uiIr": "TMP-UI-STA-0003", "uiBom": "TMP-UI-STA-0003", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='component.graph-canvas']",          "uiIr": "TMP-UI-CMP-0007", "uiBom": "TMP-UI-CMP-0008", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='state.graph.superseded-node']",     "uiIr": "TMP-UI-STA-0004", "uiBom": "TMP-UI-STA-0004", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='state.graph.violation-edge']",      "uiIr": "TMP-UI-STA-0005", "uiBom": "TMP-UI-CMP-0009", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='component.trace-matrix']",          "uiIr": "TMP-UI-CMP-0010", "uiBom": "TMP-UI-CMP-0011", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='state.trace.uncovered-cell']",      "uiIr": "TMP-UI-STA-0006", "uiBom": "TMP-UI-STA-0006", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='component.ledger-table.eco']",      "uiIr": "TMP-UI-CMP-0012", "uiBom": "TMP-UI-CMP-0012", "ebomItemRef": [], "handling": "bom", "note": "出現3(eco/cheat/dec)" },
+    { "file": "M1", "locator": "[data-ui-id='state.findings.empty']",            "uiIr": "TMP-UI-STA-0002", "uiBom": "TMP-UI-CMP-0014", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='input.shell.gate-select']",         "uiIr": "TMP-UI-ACT-0002", "uiBom": "TMP-UI-ACT-0002", "ebomItemRef": [], "handling": "bom" },
+    { "file": "M1", "locator": "[data-ui-id='state.shell.read-only']",           "uiIr": "TMP-UI-STA-0001", "uiBom": "TMP-UI-STA-0001", "ebomItemRef": [], "handling": "bom" }
+  ]
+}

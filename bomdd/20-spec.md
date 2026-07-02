@@ -1,0 +1,445 @@
+# 仕様書 — BomDD-Plm v0(bomdd-lint + read-only viewer)
+
+> 製造パッケージに含まれる(製造装置が読む)。REQ への双方向トレースは §5。
+> **併読規約**: 本書は入力仕様 **ref-v0**(`BomDD/method/schemas/draft/` — id-grammar / ref-edges /
+> bomdd-ref.draft.schema.json)と併読する。R-* 規則の正体・severity・gate・note、family 37種と
+> strictness、defines/refs セレクタの定義は **ref-v0 が正**であり、二重管理を避けるため本書へ転記しない。
+> 併読対象は他に: UI-CAD 一式(`bomdd/ui/mock/bomdd-plm-viewer.html`=モック M1・`bomdd/ui/viewer/*`)と
+> 基準 workspace の規模実測(`bomdd/plm-intake/id-inventory-2026-07-03.md` — REQ-025 の測定条件)。
+> 製造パッケージには ref-v0 のスナップショットと UI-CAD 一式を同梱する。rev: G2 補正2版(2026-07-03)
+
+## 1. 概要と用語
+
+BomDD 成果物リポジトリを直読し、参照整合を検査(lint)して人間向け読み取り専用ビューを生成する工具。
+パッケージ構成は core(判定+JSON生成)/ cli / viewer(DEC-0002)。
+
+| 用語 | 定義 |
+|---|---|
+| workspace | `bomdd-workspace.yaml` で束ねた複数リポの集合。**単一リポ実行は「repos 1件・suppress なしの暗黙 workspace」と等価**(cross_repo 参照の扱いは §2.5) |
+| family | ID の品番ファミリー(id-grammar の 37 families)。strictness = strict / advisory / reserved |
+| 定義サイト | ref-edges `defines` セレクタが指す、ID が生まれる場所 |
+| 参照エッジ | ref-edges `refs` セレクタが指す、ID・パスを参照するフィールド |
+| 所見(finding) | 1件の検査結果。rule・severity・gate・位置・対象・メッセージ・是正先を持つ |
+| ゲート | 規則の適用段階。**梯子 always→G1→G3→freeze→acceptance(後段は前段を含む)+直交フラグ eco** |
+| 抑制(suppress) | 理由付きで所見を info へ降格する宣言。削除ではない |
+| 正準パス | workspace ルート相対・`/` 区切り・原表記のパス文字列(INV-004)。出力・ソート・suppress 照合は全て正準パスで行う |
+
+## 2. 機能仕様
+
+### 2.0 正本直読・read-only 原則 (REQ-001, REQ-002)
+- 仕様節ID: SPEC-READONLY-001
+- 振る舞い:
+  - 実行のたびに対象リポを直読する。永続キャッシュ・DB・ミラーを一切持たない。
+  - 対象リポ配下へはいかなるファイルも作成・変更・削除しない。
+  - 出力先: `--out DIR`(カレントディレクトリ基準の相対または絶対)。省略時は `./plm-out/`。
+    **明示・省略を問わず**、出力先が workspace 内いずれかのリポ配下を指す場合は exit 2 で拒否する。
+  - 一時ファイルが必要な場合は OS 標準 temp を使い正常・異常終了とも削除する。
+- 核/表面: core
+- 受入観点: L3 — 実行前後で対象リポ全ファイルの **SHA-256** 不変+終了後の残留物が出力先配下のみ。
+- E-BOM 候補: E-CORE-READONLY-001 / M-BOM 候補: M-CORE-001 / Control Plan 候補: CP-READONLY-001
+
+### 2.1 成果物の発見 (REQ-003)
+- 仕様節ID: SPEC-DISCOVER-001
+- 振る舞い:
+  - 各リポの `bomdd/` 配下を ref-edges `artifacts[].file` の glob で走査し型付けする。
+    **1ファイル=1型**。複数パターンに一致する場合は `artifacts[]` **配列の記載順で最初**の型に確定する。
+  - glob は `**`(ディレクトリ再帰)と `*`(1セグメント内)のみをメタ文字とし、
+    その他の文字(`?` `[` 等)は**リテラル**として扱う。パターン照合は case-sensitive。
+  - パターン外のファイルは対象外(所見なし・stats.files に数えない)。
+- 核/表面: surface(出所: ref-v0 ref-edges)
+- 受入観点: unit — 既知構成 fixture で「発見ファイル→型」の写像が完全一致(exact)。
+- E-BOM 候補: E-CORE-DISCOVER-002 / CP 候補: CP-DISCOVER-002
+
+### 2.2 頑健パースと寛容受理 (REQ-004, REQ-005)
+- 仕様節ID: SPEC-PARSE-001
+- 振る舞い:
+  - YAML/JSON 構文エラー・**UTF-8 として不正なバイト列**は、いずれも **rule `X-PARSE-001`・
+    severity error** の所見(行・列・原因)として報告し、当該ファイルをスキップして継続する。
+    プロセスはクラッシュしない(未捕捉例外で exit 2 になったら欠陥)。
+  - 既知の記述罠は X-PARSE-001 の message 末尾に `hint: <回避策>` の1行を付ける。対象3型(規範として本書に転記。出所: plm-intake/yaml-authoring-traps.md):
+    | 罠 | ヒント文言(正準) |
+    |---|---|
+    | リスト項目が `*` で始まる | hint: `*` 始まりの項目は引用符で囲む |
+    | 複数行 plain scalar 中の行末コロン | hint: 行末の `:` を含む文は `>-` ブロックにするか引用符で囲む |
+    | 引用符で始まり後続テキストが続く項目 | hint: 項目全体を引用符で囲むか、引用符を先頭から外す |
+    パターン非該当の構文エラーは hint なしで報告する(ヒントは付加情報であり必須要素ではない)。
+  - 未知フィールドは無視(所見なし)。ref-v0 が型を規定するフィールドの型不一致は
+    **rule `X-TYPE-001`・severity warn**。
+  - 入力: UTF-8(BOM 許容)・CRLF/LF 混在可。行番号=1起点・改行形式非依存。列=1起点・code point 単位。
+- 核/表面: core(罠ヒント文言のみ K-BOM 転記=surface)
+- 受入観点: unit — 壊れ入力コーパス全件で「クラッシュ0・X-PARSE 所見1件以上・行列位置あり・
+  他ファイル処理継続」。罠3型は hint 文言まで期待値固定。
+- E-BOM 候補: E-CORE-PARSE-003 / CP 候補: CP-PARSE-003
+
+### 2.3 スキーマの実行時読込 (REQ-006)
+- 仕様節ID: SPEC-SCHEMA-001
+- 振る舞い:
+  - id-grammar / ref-edges を実行時に `--schema <dir>` から読み込む(既定: 同梱スナップショット。
+    S-BOM が版を追跡)。family・pattern・エッジ・規則パラメータをコードに焼き込まない。
+  - **exit 2 とする境界**: スキーマファイルが読めない/YAML として不正/必須トップキー
+    (`families` / `artifacts` / `lint_rules`)が欠落 — 検査せず終了。
+  - **X-SCHEMA-001(error)で続行する境界**: スキーマは読めるが、個別エントリの selector 記法・
+    family_pattern 正規表現が本実装で未対応 — 当該エントリのみ無効化し、黙って無視しない。
+  - family_pattern は **JS RegExp(ECMAScript)方言**で解釈する(ref-v0 側の前提として記録済み)。
+- 核/表面: core
+- 受入観点: unit — family 追加・pattern 変更・未対応記法の3 fixture で「再ビルドなしの追随・
+  X-SCHEMA-001・exit 2」の3分岐が期待どおり(exact)。
+- E-BOM 候補: E-CORE-SCHEMA-004 / CP 候補: CP-SCHEMA-004
+
+### 2.4 ID 索引と参照解決 (REQ-007)
+- 仕様節ID: SPEC-RESOLVE-001
+- 振る舞い:
+  - **family 判定**: id-grammar 定義順に ①family_pattern を持つ family の pattern 一致 →
+    ②prefix 最長一致。同長 tie は id-grammar 定義順の先勝ち。どの family にも一致しない定義値は `X-ID-001`(warn)。
+  - **参照解決**:
+    - `kind: path` — 正準パスとしてファイル実在を検査。不解決=当該エッジの severity で **R-004** 所見。
+    - ID 参照(kind 無指定)— 対象 family の索引で解決。不解決=エッジ severity で **R-003** 所見。
+    - `kind: id-or-path` — ①いずれかの family_pattern/prefix に一致すれば ID として索引を引く。
+      **索引に無ければ ②へフォールバック**。②値をパスとして実在検査。**①②両方失敗のとき初めて不解決**
+      (R-003 所見)。family 一致かつ実在パスの場合は ID 解決を優先する。
+    - `パス#断片` は断片を無視しパス部のみ検査。
+  - **ID トークンの切り出し**: 文字列中の ID 照合は `[A-Za-z0-9._-]+` の連続を1トークンとし、
+    family_pattern / prefix はトークン全体に対する**最長(貪欲)一致**で判定する
+    (`ECO-001-child` は1トークン=1 ID であり `ECO-001` と `child` に分割しない)。
+  - **散文(.md)の扱い**: 定義サイトとしての抽出は (a) ECO ファイル名 — 拡張子を除いたファイル名の
+    **右端で family ID パターンに一致するトークン列を大文字化**して ID とする(`60-change-order-eco-025.md` → `ECO-025`)、
+    (b) cheat-log 見出し — §2.15 と同一の見出し抽出機構(共通実装)による。
+    **散文の本文(非見出し)からは ID を抽出しない**(定義にも参照にも表示にも使わない。
+    id-inventory の誤検出 132 件の対策)。R-003 の検査対象は ref-edges に定義された参照エッジのみ。
+- 核/表面: surface(出所: ref-v0)
+- 受入観点: unit — fixture で定義数・解決数・不解決数・各所見(rule 込み)の完全一致(exact)。
+  id-or-path は「ID解決/ paス解決/ フォールバック/ 両失敗」の4分岐を fixture 化。
+- E-BOM 候補: E-CORE-RESOLVE-005 / CP 候補: CP-RESOLVE-005
+
+### 2.5 workspace 解決 (REQ-009)
+- 仕様節ID: SPEC-WORKSPACE-001
+- 振る舞い:
+  - `bomdd-workspace.yaml` 書式: `repos: [{name, path, role: ui-cad|manufacturing|method}]` +
+    `suppress:`(§2.8)。`path` は **workspace ファイル位置基準**の相対または絶対。
+  - `cross_repo: true` のエッジは workspace 内全リポの索引で解決する。
+    **解決先候補リポ(エッジの対象 family の定義サイトを持つ他リポ)が workspace に存在しない場合**
+    (単一リポ実行を含む)、当該エッジは **info `X-XREPO-001`(skip)**。これは用語表の
+    「単一リポ=暗黙 workspace」と整合する(暗黙 workspace には他リポが無いから skip になる)。
+  - 単一リポで suppress を使いたい場合は repos 1件の workspace ファイルを書く(専用機構は設けない)。
+  - **ID 一意性(R-002)は workspace 全体で family ごとに適用**。別リポ間の同 family 同 ID も R-002(error)。
+- 核/表面: surface(出所: ref-v0 workspace 節)
+- 受入観点: unit — 2リポ fixture で解決/skip/R-002 衝突の3分岐(exact)。
+- E-BOM 候補: E-CORE-WORKSPACE-006 / CP 候補: CP-WORKSPACE-006
+
+### 2.6 リント規則の実行 (REQ-010, REQ-011, REQ-026)
+- 仕様節ID: SPEC-LINT-001
+- 振る舞い:
+  - 実装対象: ref-v0 `lint_rules` のうち R-052(git 履歴要)を除く全規則。**規則の総数・ID 列挙は
+    ref-v0 が正**(実行時読込 §2.3 の対象。仕様書へ転記しない)。全規則を毎回評価し、
+    各所見に規則の gate を付与する。ゲートは評価をスキップする根拠にならない(§2.7 は出力・判定側のフィルタ)。
+  - severity: 規則定義の severity。`per-family` は対象 ID の family strictness
+    (strict=error / advisory=warn / reserved=info)。`per-edge` はエッジ定義値。実装側で上書きしない。
+  - **実装診断 `X-*`**(本仕様が定義する規則)は X-PARSE-001 / X-TYPE-001 / X-SCHEMA-001 / X-ID-001 /
+    X-XREPO-001 / **X-SUPPRESS-001 / X-SUPPRESS-002** の7種で全てとし、**すべて gate=always**。
+  - 所見メッセージ4要素 — 何が / どこで / なぜ / **どの成果物を直すか**(fixTarget フィールド)。
+    **規則別 message・fixTarget の正準文言は固定オラクル(fixture の期待所見プロファイル)で凍結する** —
+    初出時に設計者が ref-v0 rule note から起草し、以後の変更は仕様/オラクル改訂として扱う
+    (rule note→message の機械的変換規則は定めない。文言の正はオラクル)。
+    unit 検査は (a) fixTarget 非空 (b) message 非空 (c) 凍結済み文言との一致、で機械判定する。
+- 核/表面: surface(出所: ref-v0 lint_rules。判定ロジックは core)
+- 受入観点: unit — 規則ごとに違反 fixture+クリーン fixture の対で期待所見プロファイル完全一致
+  (過検出も過少検出も FAIL)。これが charter の固定オラクルの実体。
+- E-BOM 候補: E-CORE-LINT-007 / CP 候補: CP-LINT-007(規則別行)
+
+### 2.7 ゲート (REQ-012)
+- 仕様節ID: SPEC-GATE-001
+- 振る舞い:
+  - `--gate <always|G1|G3|freeze|acceptance>`(5値のみ受理。その他は exit 2)。無指定= always。
+  - 適用規則集合(式): `applied = { r | ladder(gate(r)) ≤ ladder(指定ゲート) } ∪ ( --eco 指定時 { r | gate(r)=eco } )`。
+    ladder は always=0, G1=1, G3=2, freeze=3, acceptance=4。eco は梯子に乗らない直交フラグ。
+  - フィルタの適用先: **exit code 判定(§2.10)と text 出力の所見一覧**。
+    **diagnostics.json には常に全所見(gate 付き)を含める**(viewer のゲート切替=クライアント側フィルタの前提)。
+    text 出力のサマリには「全所見数」と「適用ゲート内所見数」を併記し、非対称による混乱を避ける。
+- 核/表面: core
+- 受入観点: unit — ゲート×規則の適用マトリクス+eco 合成+不正値 exit 2(exact)。
+- E-BOM 候補: E-CORE-GATE-008 / CP 候補: CP-GATE-008
+
+### 2.8 抑制 (REQ-015)
+- 仕様節ID: SPEC-SUPPRESS-001
+- 振る舞い:
+  - workspace ファイルの `suppress: [{rule, target, reason}]`。**rule・target・reason の3フィールド全て必須**。
+  - 照合: **rule 完全一致 AND target 一致**。target が ID の場合= targetId と **case-sensitive** 完全一致。
+    target がパスの場合= 所見 file(正準パス)と **INV-004 の同定規則(case-insensitive)** で完全一致。
+    ワイルドカード不許可。
+  - 一致した所見: severity=**info** へ降格・`suppressed: true`・reason 転記。**exit code 判定は降格後の
+    severity で行う**(= error が抑制されれば exit 0 になり得る。これが抑制の目的)。
+  - **reason が空・欠落の suppress 行は無効**(降格しない)+ **error `X-SUPPRESS-001`**。
+  - どの所見にも一致しなかった suppress 行= **warn `X-SUPPRESS-002`(死んだ抑制)**。
+- 核/表面: core
+- 受入観点: unit — 降格(+exit 変化)・reason 転記・無効行・死抑制の4ケース(exact)。
+- E-BOM 候補: E-CORE-SUPPRESS-009 / CP 候補: CP-SUPPRESS-009
+
+### 2.9 出力と決定性 (REQ-008, REQ-013, REQ-017)
+- 仕様節ID: SPEC-OUTPUT-001
+- 振る舞い:
+  - 出力は2ファイル: `diagnostics.json`(`plm-diag/1`)と `graph.json`(`plm-graph/1`)。両スキーマは
+    本リポ `schemas/` の JSON Schema として管理し、出力は自スキーマに適合。非互換変更はメジャー版上げ。
+    SARIF は v0 対象外(UQ-SPEC-001 / DEC-0004)。
+  - `diagnostics.json`:
+    `{schemaVersion, refSchema: {version}, workspace: {repos: [{name, role}]}, stats,
+    findings: [{rule, severity, gate, file, line?, column?, targetId?, message, fixTarget,
+    suppressed?, suppressReason?}]}`。
+    **repos に path は含めない**(絶対パス禁止 INV-003 のため。name/role のみ)。
+    `stats = {files: 型付けされた成果物数, ids: 定義サイトから抽出した定義 ID 数, refs: 解決を試行した参照数}`
+    — いずれも**ゲート・lifecycle・抑制によるフィルタなしの全数**。
+  - `graph.json`: `{schemaVersion, nodes, edges}`。
+    **nodes = 定義サイトから抽出された全 ID**(`{id, family, name?, lifecycle?, file, line?}`)。
+    **edges = ID 参照エッジのみ**(`kind: path` 参照はグラフに含めない)。
+    `{from, to, kind, file, resolved: bool}`。**不解決参照はエッジに含める(resolved:false)が、
+    to に対応するノードは作らない**。lineage は kind=`lineage.<field>`。
+  - **正規シリアライズ(決定性)**: UTF-8・LF・2スペース・キー順=スキーマ定義順
+    (定義順の正= 本リポ `schemas/` の各 JSON Schema の properties 記載順)。
+    **ソート比較器(キーごとに型を固定)**: 文字列キー(file/rule/targetId/family/id/from/kind/to)=
+    正準パス/ID の **UTF-8 バイト列昇順**(case-sensitive。INV-004 の case-insensitive は同定=解決用)、
+    欠落= 空文字列。数値キー(line/column)= **数値昇順**、欠落= -1(すなわち欠落が先頭側)。
+    findings=(file, line, column, rule, targetId) / nodes=(family, id) / edges=(from, kind, to) 昇順。
+    出力に時刻・絶対パス・ホスト名・乱数を含めない。
+  - **決定性の適用範囲**: diagnostics.json・graph.json・plm-view.html(§2.11)・stdout の
+    `--format json`/`--format text` 本文。stderr(ログ・進捗)は対象外。
+- 核/表面: core
+- 受入観点: REQ-013= L3 — 同一入力2回実行+ファイル列挙順撹乱で全対象出力 byte-diff 0。
+  REQ-008/017= L2 — 自スキーマ適合。
+  (深さは L3=実行観測。**判定が byte-exact なのは「仕様化された正規形」であり、method-v1 §5 の
+  L0 禁止の例外条項に該当する** — L0 という深さを採るのではない)
+- E-BOM 候補: E-CORE-OUTPUT-010 / CP 候補: CP-OUTPUT-010
+
+### 2.10 CLI (REQ-014, REQ-016)
+- 仕様節ID: SPEC-CLI-001
+- 振る舞い:
+  - 形式: `bomdd-lint <repo-path | workspace.yaml> [--gate G3] [--eco] [--format json|text]
+    [--out DIR] [--fail-on error|warn] [--schema DIR] [--view]`
+  - ファイル出力(diagnostics/graph)は **--format に関わらず常に `--out` へ書く**。
+    `--view` 指定時のみ plm-view.html を追加生成。
+    stdout: `--format text`(既定)=サマリ+適用ゲート内の所見一覧 / `--format json`= diagnostics.json と同内容。
+    ログ・進捗は stderr。`--help`・`--version` あり。
+  - exit code: **0**=適用ゲート内(§2.7)の error 所見なし / **1**= error 所見あり(gate=always の
+    X-PARSE 等を常に含む。抑制で info 化したものは含まない §2.8) / **2**=実行障害 —
+    引数不正(未知のオプション・`--gate`/`--format`/`--fail-on` の不正値)・対象パス不存在・
+    出力先がリポ内(§2.0)・出力先へ書込不能・スキーマ読込不能(§2.3)・未捕捉例外。
+    `--fail-on warn` で warn(降格後 severity)も exit 1 に昇格。
+- 核/表面: surface(出所: POSIX/Node CLI 慣習 → K-BOM 候補 K-NODE-CLI)
+- 受入観点: L2 — 引数×挙動マトリクス(正常系・異常系とも列挙表を fixture 化)全行 pass。
+- E-BOM 候補: E-CLI-011 / CP 候補: CP-CLI-011
+
+### 2.11 viewer 生成方式 (REQ-018, REQ-023)
+- 仕様節ID: SPEC-VIEWER-001
+- 振る舞い: **静的生成**(DEC-0003)。`--view` で自己完結の単一 `plm-view.html` を生成。
+  diagnostics/graph JSON を `<script type="application/json">` で埋め込み、外部リソース参照ゼロ
+  (CDN・fetch・画像ファイルなし)。`file://` で開ける。
+  **閲覧操作はファイル書込・localStorage 等いかなる永続状態も作らない**(リロード=埋込データへ全リセット)。
+  ビュー内のゲート選択は埋込済み全所見のクライアント側フィルタであり再実行ではない。
+- 核/表面: core(生成機構)+surface(UI は §2.12〜2.15)
+- 受入観点: L2 — 生成 HTML の外部参照ゼロ(静的検査)+リポ不在環境で全ビュー描画可。
+- E-BOM 候補: E-VIEWER-SHELL-001 / CP 候補: CP-VIEWER-012
+- UI-IR/UI-BOM 参照: `bomdd/ui/viewer/ui-ir.json` / `ui-bom.json` / `ui-trace-map.json`(モック M1)
+
+### 2.12 所見ビュー (REQ-019)
+- 仕様節ID: SPEC-VIEW-FINDINGS-001 / UI-IR: TMP-UI-SCR-0001
+- 表示契約 DC-FINDINGS-001(原典=モック M1 `bomdd/ui/mock/bomdd-plm-viewer.html`):
+  | DE | 提示要素 | 備考 |
+  |---|---|---|
+  | DE-F01 | サマリカード4種(error/warn/info/suppressed)。**排他計上** — suppressed は info カードに含めず独立カウント。error/warn/info は非抑制所見のみ | 固定幅・tabular-nums(LIV-0002) |
+  | DE-F02 | severity フィルタチップ・rule セレクト・検索入力 | |
+  | DE-F03 | 所見行: severityチップ / rule ID / 位置(正準パス:行。**表示は先頭側省略・完全パスは title 属性**。省略発火幅は実装裁量=G 判定) / 対象IDチップ / メッセージ | LIV-0004 |
+  | DE-F04 | 是正先表示(「→ 是正先:」+ fixTarget) | REQ-026 の可視面 |
+  | DE-F05 | 抑制済み行(灰+打消線+reason+suppress 定義位置) | 非表示にしない(INV-005) |
+  | DE-F06 | 空状態=達成表示(✓+「現ゲートで所見なし」+**stats 3値: files/ids/refs**) | 空白ではない |
+- 一覧は 200 行/ページのページング。
+- 受入観点: L2 — DE 全行の存在+埋込データとの件数一致(排他計上込み) /
+  G — golden(スクリーンショット+DOM。**pixel-exact 不採用**・表示契約要素の存在+意味一致)+承認者 akira。
+  golden は境界状態(空・4桁件数・長大パス)を必ず含む。承認記録は 50-as-built の golden_process。
+- E-BOM 候補: E-VIEWER-FINDINGS-002 / CP 候補: CP-VIEW-FINDINGS-013
+
+### 2.13 品目グラフビュー (REQ-020)
+- 仕様節ID: SPEC-VIEW-GRAPH-001 / UI-IR: TMP-UI-SCR-0002
+- 表示契約 DC-GRAPH-001(原典=モック M1):
+  | DE | 提示要素 | 備考 |
+  |---|---|---|
+  | DE-G01 | 品目ノード(family色+品番+短縮名) | 色言語は designIntent 準拠 |
+  | DE-G02 | 参照エッジ(矢印)・lineage エッジ・**不解決エッジ(resolved:false)は破線赤** | |
+  | DE-G03 | superseded ノード(灰+破線+supersede 先) | |
+  | DE-G04 | **R-040(superseded/retired 品目への active 参照の検出規則)** の違反エッジ(赤)+コールアウト(当事者品番と是正先) | |
+  | DE-G05 | 詳細パネル: 品番/lifecycle/名前/requirement_refs/逆引き参照/順参照/lineage/当該品目の所見 | 固定幅300px(LIV-0003) |
+  | DE-G06 | 検索・family フィルタ・近傍深さ(1/2/3) | |
+- **近傍の定義**: エッジを無向とみなした距離(lineage エッジも距離1)。初期表示は深さ≤2。
+- **初期選択品目**: **ビューの現在ゲート(初期値= lint 実行時の `--gate`)適用後**の error 所見を持つ
+  品目のうち、(family, id) バイト列順の先頭。該当ゼロなら (family, id) 順の先頭ノード。
+  ノードゼロなら空状態表示。ゲート切替時は初期選択を再計算しない(現在の選択を維持)。
+- 受入観点: L2 — 表示ノード/エッジ集合が graph.json+上記近傍定義の計算結果と一致 / G — §2.12 と同方式。
+- E-BOM 候補: E-VIEWER-GRAPH-003 / CP 候補: CP-VIEW-GRAPH-014
+
+### 2.14 トレースマトリクスビュー (REQ-021)
+- 仕様節ID: SPEC-VIEW-TRACE-001 / UI-IR: TMP-UI-SCR-0003
+- **データ源(全て埋込 JSON から計算。追加入力なし)**:
+  - 行= graph.json の family=REQ のノード(INV-009 順)。
+  - 列の被覆判定= graph.json のエッジ: E 列= kind=`requirement_refs` の逆向き到達 /
+    M 列= 当該 E への kind=`ebom_refs` / CP 列= kind=`acceptance_refs` または `verifies` /
+    証跡列= kind=`cp_ref`(As-Built test_evidence)。
+  - ✗(未被覆)= diagnostics.json の対応所見(R-010/011/012/050)が **1件以上**存在するセル
+    (複数所見でも1セル=✗。セルクリックで当該所見群へ遷移)。
+    —(灰)= 行 REQ または対象品目の lifecycle が draft/retired、もしくは当該規則が
+    **ビューの現在ゲート**(§2.13 と同じ初期値・切替規則)の適用外。
+- 表示契約 DC-TRACE-001(原典=モック M1): DE-T01 行×列マトリクス / DE-T02 セル3状態(✓品番・✗赤・—灰) /
+  DE-T03 被覆率サマリ(REQ→E / E→CP / CP→証跡) / DE-T04 未被覆のみトグル+凡例。
+- 受入観点: L2 — **✗セル集合= 対応 lint 所見集合と1対1(INV-010)** を fixture で検査 / G — §2.12 と同方式。
+- E-BOM 候補: E-VIEWER-TRACE-004 / CP 候補: CP-VIEW-TRACE-015
+
+### 2.15 台帳ビュー (REQ-022)
+- 仕様節ID: SPEC-VIEW-LEDGER-001 / UI-IR: TMP-UI-SCR-0004
+- **台帳の同定**: ref-edges の型による — ECO 台帳= `60-change-order-*.md`(+`60-change-register.yaml`
+  があれば構造化ソースとして優先)/ ずる台帳= `51-cheat-log.md` / 裁定台帳= `65-decision-register.yaml`。
+- **見出し抽出機構(§2.4 と共通実装)**: `#`〜`###` 見出し行(markdown の見出しは1物理行)のうち、
+  **ID トークン(§2.4 の切り出し規則)として family ID に一致する部分文字列**を含む行を1エントリとする。
+  **行内の最初の一致トークンをエントリ ID** とし、それ以外の ID は無視。
+  **タイトル= 見出し行からエントリ ID トークンを除去し前後の空白・区切り記号(`—` `:` `-` `・`)を
+  trim した残り**(それ以外の加工はしない。本文は読まない)。
+  family ID を含む見出しが 0 件の .md 台帳= 「非構造(見出し n 件)」として件数のみ表示。
+- 表示契約 DC-LEDGER-001(原典=モック M1):
+  | DE | 提示要素 | 備考 |
+  |---|---|---|
+  | DE-L01 | サブタブ(ECO/ずる/裁定)+**全件数**(ゲート非依存) | |
+  | DE-L02 | ECO 表: ID / タイトル。**状態・影響品目数は change-register.yaml がある場合のみ**の追加列 | |
+  | DE-L03 | ずる表: ID / タイトル(見出し) | 分類列は取得できる場合のみ |
+  | DE-L04 | 裁定表: ID / タイトル / 状態 / binds / 承認者(YAML 構造化ソース) | |
+  | DE-L05 | 「見出し+ID のみ抽出」注記 | 散文の全文構造化はしない |
+- 受入観点: L2 — fixture 台帳で抽出エントリ集合(ID+タイトル)一致 / G — §2.12 と同方式。
+- E-BOM 候補: E-VIEWER-LEDGER-005 / CP 候補: CP-VIEW-LEDGER-016
+
+### 2.16 性能・環境 (REQ-024, REQ-025)
+- 仕様節ID: SPEC-NFR-001
+- 性能目標(REQ-025・**L3**): 基準 workspace= ViewPrism2+ViewPrismUI
+  (規模の実測: 約50ファイル・ID 数千・参照数万 — plm-intake/id-inventory 参照)。
+  **基準機= akira 開発機(Windows・ローカル SSD・Node LTS)** で、新規プロセス起動(コールドスタート。
+  OS キャッシュは制御しない)を3回連続実行した wall-clock の中央値が **lint ≤10s・viewer 生成込み ≤15s**。
+  CI(Linux)では絶対値合否を取らず回帰傾向のみ観測する。
+- 環境(REQ-024・**L2**): Node.js ≥22 LTS。Windows / Linux 両方で固定オラクル全通過。
+  CRLF/LF・BOM 付き UTF-8・日本語/空白入りパス。
+- E-BOM 候補: E-NFR-017 / CP 候補: CP-NFR-017
+
+## 3. 不変条件(M-BOM へ前倒し)
+
+| ID | 不変条件 | 関係する REQ |
+|---|---|---|
+| INV-001 | 対象リポ全ファイルの SHA-256 は実行前後で不変(read-only) | REQ-001, 002 |
+| INV-002 | 実行間の永続状態ゼロ。終了後の残留物は出力先配下のみ | REQ-001 |
+| INV-003 | 同一入力→対象出力(diagnostics/graph/plm-view/stdout 本文)byte 同一。時刻・絶対パス・ホスト名・乱数を含めない | REQ-013 |
+| INV-004 | 正準パス= workspace ルート相対・`/` 区切り・原表記。**同定(解決・suppress 照合)は case-insensitive、ソートはバイト列順** | REQ-007, 024 |
+| INV-005 | 抑制は削除でなく info 降格。理由なし抑制・死んだ抑制は所見化 | REQ-015 |
+| INV-006 | exit code 0/1/2 契約(§2.10)。判定は適用ゲート内・降格後 severity で行う | REQ-014 |
+| INV-007 | family・pattern・エッジ・規則パラメータをコードに焼き込まない(スキーマ=データ) | REQ-006 |
+| INV-008 | viewer は埋込 JSON のみを入力とし、外部リソース参照ゼロ・永続状態ゼロ・file:// で開ける | REQ-018 |
+| INV-009 | 全出力コレクションに定義済みソート(比較器・欠損キー規則は §2.9) | REQ-013 |
+| INV-010 | トレースマトリクスの ✗ セル集合 = 対応 lint 所見集合(1対1) | REQ-021 |
+
+## 3.5 DB / 永続化意図
+なし(DB を持たないことが製品要件 — charter「含まない」参照)。
+
+## 4. 沈黙次元の第1回掃討(silence-checklist)
+
+| 次元 | 宣言 | 内容/参照 |
+|---|---|---|
+| 表示要素集合(UI surface) | specified | §2.12〜2.15 表示契約 DC-*/DE-*。原典=モック M1 |
+| 日時表現 | specified | 出力に時刻を含めない(INV-003)。入力中の日時は素通し |
+| エラー語彙 | specified | R-*(ref-v0)+実装診断 X-* 7種(§2.6 で閉集合として列挙) |
+| 文字コード・改行 | specified | §2.2(入力)・§2.9(出力)。不正 UTF-8= X-PARSE-001 |
+| パス表現・照合 | specified | INV-004(同定 vs ソートの使い分け含む) |
+| ソート・欠損キー | specified | §2.9 比較器 |
+| 識別子(出力側) | specified | 入力 ID を原表記転記。独自採番なし |
+| 並行性 | exploratory | 並列化自由。ただし INV-003 違反=受入 FAIL(CP-OUTPUT-010 が検出) |
+| ログ(stderr) | exploratory | 書式自由。stdout 契約のみ固定 |
+| i18n | out-of-scope | v0 は日本語のみ(利用者=akira) |
+| セキュリティ・権限 | out-of-scope | ローカル工具・信頼済み入力(クラッシュ耐性は §2.2 で担保) |
+| 永続化 | out-of-scope | DB なしが要件 |
+| 調達部品(YAML パーサ・グラフ描画) | deferred-to-phase3 | M-BOM procurement。決定性(INV-003)・自己完結(INV-008)を満たすこと |
+| アクセシビリティ(色覚) | deferred-to-phase3 | 色言語の色覚対応は 35 Design System BOM |
+| 大規模時の viewer 挙動 | specified | 所見 200/ページ・グラフ近傍≤2・初期選択規則(§2.13) |
+
+## 5. トレース表(REQ ⇄ 仕様節)
+
+| REQ | 実現節 | E-BOM 候補 | CP 候補 | 受入深さ |
+|---|---|---|---|---|
+| REQ-001 | §2.0 | E-CORE-READONLY-001 | CP-READONLY-001 | L3 |
+| REQ-002 | §2.0 | E-CORE-READONLY-001 | CP-READONLY-001 | L3 |
+| REQ-003 | §2.1 | E-CORE-DISCOVER-002 | CP-DISCOVER-002 | unit |
+| REQ-004 | §2.2 | E-CORE-PARSE-003 | CP-PARSE-003 | unit |
+| REQ-005 | §2.2 | E-CORE-PARSE-003 | CP-PARSE-003 | unit |
+| REQ-006 | §2.3 | E-CORE-SCHEMA-004 | CP-SCHEMA-004 | unit |
+| REQ-007 | §2.4 | E-CORE-RESOLVE-005 | CP-RESOLVE-005 | unit |
+| REQ-008 | §2.9 | E-CORE-OUTPUT-010 | CP-OUTPUT-010 | L2 |
+| REQ-009 | §2.5 | E-CORE-WORKSPACE-006 | CP-WORKSPACE-006 | unit |
+| REQ-010 | §2.6 | E-CORE-LINT-007 | CP-LINT-007 | unit |
+| REQ-011 | §2.6 | E-CORE-LINT-007 | CP-LINT-007 | unit |
+| REQ-012 | §2.7 | E-CORE-GATE-008 | CP-GATE-008 | unit |
+| REQ-013 | §2.9 | E-CORE-OUTPUT-010 | CP-OUTPUT-010 | L3 |
+| REQ-014 | §2.10 | E-CLI-011 | CP-CLI-011 | L2 |
+| REQ-015 | §2.8 | E-CORE-SUPPRESS-009 | CP-SUPPRESS-009 | unit |
+| REQ-016 | §2.10 | E-CLI-011 | CP-CLI-011 | L2 |
+| REQ-017 | §2.9 | E-CORE-OUTPUT-010 | CP-OUTPUT-010 | L2 |
+| REQ-018 | §2.11 | E-VIEWER-SHELL-001 | CP-VIEWER-012 | L2 |
+| REQ-019 | §2.12 | E-VIEWER-FINDINGS-002 | CP-VIEW-FINDINGS-013 | L2+G |
+| REQ-020 | §2.13 | E-VIEWER-GRAPH-003 | CP-VIEW-GRAPH-014 | L2+G |
+| REQ-021 | §2.14 | E-VIEWER-TRACE-004 | CP-VIEW-TRACE-015 | L2+G |
+| REQ-022 | §2.15 | E-VIEWER-LEDGER-005 | CP-VIEW-LEDGER-016 | L2+G |
+| REQ-023 | §2.11〜2.15(UI-CAD 適合) | E-VIEWER-* 全品目 | CP-VISUAL-GAP-018(visual gap analysis: S1/S2/S3 ゼロ+akira 承認) | G |
+| REQ-024 | §2.16 | E-NFR-017 | CP-NFR-017 | L2 |
+| REQ-025 | §2.16 | E-NFR-017 | CP-NFR-017 | L3 |
+| REQ-026 | §2.6 | E-CORE-LINT-007 | CP-LINT-007 | unit |
+
+逆引き: 全仕様節(§2.0〜2.16)は上表のいずれかの REQ に到達する(宙に浮いた節なし)。
+
+## 6. PLM-ready 契約
+- 仕様節は `SPEC-*` で参照可能。全 REQ が ≥1 節へ到達(§5)。
+- UI 表示要素は DC-FINDINGS/GRAPH/TRACE/LEDGER-001 の DE-* として E-BOM/Control Plan へ接続する。
+- 未解決事項は §7。blocker は manufacturing-ready を止める。
+
+## 7. Unresolved Questions
+
+| ID | Question | Severity | Owner | Affected refs | Status |
+|---|---|---|---|---|---|
+| UQ-SPEC-001 | 診断 JSON: 独自 `plm-diag/1` 一次・SARIF v0 対象外の裁定(DEC-0004・open) | non-blocker | human | §2.9 | open |
+| UQ-SPEC-002 | viewer 静的生成の裁定(DEC-0003・open)。承認で charter UQ-004 が閉じる | non-blocker | human | §2.11 | open |
+| UQ-SPEC-003 | グラフ描画の調達(ライブラリ vs 自前 SVG)。INV-003/008 を満たすこと | non-blocker | AI | §2.13 / M-BOM | open(Phase 3) |
+| UQ-SPEC-004 | 性能数値 10s/15s の体感確認(REQ-025 継承) | non-blocker | human | §2.16 | open |
+| UQ-SPEC-005 | 51-cheat-log.md の見出し規約が題材間で揺れる場合の抽出仕様の追補(§2.15 の機構で吸収できない実例が出たら ECO) | non-blocker | AI | §2.15 | open |
+
+---
+## ゲート記録(G2/G2')
+
+### マルチリーダー監査(G2) — 2026-07-03
+**第1回(初版に対して)** — リーダー N=3(fable / sonnet / haiku。互いに非開示・仕様書のみ供与):
+- **①REQ 一覧: 3体とも 26 件で完全一致。②不変条件: 3体とも 10 件で完全一致**(振る舞い骨格は一意)。
+- ④一意に読めない箇所: 3体合計 40+ 件(重複統合後 26 論点)。うち**初版の**仕様内矛盾 3 件
+  (REQ-024 深さの本文/表不一致・X-PARSE の column 欠落・X-SUPPRESS の gate 未列挙)。
+- 補正: 全 26 論点を G2 補正版へ反映(初版の矛盾3件は解消済み — 以下の記述は履歴であり現行版の欠陥ではない)。
+  外部参照依存(ref-v0・モック M1)は併読規約として冒頭に明示(欠陥でなく設計 — 二重管理回避)。
+
+**第2回(補正版に対して・fresh 2体: sonnet=D / haiku=E)**:
+- D 判定: **yes(条件付き)** — 第1回の矛盾3件が解消済みであることを本文照合で確認。残差4点
+  (message 転記規則・数値/文字列混在ソート・初期選択のゲート依存・基準 workspace の出典)。
+- E 判定: no — ただし挙げた「矛盾3件」は現行本文に存在する記述の見落としと裁定
+  (X-* 7種列挙・column?・X-SUPPRESS gate=always・REQ-024=L2 はいずれも本文に明記)。実質残差5点。
+- **最終補正(G2 補正2版=本版)**: D/E の実質残差 計8点を反映 — message/fixTarget 正準文言のオラクル凍結(§2.6)・
+  ソートキーの型固定(§2.9)・stats 全数定義(§2.9)・初期選択と灰セルの現在ゲート基準(§2.13/2.14)・
+  ID トークン切り出しの貪欲規則(§2.4)・見出しタイトル trim 規則(§2.15)・併読対象へ id-inventory と UI-CAD を追加(冒頭)。
+- **残差(理由付きで容認)**: (a) 罠 hint はパターン非該当時なし=付加情報と宣言済み
+  (b) DE-F03 省略発火幅は実装裁量=G 判定と宣言済み (c) UQ-SPEC-005 は宣言済みの未決。
+- **G2 判定: pass**(差分ゼロではなく「残差に理由付き」での通過。詳細: `bomdd/plm-intake/g2-audit-2026-07-03.md`)
+
+### MeasurementCapability(G2')
+| REQ | 状態 | 備考 |
+|---|---|---|
+| REQ-001〜017, 024〜026 | **adequate** | unit/L2/L3 の機械オラクル。fixture+期待プロファイルで閉じる |
+| REQ-019〜022(L2 部分) | **adequate** | DE 存在・件数・集合一致は DOM/データ突合で機械判定 |
+| REQ-019〜023(G 部分) | **human-approval-required** | golden(スクリーンショット+DOM・pixel-exact 不採用)+承認者 akira。記録は 50-as-built |
+| unmeasurable | **0 件** | — |
+
+### 原典パリティサインオフ
+- 原典= モック M1(新規開発につき旧版原典なし。モック=CAD 原器のたたき台)。
+- 機械突合: UI-IR の全 uiId ↔ モック data-ui-id(前方一致規約)= **PASS**(検査スクリプトは G2 記録参照)。
+- DC-*/DE-* ↔ UI-IR ↔ モック: §2.12〜2.15 の DE 全行がモックに実在。
+- **未決**: モックたたき台 v0.1 自体の akira 承認(UQ-UI-001・blocker)— 凍結前に必須。
