@@ -31,6 +31,19 @@ function runCli(target, { gate, eco, extraArgs = [] } = {}) {
 const readJson = p => JSON.parse(readFileSync(p, 'utf-8'));
 const diag = out => readJson(join(out, 'diagnostics.json'));
 
+// 仕様 §2.7: diagnostics.json は常に全所見(gate 付き)を含む。
+// 期待プロファイルはゲート適用後の集合なので、比較前に適用ゲートでフィルタする。
+// (CHEAT-PLM-V0-H001: 初回採点でこのフィルタが欠けていた治具バグの修正)
+const LADDER = { always: 0, G1: 1, G3: 2, freeze: 3, acceptance: 4 };
+function gateFilter(findings, gate = 'always', eco = false) {
+  const max = LADDER[gate] ?? 0;
+  return findings.filter(f => {
+    const g = f.gate ?? 'always';
+    if (g === 'eco') return eco;
+    return (LADDER[g] ?? 0) <= max;
+  });
+}
+
 function judge(name, ok, detail) {
   if (ok) { pass++; console.log('PASS', name); }
   else { fail++; console.log('FAIL', name); failDetails.push({ name, detail }); }
@@ -44,12 +57,13 @@ function checkRun(name, target, spec) {
   let d;
   try { d = diag(r.out); } catch { problems.push('diagnostics.json unreadable'); }
   if (d) {
+    const scoped = gateFilter(d.findings ?? [], spec.gate, spec.eco);
     if (spec.findings) {
-      const c = compareFindings(d.findings ?? [], spec.findings);
+      const c = compareFindings(scoped, spec.findings);
       if (!c.ok) problems.push(`findings missing=${JSON.stringify(c.missing)} extra=${JSON.stringify(c.extra.map(f => [f.rule, f.severity, f.file, f.targetId]))}`);
     }
     if (spec.infos) {
-      const c = compareInfos(d.findings ?? [], spec.infos);
+      const c = compareInfos(scoped, spec.infos);
       if (!c.ok) problems.push(`infos missing=${JSON.stringify(c.missing)}`);
     }
     if (spec.checks?.includes('all X-PARSE findings have line and column')) {
@@ -81,7 +95,9 @@ for (const file of readdirSync(join(ORACLE, 'expected')).sort()) {
 
   if (spec.case === 'S-11') {          // CLI 引数マトリクス
     spec.runs.forEach((run, i) => {
-      const cmd = [cli, ...run.args.map(a => a.startsWith('--') ? a : JSON.stringify(resolve(ORACLE, a)))].join(' ');
+      // パス様の引数(スラッシュ含み)のみ絶対化。フラグ値(G3/json 等)は素通し
+      // (CHEAT-PLM-V0-H002: 初回採点でフラグ値までパス解決していた治具バグの修正)
+      const cmd = [cli, ...run.args.map(a => a.includes('/') ? JSON.stringify(resolve(ORACLE, a)) : a)].join(' ');
       let exit = 0, stdout = '';
       try { stdout = execSync(cmd, { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'pipe'] }); }
       catch (e) { exit = e.status ?? 2; stdout = e.stdout ?? ''; }

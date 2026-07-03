@@ -1,0 +1,39 @@
+bomdd:
+  product: BomDD-Plm
+  experiment: plm-v0
+  layer: As-Built
+
+as_built:
+  - id: AB-PLM-V0-factory-01
+    lifecycle_state: scored          # 受入判定中(rev1 再製造の baseline)
+    work_order_ref: bomdd/40-work-order.md@plm-v0-input
+    input_bom_tag: plm-v0-input(1f21035)
+    ai_model: claude-opus-4-8
+    isolation: clean                 # 物理隔離パッケージ(オラクル・git履歴・設計対話は不在)
+    artifact_location: C:\Users\akira\source\repos\BomDD-Plm-factory-01
+    self_acceptance: "build 警告0 / node --test 75/75 / L1 スモーク緑 / blocked=CP-NFR-017(基準WS非同梱・正当)+CP-VISUAL-GAP-018 G部分(人間承認)"
+    cheats: "blocker 0 / friction 3 / minor 7(全 exploratory 宣言次元を報告 — 規律遵守)"
+    inspections:
+      fixed_oracle: "初回 12/25 → 治具修正(CHEAT-PLM-V0-H001/H002)後 14 PASS / 11 FAIL"
+      scored_at_note: 採点は治具修正後の再採点を正とする(凍結プロトコル §3)
+      failure_attribution:           # 差分帰属(11 FAIL)
+        - { cases: "S-02, S-08, S-12[1](連鎖: 抑制不発・X-XREPO も本件に従属)", attribution: spec_omission, id: SO-1,
+            cause: "R-003/R-004 所見の targetId 意味論(=不解決参照値)が仕様 §2.9 に無い。工場は null を選び、ID target の suppress 照合が全滅", fix: "仕様 §2.9 に1行追記 → rev1" }
+        - { cases: "S-03, S-12[0]", attribution: spec_omission, id: SO-2,
+            cause: "R-002 のカウント規約(後発定義1件=1所見)がオラクル README にだけあり製造パッケージに無い", fix: "仕様 §2.6 に追記 → rev1" }
+        - { cases: "S-07 全ラン(ゲートフィルタ修正後の残差)", attribution: refv0_gap, id: RG-1,
+            cause: "60-change-register の affected_refs エッジが R-003(always)と R-051(eco)の両方に数えられる。専用規則の排他が ref-v0 に無い", fix: "ref-edges に rule/gate 上書きを明記 → ref-v0.2" }
+        - { cases: "S-16(R-002 部分)", attribution: refv0_gap, id: RG-2,
+            cause: "ECO が 60-*.md ファイル名と 60-change-register の両定義サイトを持ち同一実体なのに R-002 発火。candidate 定義の fallback 索引意味論が未定義", fix: "ref-edges: 60-*.md を candidate 化+fallback 規則 → ref-v0.2" }
+        - { cases: "S-04(X-PARSE/X-TYPE 全欠落・7ファイル走査で所見ゼロ)", attribution: specified_contract_miss, id: PD-1,
+            cause: "仕様 §2.2 明記の契約を工場が取りこぼし(推定: eemeli yaml は throw せず doc.errors に集める/不正 UTF-8 は Node が U+FFFD 置換 — いずれも例外に頼る実装では不可視)。自己受入75緑のまま契約欠落=『自己受入緑≠仕様適合』の再演", fix: "rev1 パッケージで fresh factory 再製造" }
+        - { cases: "S-12[1](X-XREPO skip でなく R-003 error)", attribution: specified_contract_miss, id: PD-2,
+            cause: "§2.5 の skip 規定の取りこぼし", fix: 同上 }
+        - { cases: "S-16(ledger フィールド: title空・status/affectedCount欠落・cheat見出し未抽出)", attribution: specified_contract_miss, id: PD-3,
+            cause: "§2.15/§2.9 ledger.json 契約の部分実装", fix: 同上 }
+      harness_defects: "CHEAT-PLM-V0-H001(ゲートフィルタ欠落・偽FAIL 5件)/ H002(フラグ値のパス解決・偽FAIL 2件) — 51-cheat-log.md"
+      passed_highlights: "S-09 決定性(4出力 byte 同一)/ S-10 read-only / S-14 viewer 自己完結 / S-01 clean / S-05 R-020 / S-06 R-040(lineage 無罪込み)が初回から緑"
+  - id: AB-PLM-V0-factory-02
+    lifecycle_state: manufacturing   # sonnet 工場・製造中(旧パッケージ。分散測定用に採点予定)
+    input_bom_tag: plm-v0-input(1f21035)
+    ai_model: claude-sonnet-5
