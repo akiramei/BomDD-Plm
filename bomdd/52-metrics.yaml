@@ -57,3 +57,6 @@ eco_001:                             # 初の PLM 自身への Phase 7(2026-07-0
   real_repo_effect: "self-hosting 0 維持 / ViewPrism 286→261(per-file 18 全解消+PD-8 実在5解消・真正壊れ参照は残存=過剰受理なし)"
   failure_5class: { regression: 0, change_miss: 0, data_preservation_miss: "n/a(移行なし)", unnecessary_modification: 0, nonconformance: 0 }
   designer_side: "CHEAT-ECO-001-D001(41 追記の YAML 記法ミス=フロースタイル裸ブラケット。self-hosting lint が検出=防壁価値の初実証。yaml-authoring-traps 第4型)"
+
+  product_eco_candidates:            # 未起票の製品 ECO 候補
+    - "ECO-002 候補: repo: 形パス参照の repo 不在は R-004 でなく X-XREPO 系 skip(info)へ — ID 参照の cross_repo(候補リポ不在= skip)との一貫性。ViewPrism2 pre-commit 常駐(単一リポ実行)で7件の正当な cross-repo 参照が error になった非対称の実測(2026-07-03。当面の運用= workspace 宣言で回避)"
