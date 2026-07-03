@@ -45,6 +45,7 @@
 > **ループ完了宣言(2026-07-03)**: 完了の定義を全達成 — 固定オラクル 25/25(factory-03)・blocker ずるゼロ・
 > 実リポ受入(全 false positive 裁定済み)・golden 承認(akira)。測定値= [52-metrics.yaml](52-metrics.yaml)。
 > 残タスクは Linux/CI(CP-NFR-017 後半)と記録済み ECO 候補群のみ。
+> → **全消化(2026-07-03)**: ECO-001 受入(v0.2-eco-001-accepted)・ViewPrism2 ECO-028〜034 実装・CI 常設(GitHub Actions 両 OS 緑= CP-NFR-017 達成)・pre-commit 常駐。
 
 ## 完了の定義
 - **固定オラクル全通過**: 本題材の固定オラクルは「**既知欠陥を植えた fixture リポ群+正しいリポに対する期待所見プロファイル**」

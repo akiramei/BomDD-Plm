@@ -32,7 +32,7 @@ plm_v0:
       self_hosting: { before: "error+warn 67", after: 0, fixes: "自リポ台帳60件+TE証跡19行+ref-v0.3(2系統)" }
       viewprism:    { before: "error+warn 412", after_schema_fixes: 286, adjudicated: "全数帰属 — schema 5補正(実物が正)/ ViewPrism2 ECO候補6 / 製品ECO候補2(PD-7/8)/ ref-v0.4候補1" }
       genuine_defects_caught: "dangling CP参照 / プレースホルダ残 / test_vectors 欠落6(CHEAT-005予防の的中) / FMEA構造表不在 / 自リポTE証跡不在"
-    pending: "Linux 側実行(CI 整備時)"
+    pending: "なし — Linux 側達成(2026-07-03 GitHub Actions ubuntu-latest: build+test+オラクル27+self-hosting 全緑・windows-latest でも再現。CI 常設+pre-commit 常駐= D1 対策完了)"
 
   refv0_validation:                  # draft 卒業条件 §4 の第1データ点
     revisions: { v0.1: "G3由来 4補正", v0.2: "初回製造由来 2補正", v0.3: "S-19由来 5補正(うち4は実物が正)", v0.4: "ECO-001(受理形3種+per-file)", v0.5: "FMEA定義サイト両対応(実物が正6回目 — S-19裁定の誤認を実装検証が訂正)", v0.6: "trace-map 1対多の配列エッジ(単純配列化は検査が黙って消える、の対策)" }

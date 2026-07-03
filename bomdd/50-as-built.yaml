@@ -73,7 +73,7 @@ as_built:
       fixed_oracle: "**25/25 PASS(残渣ゼロ)** — 収束: rev0 14/25(opus)・13/25(sonnet)→ rev1 25/25。修正は BOM に宿る(1改訂で0到達)"
       performance_S18: "基準 workspace(ViewPrism2+ViewPrismUI: 48files/685ids/1404refs)で lint+viewer 0.72〜0.80s(3回・中央値0.75s)≦目標15s — PASS(13倍マージン)"
       real_repo_S19: "初回走行: クラッシュ0。ViewPrism workspace 752所見(error250/warn156/info340)・self-hosting 191所見。既に本物の欠陥を検出(E-BOM複合パス記法・FMEA定義サイト欠落=ref-v0ギャップ)。**全所見の裁定ループ(draft卒業データ収集)が受入完了の残件**"
-      pending: "Linux 側実行(CP-NFR-017 後半・CI 整備時)のみ。golden=承認済み(TE-PLM-018)・S-19 裁定=完了(plm-intake/s19-adjudication)"
+      pending: "なし(2026-07-03 全消化: Linux 側= GitHub Actions run 28656047941 ubuntu-latest で固定オラクル27+self-hosting lint 全緑=CP-NFR-017 後半達成。golden=TE-PLM-018・S-19 裁定=完了)"
     test_evidence_refs:   # R-050 被覆(S-19 self-hosting 裁定で追加。evidence= 固定オラクル採点 25/25)
       - { evidence_id: TE-PLM-001, cp_ref: CP-READONLY-001,      result: pass, evidence_path: oracle/expected/S-01-clean.json, notes: S-10 read-only 検査 }
       - { evidence_id: TE-PLM-002, cp_ref: CP-DISCOVER-002,      result: pass, evidence_path: oracle/expected/S-01-clean.json }
