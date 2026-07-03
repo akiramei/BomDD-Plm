@@ -24,9 +24,13 @@ changes:
 
   - id: ECO-002
     title: "v0.5: R-052 diff-audit 機械化(git 連携)+SARIF 2.1.0 追加出力+repo: 不在の skip 一貫化"
-    status: in-progress
+    status: verified   # 2026-07-03: fresh 2工場 33/33・不要改変0・sonnet 個体採用。詳細= 50 AB-PLM-ECO-002 / 61 §3
     opened: 2026-07-03
+    closed: 2026-07-03
     order_ref: bomdd/60-change-order-eco-002.md
+    diff_audit:   # R-052 自己適用(dogfood)— 本 ECO の実 diff を製品自身が監査する
+      baseline: eco-002-input
+      allowed_paths: [packages/core/, packages/cli/, test/, oracle/]
     affected_refs:
       - REQ-007
       - REQ-010

@@ -129,3 +129,40 @@ as_built:
       - { evidence_id: TE-ECO1-015, cp_ref: CP-VIEW-TRACE-015,    result: pass, evidence_path: oracle/README.md, notes: 同上(S-15) }
       - { evidence_id: TE-ECO1-016, cp_ref: CP-VIEW-LEDGER-016,   result: pass, evidence_path: oracle/expected/S-16-ledger.json, notes: 同上 }
       - { evidence_id: TE-ECO1-017, cp_ref: CP-DESIGN-SYSTEM-019, result: pass, evidence_path: oracle/README.md, notes: 同上(工場 test/ 由来検査は非改変・回帰緑) }
+
+  - id: AB-PLM-ECO-002
+    lifecycle_state: accepted        # ★ECO-002 採用個体(v0.5: R-052+SARIF+repo:skip)
+    work_order_ref: bomdd/40-work-order-eco-002.md@eco-002-input
+    input_bom_tag: eco-002-input(cdd1ef7)
+    baseline: "ECO-001 受入+CI 整備後 main(公開後。ハッシュは README 注記のとおり post-rewrite 系)"
+    ai_model: claude-sonnet-5        # factory2-02。対照個体: factory2-01(claude-opus-4-8)も 33/33・非採用
+    isolation: "clean(隔離パッケージ: オラクル・設計対話・61§2・51/52/65 非同梱)"
+    artifact_location: "製品リポ packages/core/src(gitdiff/r052/sarif 新設+5ファイル)+packages/cli/src+test/ を採用"
+    self_acceptance: "build 警告0 / node --test 116/116 / L1 自リポ+--eco+--sarif スモーク緑"
+    cheats: "blocker 0 / friction 2 / minor 2(51 参照 — SARIF version キーの仕様誤り指摘・informationUri プレースホルダ等)"
+    inspections:
+      fixed_oracle: "**33/33 PASS**(回帰26+S-20 文書化改訂+S-22 3ラン+S-23 2ラン+S-24)。対照個体(opus)も 33/33"
+      diff_audit_63: "src= 影響部品の実装ファイル群のみ・BOM/schemas/package/viewer diff 0・不要改変 0(両工場)"
+      impact_prediction_61: "under-inclusion 0(オラクル行/ファイル)・over-inclusion 1(schema/load — 実装は rules 側で読んだ)。予測外の収穫= 仕様本文の整合漏れ2件を工場が検出(§2.6 7種→8種・§2.9 version キー)"
+      r052_dogfood: "**自己適用成立** — register の ECO-002 に diff_audit(baseline: eco-002-input)を宣言し、納品個体の --eco 実行で R-052 所見 0(実 diff が宣言影響集合の内側)。手動 63 と同一結論= 63 の機械化が 63 自身の受入で初稼働"
+      acceptance_note: "受入時補正4件(仕様 §2.6/§2.9/§2.4/§2.17 — 全て工場指摘への裁定・51 に記録)+informationUri 充填+K-SARIF 新設(D002 是正)"
+    test_evidence_refs:   # ECO-002 回帰= S-01〜S-24 全33ラン。R-050 被覆(automated 17 CP+新設2)
+      - { evidence_id: TE-ECO2-001, cp_ref: CP-READONLY-001,      result: pass, evidence_path: oracle/expected/S-01-clean.json, notes: ECO-002 回帰 }
+      - { evidence_id: TE-ECO2-002, cp_ref: CP-DISCOVER-002,      result: pass, evidence_path: oracle/expected/S-01-clean.json }
+      - { evidence_id: TE-ECO2-003, cp_ref: CP-PARSE-003,         result: pass, evidence_path: oracle/expected/S-04-parse-broken.json }
+      - { evidence_id: TE-ECO2-004, cp_ref: CP-SCHEMA-004,        result: pass, evidence_path: oracle/README.md }
+      - { evidence_id: TE-ECO2-005, cp_ref: CP-RESOLVE-005,       result: pass, evidence_path: oracle/expected/S-24-repo-colon-single.json, notes: S-20 改訂+S-24 }
+      - { evidence_id: TE-ECO2-006, cp_ref: CP-WORKSPACE-006,     result: pass, evidence_path: oracle/expected/S-12-workspace.json }
+      - { evidence_id: TE-ECO2-007, cp_ref: CP-LINT-007,          result: pass, evidence_path: oracle/expected/S-22-diff-audit.json, notes: R-052 編入 }
+      - { evidence_id: TE-ECO2-008, cp_ref: CP-GATE-008,          result: pass, evidence_path: oracle/expected/S-07-gate-matrix.json }
+      - { evidence_id: TE-ECO2-009, cp_ref: CP-SUPPRESS-009,      result: pass, evidence_path: oracle/expected/S-08-suppress.json }
+      - { evidence_id: TE-ECO2-010, cp_ref: CP-OUTPUT-010,        result: pass, evidence_path: oracle/README.md }
+      - { evidence_id: TE-ECO2-011, cp_ref: CP-CLI-011,           result: pass, evidence_path: oracle/expected/S-11-cli-matrix.json }
+      - { evidence_id: TE-ECO2-012, cp_ref: CP-VIEWER-012,        result: pass, evidence_path: oracle/README.md }
+      - { evidence_id: TE-ECO2-013, cp_ref: CP-VIEW-FINDINGS-013, result: pass, evidence_path: oracle/expected/S-16-ledger.json }
+      - { evidence_id: TE-ECO2-014, cp_ref: CP-VIEW-GRAPH-014,    result: pass, evidence_path: oracle/README.md }
+      - { evidence_id: TE-ECO2-015, cp_ref: CP-VIEW-TRACE-015,    result: pass, evidence_path: oracle/README.md }
+      - { evidence_id: TE-ECO2-016, cp_ref: CP-VIEW-LEDGER-016,   result: pass, evidence_path: oracle/expected/S-16-ledger.json }
+      - { evidence_id: TE-ECO2-017, cp_ref: CP-DESIGN-SYSTEM-019, result: pass, evidence_path: oracle/README.md }
+      - { evidence_id: TE-ECO2-018, cp_ref: CP-SARIF-020,         result: pass, evidence_path: oracle/expected/S-23-sarif.json, notes: 新設(ECO-002) }
+      - { evidence_id: TE-ECO2-019, cp_ref: CP-GITDIFF-021,       result: pass, evidence_path: oracle/expected/S-22-diff-audit.json, notes: 新設(ECO-002) }

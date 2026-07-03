@@ -145,3 +145,16 @@ kbom:
         - "サブモジュール・worktree 境界は v0.5 対象外(単一リポの register が正)"
       risk_if_implicit: "quotepath 未指定で日本語パスがエスケープされ前方一致が壊れる / shell:true でパスにスペース・記号があると分岐 / 3点差分と2点差分の取り違えで diff 集合が変わる"
       consumers: [E-CORE-GITDIFF-030]
+
+    - id: K-SARIF
+      name: SARIF 2.1.0 標準知識パック(ECO-002)
+      knowledge_kind: external-standard
+      version: "2.1.0"
+      source: "OASIS SARIF 2.1.0(受入時に整備 — 工場は仕様 §2.9 rev3 の写像規定から製造)"
+      managed_knowledge:
+        - "top-level キーは version(schemaVersion ではない — 2工場の一致指摘で仕様を受入時補正)"
+        - "GitHub code scanning は version/runs[].tool.driver/results[] の最小集合で受理する"
+        - "抑制の標準表現は results[].suppressions[](kind: external= ツール外の宣言による抑制)"
+        - "level 語彙は error/warning/note(warn→warning・info→note の写像は本製品の裁定)"
+      risk_if_implicit: "独自キー名(schemaVersion)で出力すると SARIF コンシューマが認識せず統合目的が破綻"
+      consumers: [E-CLI-SARIF-031]

@@ -60,3 +60,16 @@ eco_001:                             # 初の PLM 自身への Phase 7(2026-07-0
 
   product_eco_candidates:            # 未起票の製品 ECO 候補
     - "ECO-002 候補: repo: 形パス参照の repo 不在は R-004 でなく X-XREPO 系 skip(info)へ — ID 参照の cross_repo(候補リポ不在= skip)との一貫性。ViewPrism2 pre-commit 常駐(単一リポ実行)で7件の正当な cross-repo 参照が error になった非対称の実測(2026-07-03。当面の運用= workspace 宣言で回避)"
+
+eco_002:                             # v0.5(2026-07-03): R-052 diff-audit+SARIF+repo:skip
+  change: "R-052(63 の機械化・製品初 git 連携)+SARIF 2.1.0 追加出力(DEC-0004 後段)+repo: 不在 skip(CI 実害の是正)"
+  input_bom: eco-002-input(cdd1ef7)
+  calibration: "変更前個体で 28 PASS(既存26+自明成立2)/ 5 FAIL(全て変更断面)。セルフテスト 13/13(checkSarif/buildGitFixture 追補)"
+  factories:
+    - { factory: factory2-01(opus),   oracle: "33/33", self_acceptance: "117/117", unnecessary_modification: 0, cheats: "minor 2 / friction 1", adopted: false }
+    - { factory: factory2-02(sonnet), oracle: "33/33", self_acceptance: "116/116", unnecessary_modification: 0, cheats: "minor 2 / friction 2", adopted: true }
+  adoption_rationale: "CH-3 を trace_link 経路にも適用(仕様意図に忠実 — 2工場がここで分岐= 未規定次元の検出)/ informationUri は捏造回避のプレースホルダ納品 / baseline 混入の赤テスト1本を観測・解消"
+  impact_prediction: { under_inclusion: 0, over_inclusion: 1, note: "予測外の収穫= 工場が仕様本文の整合漏れ2件を検出(§2.6 X-* 7種→8種・§2.9 SARIF version キー)— 「新設節が旧本文の閉集合宣言を破る」を影響分析チェック項目に追加すべき(method 還元候補)" }
+  r052_dogfood: "自己適用成立 — 本 ECO の register に diff_audit を宣言し R-052 所見 0(手動 63 と同一結論)。63 の機械化が 63 自身の受入で初稼働"
+  harness: "H004(S-23[1] fixture 指定ミス= suppress は workspace 経由。precondition 検査が治具前提不成立を製品欠陥と区別)/ D002(E-BOM external_source_ref 散文値をリンタが検出= 設計者捕捉4例目→ K-SARIF 新設)"
+  failure_5class: { regression: 0, change_miss: 0, data_preservation_miss: "n/a", unnecessary_modification: 0, nonconformance: 0 }

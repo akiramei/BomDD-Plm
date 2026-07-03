@@ -43,8 +43,15 @@
 | **S-20 path-forms** | **ghost 行のみ改訂** | `ghost:assets/logo.txt`: R-004(error)→ X-XREPO-001(info)。他の行(実在値の解決・repo: パス不在の R-004・真の不在の R-004)は**不変** — CH-3 が変えるのは「repo 名不在」の1経路のみ。exit も error 残2件により 1 のまま |
 | 非対象ファイル | diff 0 | packages/viewer 全体・core の discover/parse/gate/suppress/util — 63+**R-052 自己適用**で測定 |
 
-## 3. 採点(製造・回帰の後に記入)
-- under-inclusion:
-- over-inclusion:
-- 粒度の観察:
-- R-052 自己適用の突合(手動 63 との一致):
+## 3. 採点(2026-07-03 記入)
+- **under-inclusion: 0** — 既存 26 ケース両工場 PASS・viewer/discover/parse/gate 経路の src diff 0。
+  ただし §2 の予測外で**仕様本文の整合漏れ 2 件**(§2.6 X-* 7種・§2.9 schemaVersion 表記)を工場が検出 —
+  影響なし予測の採点対象(オラクル行・ファイル)では外れゼロだが、仕様改訂の波及範囲としては見落とし
+  (「新設節が旧本文の閉集合宣言を破る」— 次回 ECO の影響分析チェック項目に追加)。
+- **over-inclusion: 1** — 影響ありに挙げた schema/load(diff_audit 読み)は両工場とも rules 側
+  (context.ts / r052.ts)で読み、load は無変更(実装配置の自由度の範囲)。
+- **粒度の観察**: M unit 4/8。E-BOM 部品粒度+63 で統制し、src diff は両工場とも影響部品の実装
+  ファイル群に収束(不要改変 0)。
+- **R-052 自己適用の突合**: 一致 — register に diff_audit(baseline: eco-002-input・allowed_paths 4 プレフィックス)を
+  宣言し、納品個体の `--eco` 実行で **R-052 所見 0**(実 diff= bomdd/oracle/packages/test の内側)。
+  手動 63(diff --name-only の目視監査)と同一結論。**63 の機械化が 63 自身の受入で初稼働した(dogfood 成立)**。

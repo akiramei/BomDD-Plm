@@ -43,3 +43,25 @@
   再ビルドが import に反映されない環境不整合 → npm install で復旧(パッケージ組成由来。工場は正直に申告し
   「ビルド緑・テスト緑・実行は旧コード」の偽陰性リスクを指摘 — 工程還元候補: 隔離パッケージの組成手順に
   node_modules コピーでなく npm ci を指定する)。
+
+## CHEAT-ECO-002-H004 [harness] S-23[1] の fixture 指定ミス(suppress は workspace 経由)
+- 手法が与えなかったもの: expected 作成時、suppress fixture の実行形態(bomdd-workspace.yaml を target にする
+  = S-08 と同型)の確認手順。repo 直指定では suppress が読まれず「suppressed 所見なし」の前提不成立になる。
+- 代替した判断: S-08 の target と同じ workspace ファイル指定へ是正し全ケース再採点(凍結プロトコル §3)。
+- 重大度: friction(採点1ラン偽 FAIL。checkSarif の precondition 検査が「治具の前提不成立」を
+  製品欠陥と区別して報告した=検査器設計の勝ち)
+
+## CHEAT-ECO-002-D002 [designer] E-CLI-SARIF-031 の external_source_ref に散文値
+- 手法が与えなかったもの: external_source_ref(kind: id-or-path・family K)へ「SARIF 2.1.0(OASIS 標準)」の
+  散文を書けないという台帳規律の自己適用(ECO-029 で ViewPrism2 に処方した「参照欄は単一 ID」の再演)。
+- 代替した判断: K-SARIF パックを 31 に新設して参照(自己適用の R-004 warn をリンタが検出 — 設計者捕捉4例目)。
+- 重大度: minor
+
+## ECO-002 工場ずる報告の取込み(受入確定 2026-07-03)
+- 採用個体(F02/sonnet)4件: F02-001[friction] SARIF top-level キー= version 採用(仕様字句 schemaVersion は
+  標準不整合 — 受入時に仕様側を補正)/ F02-002[friction] informationUri 不在→RFC 2606 プレースホルダ
+  (受入時に設計者供給値へ充填)/ F02-003[minor] §2.6「X-* 7種」が rev3 で8種に(本文整合漏れ — 受入時補正)/
+  F02-004[minor] allowed_paths 前方一致の境界(末尾スラッシュ規律 — 受入時に §2.17 へ明記)。
+- 対照個体(F01/opus)3件: F01-001[minor] informationUri= 実 URL 推定(採用個体と対照的な判断)/
+  F01-002[minor] S-20 ghost 行のテスト期待改訂(正当)/ F01-003[friction] trace_links への CH-3 非適用
+  (採用個体は適用 — 2工場の分岐が §2.4 の未規定次元を検出し、受入時に「全経路共通」を明記)。

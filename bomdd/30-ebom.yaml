@@ -272,9 +272,9 @@ ebom:
       name: SARIF 2.1.0 ビルダ(--sarif opt-in・派生ビュー)
       classification: surface
       rationale_type: external-knowledge
-      external_source_ref: "SARIF 2.1.0(OASIS 標準)"
+      external_source_ref: K-SARIF   # 受入時是正: 散文値が R-004 warn になった(リンタが設計者を捕捉・4例目)→ K パック化
       requirement_refs: [REQ-027]
-      kbom_refs: [K-TS-DETERMINISM]
+      kbom_refs: [K-SARIF, K-TS-DETERMINISM]
       invariants: ["plm-diag/1 が一次契約 — SARIF にだけ存在する情報を作らない(DEC-0004)", "正規シリアライズ規約 §2.9 の対象"]
       acceptance_refs: [CP-SARIF-020]
       planned_output_artifact_ref: packages/core/src

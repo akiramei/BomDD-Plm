@@ -82,6 +82,7 @@ decisions:
     decision:
       - "提案: 独自 plm-diag/1 を一次契約とする。family・gate・fixTarget・suppress など BomDD 固有次元を一級フィールドで持つため。"
       - SARIF エクスポートは将来の追加出力(v0.5 候補)として ECO で扱う。
+      - "(2026-07-03 追記)後段実施済み: ECO-002 で --sarif 追加出力を実装(plm-diag/1 一次は不変)。top-level キーは SARIF 標準の version(仕様の schemaVersion 表記は受入時補正)"
     refs:
       - bomdd/20-spec.md#29-出力と決定性
 
