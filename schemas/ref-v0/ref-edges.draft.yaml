@@ -5,7 +5,12 @@
 #
 # 意味論は縛らない: ここに無いフィールドは自由。ここに有るフィールドも「型と参照先ファミリー」だけを縛る。
 
-edges_version: ref-v0.4
+edges_version: ref-v0.5
+# ref-v0.5(2026-07-03・ViewPrism2 ECO-030 実装検証で発見): FMEA 定義サイトの両対応(実物が正・6回目) —
+#   32-mbom トップレベル fmea[].id を定義サイトに追加。ViewPrism2 は FMEA 構造表(36定義・
+#   {id, unit, failure_mode, effect, targeted_by})を 32-mbom に置いており、ref-v0.3 の規定
+#   (33 のみ)は BomDD-Plm 自リポの配置だけを見た書き癖だった。S-19 裁定の「FMEA 構造表が無い」は
+#   誤認(表は実在し、スキーマが場所を知らなかった)。FMEA は unit 紐付きにつき M-BOM 配置も妥当。
 # ref-v0.4(2026-07-03・BomDD-Plm ECO-001 と同時): S-19 裁定で保留した2系統の正式化 —
 #   (a) パス値の受理形を kind 凡例に明文化(正準 / repo 相対 / `repo名:相対`。PD-7/PD-8 =
 #       実装が未規定次元で非一貫化した実測に基づく。「実物が正」: 実リポ台帳は repo 相対を常用)
@@ -101,6 +106,8 @@ artifacts:
     defines:
       - selector: mbom.manufacturing_units[].id
         family: M
+      - selector: fmea[].id
+        family: FMEA   # ref-v0.5: ViewPrism2 実物(トップレベル fmea 表)。33 control_plan.fmea[].id と両対応
     refs:
       - { selector: "mbom.manufacturing_units[].ebom_refs[]",       family: E,     severity: error }
       - { selector: "mbom.manufacturing_units[].kbom_refs[]",       family: K,     severity: error }

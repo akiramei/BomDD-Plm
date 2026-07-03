@@ -93,7 +93,7 @@ families:
 
   - prefix: FMEA
     name: 故障モード
-    defined_in: "bomdd/33-control-plan.yaml(FMEA 節)"
+    defined_in: "bomdd/33-control-plan.yaml(fmea 節)または bomdd/32-mbom.yaml(fmea 節)— ref-v0.5 両対応(実物: ViewPrism2 は 32 に配置)"
     strictness: advisory
     note: "参照(fmea_refs)は 32/33 で機械可読だが、定義サイトの構造が題材間で揺れている。strict 化候補。"
 
