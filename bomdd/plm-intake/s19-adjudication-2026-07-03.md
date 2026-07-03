@@ -40,5 +40,12 @@
 - **真正の欠陥捕獲**: dangling CP 参照 1・プレースホルダ残 1・test_vectors 欠落 6・FMEA 表不在・TE 証跡不在(自リポ)
   — **リンタは初日から本物を捕まえている**。
 - **ViewPrism2 ECO 候補**: 6件(上表)。着手は ViewPrism2 側の通常 ECO プロセスで。
+  → **起票済み(2026-07-03・ViewPrism2 9ed8fee)**: ECO-028(dangling 受入参照 — 再走行で CP-TRASH-022・
+  E-UI-DETAIL-023 残存も追加確認)/ ECO-029(複合記法・変種品番)/ ECO-030(FMEA 構造表)/
+  ECO-031(41 spec_ref)/ ECO-032(注釈付きパス+placeholder 真正1)/ ECO-033(test_vectors 6)。
+  起票検証で7件目を発見: register のリストキーが ref-v0 セレクタ(changes[])と不一致で全 ECO が
+  PLM 不可視 → ECO-034 として即時適用(裁定: スキーマ側に寄せる)。
 - **製品 ECO 候補**: PD-7(単一セグメント dir)・PD-8(repo: 記法)・per-file スコープ実装。
+  → **ECO-001 として実施・受入完了(2026-07-03・tag v0.2-eco-001-accepted)**。PD-7 は再現検証で
+  file にも及ぶと判明(単一セグメント全般)。ViewPrism workspace 286→261。
 - 残 286 件の運用: ViewPrism2 の CI 導入時は当面 `--gate G3`+suppress(理由付き)で段階導入を推奨。
