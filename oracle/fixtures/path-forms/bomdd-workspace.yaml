@@ -1,0 +1,3 @@
+repos:
+  - { name: main,  path: main,  role: manufacturing }
+  - { name: other, path: other, role: ui-cad }

@@ -1,0 +1,33 @@
+{
+  "case": "S-21",
+  "fixture": "fixtures/rules/R-002-per-file/repo",
+  "gate": "always",
+  "expect_exit": 1,
+  "findings": [
+    {
+      "rule": "R-002",
+      "severity": "error",
+      "file": "repo/bomdd/ui/c/ui-ir.json",
+      "targetId": "TMP-UI-CMP-0002"
+    },
+    {
+      "rule": "R-002",
+      "severity": "error",
+      "file": "repo/bomdd/ui/c/ui-ir.json",
+      "targetId": "TMP-UI-CMP-0002"
+    },
+    {
+      "rule": "R-002",
+      "severity": "error",
+      "file": "repo/bomdd/ui/c/ui-ir.json",
+      "targetId": "state.dup"
+    },
+    {
+      "rule": "R-002",
+      "severity": "error",
+      "file": "repo/bomdd/ui/c/ui-ir.json",
+      "targetId": "state.dup"
+    }
+  ],
+  "note": "ECO-001(仕様 §2.5 rev2・ref-v0.4): uniqueness_scope=per-file — ui/a と ui/b の TMP-UI-SCR-0001 / screen.home(ファイル間同名)は合法=非発火。ui/c のファイル内重複のみ R-002(全定義サイト計上=各2所見)。ui/a/ui-bom.json の TMP-UI-SCR-0001 参照は全域索引で解決(R-003 なし=対照)"
+}

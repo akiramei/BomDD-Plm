@@ -1,0 +1,5 @@
+{
+  "screens": [
+    { "tempPartNo": "TMP-UI-SCR-0001", "uiId": "screen.home", "name": "Home (view B, independent numbering)" }
+  ]
+}

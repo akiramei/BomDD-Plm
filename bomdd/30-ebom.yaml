@@ -108,6 +108,7 @@ ebom:
       invariants: [INV-004]
       acceptance_refs: [CP-RESOLVE-005]
       planned_output_artifact_ref: packages/core/src
+      rev_note: "ECO-001: パス受理形3種(正準/repo相対/repo:)。仕様 §2.4 rev2 に追随"
     - id: E-CORE-WORKSPACE-006
       name: workspace解決(cross_repo・skip・R-002全域適用)
       classification: surface
@@ -126,6 +127,7 @@ ebom:
       kbom_refs: [K-REFV0]
       acceptance_refs: [CP-LINT-007]
       planned_output_artifact_ref: packages/core/src
+      rev_note: "ECO-001: R-002 が定義サイトの uniqueness_scope(per-file)を尊重。仕様 §2.5 rev2・ref-v0.4 に追随"
     - id: E-CORE-GATE-008
       name: ゲート合成(梯子+eco直交)
       classification: core

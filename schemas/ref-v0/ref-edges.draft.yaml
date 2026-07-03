@@ -5,12 +5,15 @@
 #
 # 意味論は縛らない: ここに無いフィールドは自由。ここに有るフィールドも「型と参照先ファミリー」だけを縛る。
 
-edges_version: ref-v0.3
+edges_version: ref-v0.4
+# ref-v0.4(2026-07-03・BomDD-Plm ECO-001 と同時): S-19 裁定で保留した2系統の正式化 —
+#   (a) パス値の受理形を kind 凡例に明文化(正準 / repo 相対 / `repo名:相対`。PD-7/PD-8 =
+#       実装が未規定次元で非一貫化した実測に基づく。「実物が正」: 実リポ台帳は repo 相対を常用)
+#   (b) uniqueness_scope: per-file を定義サイト宣言に導入(ui-ir の tempPartNo/uiId に適用)。
+#       ViewPrism2 は画面別 ui-ir(3ファイル)で仮品番を各々 0001 から採番しており、workspace 全域 R-002 が誤発火する。
 # ref-v0.3(2026-07-03): S-19 実リポ遡及の裁定ループで確定した補正(実物が正の初適用群) —
 #   (a) TMP-UI-LIV を ui-bom/ui-trace-map の family 列挙に追加 (b) FMEA の定義サイト(33 fmea[].id)を追加
 #   (c) ui-id family に domain.* を追加(ViewPrism2 実 IR の慣行) (d) 31-kbom の直下リスト構造を許容
-# ref-v0.4 候補(製品側 ECO と同時): TMP-UI-*/ui-id の一意性スコープ=抽出ファイル単位(per-file)。
-#   ViewPrism2 は画面別 ui-ir(3ファイル)で仮品番を各々 0001 から採番しており、workspace 全域 R-002 が誤発火する。
 # ref-v0.2(2026-07-03): BomDD-Plm 初回製造(2工場)の差分帰属で確定した補正 —
 #   (a) 専用規則エッジの rule/gate 上書き(affected_refs=R-051/eco。R-003 二重計上の排他)
 #   (b) candidate 定義の fallback 意味論(正定義不在時のみ索引登録。60-*.md を candidate 化)
@@ -25,6 +28,18 @@ edges_version: ref-v0.3
 #   id-or-path = ①ID として解決 → ②パスとして存在 → 両失敗で不解決
 #   path-at-rev= `パス@rev` 形式。パス部のみ存在検査(@rev は無視)
 #   none(severity: none) = 解決検査しない(表示・記録用)
+#
+# パス値の受理形(ref-v0.4。kind: path / id-or-path の②/ path-at-rev のパス部に共通):
+#   1. 正準形      `<repo名>/<リポ内相対>`   — 出力・ソート・suppress 照合はこの形(製品仕様 INV-004)
+#   2. repo 相対形  `<リポ内相対>`(repo 名なし)— workspace 内のいずれかの repo からの相対で実在すれば解決。
+#                   セグメント数を問わない(単一セグメント `test` も可)。file / dir を問わない
+#   3. repo: 形     `<repo名>:<リポ内相対>`   — 正準形と等価(実リポの cross-repo 慣行)。repo 名不在なら不解決
+#   `パス#断片` は断片を無視。受理形は解決(受理)の規定であり、出力の正準化(1 の形)を変えない
+
+# 定義サイト宣言の追加キー(ref-v0.4):
+#   uniqueness_scope: per-file — この定義サイト由来の ID の R-002 一意性検査を「抽出ファイル単位」で行う
+#   (同一ファイル内の重複のみ R-002。別ファイル間の同名は合法)。無指定= workspace 全域(従来どおり)。
+#   ID 索引(参照解決)への登録は従来どおり全域=索引に存在すれば解決(per-file は R-002 の重複判定スコープのみを変える)
 
 distributed_defines:      # 全成果物に分散して現れる定義サイト
   - selector: "**.trace_links[].trace_id"
@@ -212,8 +227,10 @@ artifacts:
     defines:
       - selector: "(screens|regions|components|occurrences|actions|inputs|states|domainConcepts|layoutInvariants)[].tempPartNo"
         family: [TMP-UI-SCR, TMP-UI-REG, TMP-UI-CMP, TMP-UI-OCC, TMP-UI-ACT, TMP-UI-INP, TMP-UI-STA, TMP-UI-DOM, TMP-UI-LIV]
+        uniqueness_scope: per-file   # ref-v0.4: 画面別 IR は各ファイルで独立採番(ViewPrism2 実態が正)
       - selector: "*[].uiId"
         family: ui-id
+        uniqueness_scope: per-file   # ref-v0.4: 同上
     refs:
       - { selector: "meta.sources[].file", kind: path, severity: error, note: "モック HTML への参照。CAD の正本" }
       - { selector: "regions[].screen",    family: TMP-UI-SCR, severity: error }

@@ -134,22 +134,29 @@ requirements:
     unresolved_questions: []
 
   - id: REQ-007
+    rev: 2   # ECO-001(2026-07-03): パス受理形3種の明文化(PD-7/PD-8)
     statement: >-
       定義サイトから全 ID を抽出してファミリー別インデックスを作り、参照エッジの全参照を
-      解決する。kind:path はファイル存在、kind:id-or-path は ID 解決とパス存在の両様で判定する。
+      解決する。kind:path はパス実在、kind:id-or-path は ID 解決とパス実在の両様で判定する。
+      パス値の受理形は3種(仕様 §2.4): 正準 `<repo>/<相対>` / repo 相対(セグメント数・file/dir 不問)/
+      `repo名:相対`(正準と等価)。
     rationale: >-
       本製品の中核機能。正しさの基準はスキーマ(SRC-01)と実リポ(SRC-04)。
       深さ unit(合成フィクスチャで定義数・解決数・不解決数の完全一致)。
+      rev2 根拠: S-19 裁定で repo 相対記法が実リポの常用と確定(実物が正)。旧実装は
+      未規定次元を fallback で埋め、単一セグメント値のみ実在検査から漏れる非一貫を生んだ(PD-7 実測)。
     rationale_precision: ok
     classification_hint: surface
-    external_source: "BomDD/method/schemas/draft/(ref-v0)"
+    external_source: "BomDD/method/schemas/draft/(ref-v0.4)"
     priority: must
-    source_refs: [bomdd/plm-intake/id-inventory-2026-07-03.md]
+    source_refs: [bomdd/plm-intake/id-inventory-2026-07-03.md, bomdd/60-change-order-eco-001.md]
     acceptance_intent: { depth_hint: unit, tolerance_hint: "期待インデックス・期待解決結果との完全一致", approver_hint: automated }
     counterexamples:
       - 散文(.md)からの ID 抽出で「E-BOM」等の文書名語を ID と誤認(SRC-04 で 132 件実在)
       - 同一 ID が2ファイルで定義(R-002 対象)なのに後勝ちで黙って上書き
       - M01(移行オラクル)を M-BOM family に誤分類
+      - 単一セグメントの repo 相対値だけ実在検査せず不解決扱い(PD-7 — rev2 で是正)
+      - repo: 形の repo 名不在時に形式2 へフォールバックして偽解決(rev2 の反例)
     unresolved_questions: []
 
   - id: REQ-008

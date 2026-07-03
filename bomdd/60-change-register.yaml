@@ -1,0 +1,22 @@
+bomdd:
+  product: BomDD-Plm
+  layer: ChangeRegister
+
+# 変更オーダー台帳(構造化)。R-051(gate=eco)が affected_refs の解決を検査する。
+# 詳細は各 order_ref の .md(ファイル名 ID は candidate 定義 — 本 register が正定義)。
+
+changes:
+  - id: ECO-001
+    title: パス受理形の仕様化(PD-7/PD-8)+R-002 一意性スコープ per-file(ref-v0.4)
+    status: in-progress
+    opened: 2026-07-03
+    order_ref: bomdd/60-change-order-eco-001.md
+    affected_refs:
+      - REQ-007
+      - E-CORE-RESOLVE-005
+      - E-CORE-LINT-007
+      - M-CORE-GRAPH-002
+      - M-CORE-RULES-003
+      - CP-RESOLVE-005
+      - CP-LINT-007
+      - K-REFV0

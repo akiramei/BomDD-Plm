@@ -1,0 +1,34 @@
+bomdd:
+  product: path-forms
+  layer: Requirements
+
+# S-20 fixture: パス受理形3種(仕様 §2.4 rev2)の全分岐。
+requirements:
+  - id: REQ-001
+    statement: 単一セグメント dir(repo 相対形)
+    source_refs: [test]
+  - id: REQ-002
+    statement: 単一セグメント file(repo 相対形)
+    source_refs: [single.md]
+  - id: REQ-003
+    statement: 多セグメント dir(repo 相対形)
+    source_refs: [docs/sub]
+  - id: REQ-004
+    statement: 正準形
+    source_refs: [main/docs/sub/x.md]
+  - id: REQ-005
+    statement: repo コロン形(実在)
+    source_refs: ["other:assets/logo.txt"]
+  - id: REQ-006
+    statement: repo コロン形(repo は在るがパス不在)
+    source_refs: ["other:assets/nope.txt"]
+  - id: REQ-007
+    statement: repo コロン形(repo 名不在 — 形式2 へ非フォールバック)
+    source_refs: ["ghost:assets/logo.txt"]
+  - id: REQ-008
+    statement: 真に不在
+    source_refs: [nope/missing.md]
+    trace_links:
+      - trace_id: TL-PF-001
+        from: test
+        to: REQ-001

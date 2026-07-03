@@ -1,0 +1,10 @@
+{
+  "components": [
+    { "tempPartNo": "TMP-UI-CMP-0002", "name": "duplicate within one file (1st)" },
+    { "tempPartNo": "TMP-UI-CMP-0002", "name": "duplicate within one file (2nd)" }
+  ],
+  "states": [
+    { "uiId": "state.dup", "name": "uiId duplicate within one file (1st)" },
+    { "uiId": "state.dup", "name": "uiId duplicate within one file (2nd)" }
+  ]
+}

@@ -8,7 +8,7 @@ bomdd:
 # 「既知欠陥を植えた fixture への期待所見プロファイル一致」= 較正がそのまま製品オラクル。
 
 fixed_oracle:
-  frozen_since: "tag plm-v0-input-rev1(2026-07-03。初版 tag plm-v0-input からの改訂: S-03/S-12[0] の期待値を rev1 仕様化(R-002 カウント規約)に追随 — 凍結時に未規定だった次元の仕様完成に伴う文書化済み補正。他ケースは不変)"
+  frozen_since: "tag eco-001-input(2026-07-03。ECO-001: S-20/S-21 を新規行として追加 — 既存 S-01〜S-19 の fixture・expected は不変=回帰のヤードスティック)/ 前版 tag plm-v0-input-rev1(初版 tag plm-v0-input からの改訂: S-03/S-12[0] の期待値を rev1 仕様化(R-002 カウント規約)に追随 — 凍結時に未規定だった次元の仕様完成に伴う文書化済み補正。他ケースは不変)"
   self_test: >-
     oracle/harness/selftest.mjs — 11 tests PASS(2026-07-03)。比較器(完全集合/subset/message部分一致)・
     hashツリー差分・byte比較・自己完結検査器を合成データで検証済み。
@@ -46,3 +46,6 @@ fixed_oracle:
     - { id: S-17, scenario: DC 全 DE の DOM 存在+件数一致(4ビュー・境界状態込み), contract_expectation: DE 全行 present・排他計上, spec_ref: "bomdd/20-spec.md#2.12-2.15", depth: L2, fixture: oracle/harness/view-* }
     - { id: S-18, scenario: 基準 workspace 実測(基準機),                 contract_expectation: lint ≤10s・viewer ≤15s(3回中央値), spec_ref: "bomdd/20-spec.md#2.16", depth: L3, fixture: oracle/harness/perf-bench }
     - { id: S-19, scenario: 実リポ遡及(ViewPrism2+UI workspace / LibraryLending), contract_expectation: クラッシュ0・全所見が裁定可能(false positive はスキーマ or 実リポの欠陥として毎回裁定=ref-v0 検証データ), spec_ref: "bomdd/00-charter.md#完了の定義", depth: L3, fixture: 実リポ(受入時) }
+    # ---- ECO-001 追加行(2026-07-03。既存行は不変) ----
+    - { id: S-20, scenario: パス受理形3種(正準/repo相対[単一・多セグメント/file・dir]/repo:形)+id-or-path②同受理形, contract_expectation: 実在値は全形式で解決・不解決は repo:パス不在/repo:名不在/真の不在の3件のみ(R-004 warn), spec_ref: "bomdd/20-spec.md#2.4(rev2)", depth: unit, fixture: oracle/fixtures/path-forms, change_ref: ECO-001 }
+    - { id: S-21, scenario: uniqueness_scope per-file(ui-ir tempPartNo/uiId) — ファイル間同名は合法・ファイル内重複のみ R-002・参照解決は全域索引, contract_expectation: R-002 error 4件(ui/c のファイル内重複×2 family)のみ・ui/a↔ui/b の同名非発火・ui-bom 参照解決, spec_ref: "bomdd/20-spec.md#2.5(rev2)", depth: unit, fixture: oracle/fixtures/rules/R-002-per-file, change_ref: ECO-001 }

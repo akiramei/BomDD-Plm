@@ -80,7 +80,8 @@ control_plan:
       fixture: oracle/fixtures/rules/R-003
       approver: automated
       fmea_refs: [FMEA-003, FMEA-005]
-      test_vectors: [id-or-path 4分岐, family tie(定義順), M01 vs M-BOM 分離, 散文中「E-BOM」語の非抽出, ECOファイル名右端一致, 大小文字違いパス(同定OK), ECO-001-child(1トークン)]
+      test_vectors: [id-or-path 4分岐, family tie(定義順), M01 vs M-BOM 分離, 散文中「E-BOM」語の非抽出, ECOファイル名右端一致, 大小文字違いパス(同定OK), ECO-001-child(1トークン),
+        "ECO-001 受理形(S-20): 単一セグメント dir 実在=解決 / 単一セグメント file 実在=解決 / 多セグメント dir=解決 / 正準形=解決 / repo:形 実在=解決 / repo:形 repo名不在=R-004(形式2へ非フォールバック)/ 真に不在=R-004 / id-or-path②も同受理形"]
     - id: CP-WORKSPACE-006
       characteristic: cross_repo 解決 / 候補リポ不在 skip(X-XREPO) / R-002 workspace 全域
       classification: surface
@@ -101,7 +102,8 @@ control_plan:
       fixture: oracle/fixtures/rules
       approver: automated
       fmea_refs: [FMEA-003, FMEA-004]
-      test_vectors: [R-020 複数 trace-map, R-040 lineage 除外, R-010 retired 除外, advisory=warn 止まり, reserved=info]
+      test_vectors: [R-020 複数 trace-map, R-040 lineage 除外, R-010 retired 除外, advisory=warn 止まり, reserved=info,
+        "ECO-001 per-file(S-21): per-file 宣言サイトのファイル内重複=R-002 発火 / 別ファイル間同名=非発火(合法)/ 宣言なしサイトのファイル間重複=発火維持 / per-file 対象 ID への参照解決=従来どおり全域索引"]
     - id: CP-GATE-008
       characteristic: ゲート×規則マトリクス+eco 合成+不正値 exit 2
       classification: core
