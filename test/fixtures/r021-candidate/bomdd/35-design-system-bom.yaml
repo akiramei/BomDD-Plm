@@ -1,0 +1,5 @@
+design_system_bom:
+  ebom_surface_parts:
+    - { id: E-DESIGN-SYNCED-001, name: SyncedPart }
+    - { id: E-DESIGN-MISSING-002, name: MissingFromEbom }
+  coverage_matrix: []

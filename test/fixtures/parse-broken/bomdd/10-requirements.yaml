@@ -1,0 +1,4 @@
+requirements:
+  - id: REQ-TRAP1
+    tags:
+      - *重要 な項目

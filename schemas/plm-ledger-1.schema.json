@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/akiramei/BomDD/schemas/plm-ledger-1.schema.json",
+  "title": "BomDD PLM Ledger (plm-ledger/1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "ledgers"],
+  "properties": {
+    "schemaVersion": { "const": "plm-ledger/1" },
+    "ledgers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eco", "cheat", "decision"],
+      "properties": {
+        "eco": { "$ref": "#/$defs/entryList" },
+        "cheat": { "$ref": "#/$defs/entryList" },
+        "decision": { "$ref": "#/$defs/entryList" }
+      }
+    }
+  },
+  "$defs": {
+    "entryList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "source"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "source": { "type": "string" },
+          "status": { "type": "string" },
+          "affectedCount": { "type": "integer" },
+          "binds": { "type": "array", "items": { "type": "string" } },
+          "approver": { "type": "string" }
+        }
+      }
+    }
+  }
+}

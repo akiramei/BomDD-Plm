@@ -1,0 +1,6 @@
+ebom:
+  items:
+    - id: E-SHARED-001
+      name: 共有品目
+      classification: core
+      requirement_refs: [REQ-100]

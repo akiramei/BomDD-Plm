@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/akiramei/BomDD/schemas/plm-graph-1.schema.json",
+  "title": "BomDD PLM Graph (plm-graph/1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "nodes", "edges"],
+  "properties": {
+    "schemaVersion": { "const": "plm-graph/1" },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "family", "file"],
+        "properties": {
+          "id": { "type": "string" },
+          "family": { "type": "string" },
+          "name": { "type": "string" },
+          "lifecycle": { "type": "string" },
+          "file": { "type": "string" },
+          "line": { "type": "integer" }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to", "kind", "file", "resolved"],
+        "properties": {
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "kind": { "type": "string" },
+          "file": { "type": "string" },
+          "resolved": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

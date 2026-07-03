@@ -1,0 +1,5 @@
+changes:
+  - id: ECO-025
+    title: 表示列の進化(register 由来タイトル)
+    status: completed
+    affected_refs: [E-SAMPLE-001, E-SAMPLE-002]

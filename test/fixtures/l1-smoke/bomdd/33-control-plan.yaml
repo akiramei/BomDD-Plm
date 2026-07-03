@@ -1,0 +1,6 @@
+control_plan:
+  characteristics:
+    - id: CP-SAMPLE-001
+      verifies: [E-SAMPLE-001]
+      depth: unit
+      test_vectors: [case1]

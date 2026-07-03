@@ -1,0 +1,8 @@
+ebom:
+  items:
+    - id: E-SAMPLE-001
+      name: サンプル品目
+      classification: core
+      requirement_refs: [REQ-001]
+      lifecycle_state: manufacturing-ready
+      acceptance_refs: [CP-SAMPLE-001]

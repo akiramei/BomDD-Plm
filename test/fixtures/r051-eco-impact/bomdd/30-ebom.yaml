@@ -1,0 +1,5 @@
+ebom:
+  items:
+    - id: E-KNOWN-001
+      name: 既知品目
+      classification: core

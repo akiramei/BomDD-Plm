@@ -1,0 +1,27 @@
+// @bomdd/core public API (partial — expanded as pipeline modules land).
+export * from "./types.js";
+export * from "./schema/types.js";
+export { loadSchema, SchemaExitError } from "./schema/load.js";
+export { parseArtifact, firstInvalidUtf8Offset } from "./parse/parse.js";
+export type { ParseResult, LineLookup } from "./parse/parse.js";
+export { discover } from "./discover/discover.js";
+export type { RepoSpec } from "./discover/discover.js";
+export { globMatch, globToRegExp } from "./discover/glob.js";
+export { buildModel } from "./resolve/model.js";
+export type { Model, Definition, RefResult } from "./resolve/model.js";
+export { determineFamily } from "./resolve/family.js";
+export { extractHeadings } from "./resolve/headings.js";
+export { resolveWorkspace, InputExitError } from "./workspace/workspace.js";
+export type { Workspace, SuppressEntry } from "./workspace/workspace.js";
+export { validateOutDir, OutputExitError } from "./runtime/runtime.js";
+export { getMessage, hasMessage, allRuleIds } from "./rules/messages.js";
+export { byteCompare, cmpStr, cmpNum } from "./util/determinism.js";
+export { toPosix, canonical, pathEqualsCI } from "./util/paths.js";
+export { evaluate } from "./rules/evaluate.js";
+export { applySuppress } from "./suppress/suppress.js";
+export { appliedRules, gateOfRule, isValidGate, VALID_GATES, LADDER } from "./gate/gate.js";
+export { canonicalJson } from "./output/serialize.js";
+export { buildDiagnostics, buildGraph, buildLedger } from "./output/build.js";
+export { runLint } from "./lint.js";
+export type { LintOptions, LintResult } from "./lint.js";
+export type { ParsedArtifact } from "./resolve/model.js";

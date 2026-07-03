@@ -1,0 +1,14 @@
+{
+  "name": "@bomdd/viewer",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "dependencies": {
+    "@bomdd/core": "0.0.0"
+  }
+}

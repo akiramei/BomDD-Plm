@@ -1,0 +1,5 @@
+control_plan:
+  characteristics:
+    - id: CP-NOTEST-001
+      depth: unit
+      test_vectors: []

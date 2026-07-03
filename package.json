@@ -1,0 +1,21 @@
+{
+  "name": "bomdd-plm",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "BomDD-Plm v0: bomdd-lint CLI + read-only viewer",
+  "workspaces": [
+    "packages/core",
+    "packages/cli",
+    "packages/viewer"
+  ],
+  "scripts": {
+    "build": "tsc -b packages/core packages/viewer packages/cli",
+    "clean": "tsc -b --clean packages/core packages/viewer packages/cli",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "typescript": "5.8.x",
+    "@types/node": "22.x"
+  }
+}

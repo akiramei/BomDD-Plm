@@ -1,0 +1,4 @@
+repos:
+  - { name: repo, path: ./repo, role: manufacturing }
+suppress:
+  - { rule: R-010, target: REQ-200, reason: "既知の未実装(次スプリント対応予定)" }

@@ -1,0 +1,3 @@
+repos:
+  - { name: ViewPrismUI, path: C:/Users/akira/source/repos/ViewPrismUI, role: ui-cad }
+  - { name: ViewPrism2, path: C:/Users/akira/source/repos/ViewPrism2, role: manufacturing }

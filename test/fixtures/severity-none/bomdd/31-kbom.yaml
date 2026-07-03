@@ -1,0 +1,5 @@
+kbom:
+  items:
+    - id: K-SAMPLE-001
+      name: サンプル知識部品
+      source: "この値は存在しないパスに見えるが severity:none なので検査されない(注釈)/dummy"

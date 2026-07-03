@@ -1,0 +1,4 @@
+routing:
+  id: ROUTING-TRAP3
+  steps:
+    - "quoted item" trailing text

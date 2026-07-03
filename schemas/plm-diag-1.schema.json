@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/akiramei/BomDD/schemas/plm-diag-1.schema.json",
+  "title": "BomDD PLM Diagnostics (plm-diag/1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "refSchema", "run", "workspace", "stats", "findings"],
+  "properties": {
+    "schemaVersion": { "const": "plm-diag/1" },
+    "refSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version"],
+      "properties": {
+        "version": { "type": "string" }
+      }
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gate", "eco"],
+      "properties": {
+        "gate": { "type": "string" },
+        "eco": { "type": "boolean" }
+      }
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repos"],
+      "properties": {
+        "repos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name"],
+            "properties": {
+              "name": { "type": "string" },
+              "role": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "stats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["files", "ids", "refs"],
+      "properties": {
+        "files": { "type": "integer" },
+        "ids": { "type": "integer" },
+        "refs": { "type": "integer" }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule", "severity", "gate", "file", "message", "fixTarget"],
+        "properties": {
+          "rule": { "type": "string" },
+          "severity": { "enum": ["error", "warn", "info"] },
+          "gate": { "type": "string" },
+          "file": { "type": "string" },
+          "line": { "type": "integer" },
+          "column": { "type": "integer" },
+          "targetId": { "type": "string" },
+          "message": { "type": "string" },
+          "fixTarget": { "type": "string" },
+          "suppressed": { "type": "boolean" },
+          "suppressReason": { "type": "string" },
+          "suppressRef": { "type": "string" }
+        }
+      }
+    }
+  }
+}

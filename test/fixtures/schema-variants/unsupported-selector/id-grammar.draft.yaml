@@ -1,0 +1,4 @@
+grammar_version: test
+families:
+  - prefix: ZZ
+    strictness: strict

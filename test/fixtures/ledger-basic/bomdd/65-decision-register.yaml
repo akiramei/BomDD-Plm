@@ -1,0 +1,6 @@
+decisions:
+  - id: DEC-0001
+    title: サンプル裁定
+    status: decided
+    binds: [UQ-001, UQ-002]
+    approver: akira

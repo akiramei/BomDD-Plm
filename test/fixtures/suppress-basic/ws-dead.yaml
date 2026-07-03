@@ -1,0 +1,4 @@
+repos:
+  - { name: repo, path: ./repo, role: manufacturing }
+suppress:
+  - { rule: R-999-NONEXISTENT, target: REQ-200, reason: "対象所見が存在しない" }

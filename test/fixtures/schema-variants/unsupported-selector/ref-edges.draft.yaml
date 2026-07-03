@@ -1,0 +1,14 @@
+edges_version: test
+artifacts:
+  - file: bomdd/99-test.yaml
+    defines:
+      - selector: items[].id
+        family: ZZ
+    refs:
+      - selector: items[].bad_ref
+        kind: totally-unsupported-kind
+        family: ZZ
+lint_rules:
+  - id: R-001
+    gate: always
+    severity: error

@@ -1,0 +1,3 @@
+requirements:
+  - id: REQ-200
+    text: サンプル要求(未被覆のまま)

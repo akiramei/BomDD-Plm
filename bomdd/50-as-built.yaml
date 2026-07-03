@@ -59,3 +59,18 @@ as_built:
         - { cases: "S-12[1](X-XREPO skip 未実装)", attribution: specified_contract_miss, id: PD-2, note: "両工場共通" }
       passed_highlights: "決定性・read-only・自己完結・R-040・clean・CLI マトリクス全行 — f-01 と同一の中核緑。ledger.json のフィールド抽出は f-02 が正解(f-01 の PD-3 は f-02 に無い)"
       cross_factory_note: "BOM/ref-v0 起因 4系統は 2/2 工場で再現(欠陥は BOM に宿る)。工場能力差は parse(f-02 優位)と family 判定(f-01 優位)で逆転が観測された — 単一軸の能力序列ではない"
+
+  - id: AB-PLM-V0-factory-03
+    lifecycle_state: accepted        # ★正式採用個体(製品リポへソース取込済み)
+    work_order_ref: bomdd/40-work-order.md@plm-v0-input-rev1
+    input_bom_tag: plm-v0-input-rev1(a3bf23e)
+    ai_model: "混成: claude-opus-4-8(前半・API エラーで中断)→ claude-sonnet-5(引継完遂。core 4欠陥修正+viewer/test 新規実装)"
+    isolation: clean(引継も同一の物理隔離パッケージ内)
+    artifact_location: 製品リポ packages//test//schemas/plm-* へ採用(dist/node_modules 除外)
+    self_acceptance: "build 警告0 / node --test 87/87 / L1 スモーク(壊れ入力6種の X-PARSE/X-TYPE 検出込み)緑"
+    cheats: "blocker 4(全て引継修正=前任コードの実欠陥: toJS未捕捉例外/uniqueKeys不発/md非パース/severity:none無効化) / friction 2 / minor 7"
+    inspections:
+      fixed_oracle: "**25/25 PASS(残渣ゼロ)** — 収束: rev0 14/25(opus)・13/25(sonnet)→ rev1 25/25。修正は BOM に宿る(1改訂で0到達)"
+      performance_S18: "基準 workspace(ViewPrism2+ViewPrismUI: 48files/685ids/1404refs)で lint+viewer 0.72〜0.80s(3回・中央値0.75s)≦目標15s — PASS(13倍マージン)"
+      real_repo_S19: "初回走行: クラッシュ0。ViewPrism workspace 752所見(error250/warn156/info340)・self-hosting 191所見。既に本物の欠陥を検出(E-BOM複合パス記法・FMEA定義サイト欠落=ref-v0ギャップ)。**全所見の裁定ループ(draft卒業データ収集)が受入完了の残件**"
+      pending: "CP-VISUAL-GAP-018 golden 承認(akira・examples/viewprism-plm-view.html)/ S-19 裁定ループ / Windows+Linux 両OS実行(CP-NFR-017 後半)"

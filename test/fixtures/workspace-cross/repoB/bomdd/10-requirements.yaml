@@ -1,0 +1,3 @@
+requirements:
+  - id: REQ-100
+    text: 別リポの重複定義(R-002 workspace 全域検査用)

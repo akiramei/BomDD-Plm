@@ -1,0 +1,3 @@
+repos:
+  - { name: repoA, path: ./repoA, role: manufacturing }
+  - { name: repoB, path: ./repoB, role: ui-cad }

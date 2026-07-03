@@ -1,0 +1,15 @@
+ebom:
+  display_contracts:
+    - contract_id: DC-FINDINGS-001
+      elements: []
+  items:
+    - id: E-UI-COVERED-001
+      name: カバーされている UI 品目
+      classification: surface
+      external_source_ref: K-DESIGN-PLM
+      display_contract_refs: [DC-FINDINGS-001]
+    - id: E-UI-UNCOVERED-002
+      name: どの trace-map からも参照されない UI 品目
+      classification: surface
+      external_source_ref: K-DESIGN-PLM
+      display_contract_refs: [DC-FINDINGS-001]

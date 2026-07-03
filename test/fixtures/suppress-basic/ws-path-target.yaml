@@ -1,0 +1,4 @@
+repos:
+  - { name: repo, path: ./repo, role: manufacturing }
+suppress:
+  - { rule: R-010, target: "REPO/BOMDD/10-REQUIREMENTS.YAML", reason: "パスtarget・大小文字違いでも同定できることの確認" }

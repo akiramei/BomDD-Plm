@@ -1,0 +1,5 @@
+mbom:
+  manufacturing_units:
+    - id: M-DUPKEY
+      id: M-DUPKEY-SECOND
+      ebom_refs: []

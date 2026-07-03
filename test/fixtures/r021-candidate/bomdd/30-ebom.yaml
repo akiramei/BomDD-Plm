@@ -1,0 +1,6 @@
+ebom:
+  items:
+    - id: E-DESIGN-SYNCED-001
+      name: 30 に同期済みの design part
+      classification: surface
+      external_source_ref: K-DESIGN-PLM

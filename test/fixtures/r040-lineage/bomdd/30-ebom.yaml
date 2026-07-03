@@ -1,0 +1,18 @@
+ebom:
+  items:
+    - id: E-OLD-001
+      name: 旧品目(superseded)
+      classification: core
+      lifecycle_state: superseded
+      lineage:
+        superseded_by: [E-NEW-001]
+    - id: E-NEW-001
+      name: 新品目
+      classification: core
+      lifecycle_state: manufacturing-ready
+      lineage:
+        supersedes: [E-OLD-001]
+    - id: E-ACTIVE-CALLER-001
+      name: active 参照を持つ呼び出し元
+      classification: core
+      depends_on: [E-OLD-001]

@@ -1,0 +1,14 @@
+{
+  "name": "@bomdd/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "bomdd-lint": "./dist/main.js"
+  },
+  "main": "./dist/main.js",
+  "dependencies": {
+    "@bomdd/core": "0.0.0",
+    "@bomdd/viewer": "0.0.0"
+  }
+}

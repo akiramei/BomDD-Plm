@@ -1,0 +1,5 @@
+changes:
+  - id: ECO-100
+    title: サンプル ECO
+    status: open
+    affected_refs: [E-KNOWN-001, E-NOTFOUND-999]

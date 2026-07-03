@@ -1,0 +1,4 @@
+mbom:
+  manufacturing_units:
+    - id: M-SAMPLE-001
+      ebom_refs: [E-SAMPLE-001]
