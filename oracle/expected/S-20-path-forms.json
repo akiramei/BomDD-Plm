@@ -14,14 +14,16 @@
       "rule": "R-004",
       "severity": "error",
       "file": "main/bomdd/10-requirements.yaml",
-      "message_contains": "ghost:assets/logo.txt"
-    },
-    {
-      "rule": "R-004",
-      "severity": "error",
-      "file": "main/bomdd/10-requirements.yaml",
       "message_contains": "nope/missing.md"
     }
   ],
-  "note": "ECO-001(仕様 §2.4 rev2): 受理形3種 — test(単一セグメント dir)/single.md(単一セグメント file)/docs/sub(多セグメント dir)/main/docs/sub/x.md(正準形)/other:assets/logo.txt(repo:形)は全て解決(所見なし)。trace_links from=test も id-or-path ②で解決(R-041 なし・明示 id-or-path エッジの R-004 もなし)。不解決は上記3件のみ: repo:形パス不在 / repo:形 repo 名不在(形式2へ非フォールバック)/ 真に不在。severity は source_refs エッジの既定(per-family・パスエッジ=error。受入済み既存挙動 — ECO 対象外)につき error / exit 1"
+  "note": "ECO-001(§2.4 rev2)受理形3種+ECO-002(§2.4 rev3)文書化改訂: repo:形の repo 名不在(ghost)は R-004 error から X-XREPO-001 info(skip)へ — ID 参照の cross_repo と同じ意味論。不解決 R-004 は repo:形パス不在(other:assets/nope.txt)と真の不在(nope/missing.md)の2件。severity は source_refs エッジ既定(error)につき exit 1 のまま。trace_links from=test も id-or-path ②で解決(R-041 なし)",
+  "infos": [
+    {
+      "rule": "X-XREPO-001",
+      "severity": "info",
+      "file": "main/bomdd/10-requirements.yaml",
+      "message_contains": "ghost:assets/logo.txt"
+    }
+  ]
 }

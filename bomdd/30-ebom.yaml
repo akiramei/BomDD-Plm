@@ -108,7 +108,7 @@ ebom:
       invariants: [INV-004]
       acceptance_refs: [CP-RESOLVE-005]
       planned_output_artifact_ref: packages/core/src
-      rev_note: "ECO-001: パス受理形3種(正準/repo相対/repo:)。仕様 §2.4 rev2 に追随"
+      rev_note: "ECO-001: パス受理形3種(正準/repo相対/repo:)。仕様 §2.4 rev2 / ECO-002: repo:不在= X-XREPO skip(§2.4 rev3)"
     - id: E-CORE-WORKSPACE-006
       name: workspace解決(cross_repo・skip・R-002全域適用)
       classification: surface
@@ -127,7 +127,7 @@ ebom:
       kbom_refs: [K-REFV0]
       acceptance_refs: [CP-LINT-007]
       planned_output_artifact_ref: packages/core/src
-      rev_note: "ECO-001: R-002 が定義サイトの uniqueness_scope(per-file)を尊重。仕様 §2.5 rev2・ref-v0.4 に追随"
+      rev_note: "ECO-001: R-002 per-file(§2.5 rev2)/ ECO-002: R-052 eco-diff-within-impact の評価(§2.17・E-CORE-GITDIFF-030 が diff 供給)"
     - id: E-CORE-GATE-008
       name: ゲート合成(梯子+eco直交)
       classification: core
@@ -255,3 +255,27 @@ ebom:
       requirement_refs: [REQ-024, REQ-025]
       acceptance_refs: [CP-NFR-017]
       notes: 目標値は nfr_targets(NFR-PERF-001/NFR-PORT-002)。実現手段は 32-mbom 各 unit・検証は CP-NFR-017。
+
+    # ================= ECO-002 追加(2026-07-03) =================
+    - id: E-CORE-GITDIFF-030
+      name: git diff 読み取りアダプタ(R-052 の diff 供給・read-only 契約)
+      classification: surface
+      rationale_type: external-knowledge
+      external_source_ref: K-GIT
+      requirement_refs: [REQ-010]
+      kbom_refs: [K-GIT, K-TS-DETERMINISM]
+      invariants: ["読み取り専用サブコマンド(diff --name-only)のみ発行(INV-003/§2.0 整合)", "git/baseline 不能= X-GIT-001 info で fail-open(§2.17)"]
+      acceptance_refs: [CP-GITDIFF-021]
+      planned_output_artifact_ref: packages/core/src
+      change_ref: ECO-002
+    - id: E-CLI-SARIF-031
+      name: SARIF 2.1.0 ビルダ(--sarif opt-in・派生ビュー)
+      classification: surface
+      rationale_type: external-knowledge
+      external_source_ref: "SARIF 2.1.0(OASIS 標準)"
+      requirement_refs: [REQ-027]
+      kbom_refs: [K-TS-DETERMINISM]
+      invariants: ["plm-diag/1 が一次契約 — SARIF にだけ存在する情報を作らない(DEC-0004)", "正規シリアライズ規約 §2.9 の対象"]
+      acceptance_refs: [CP-SARIF-020]
+      planned_output_artifact_ref: packages/core/src
+      change_ref: ECO-002

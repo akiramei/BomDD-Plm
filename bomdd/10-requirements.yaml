@@ -139,7 +139,8 @@ requirements:
       定義サイトから全 ID を抽出してファミリー別インデックスを作り、参照エッジの全参照を
       解決する。kind:path はパス実在、kind:id-or-path は ID 解決とパス実在の両様で判定する。
       パス値の受理形は3種(仕様 §2.4): 正準 `<repo>/<相対>` / repo 相対(セグメント数・file/dir 不問)/
-      `repo名:相対`(正準と等価)。
+      `repo名:相対`(正準と等価。rev3/ECO-002: repo 名が workspace に不在なら X-XREPO skip —
+      ID 参照の cross_repo と同じ意味論。単一リポ実行を error で汚さない)。
     rationale: >-
       本製品の中核機能。正しさの基準はスキーマ(SRC-01)と実リポ(SRC-04)。
       深さ unit(合成フィクスチャで定義数・解決数・不解決数の完全一致)。
@@ -206,8 +207,11 @@ requirements:
   # ============================================================
 
   - id: REQ-010
+    rev: 2   # ECO-002(2026-07-03): R-052 の v0 除外を解除(diff_audit opt-in+git fail-open で実装。仕様 §2.17)
     statement: >-
-      ref-v0 リント規則 R-001〜R-051 のうち git 履歴を要しない全規則を実装する(R-052 は v0 対象外)。
+      ref-v0 リント規則 R-001〜R-052 の全規則を実装する。R-052(eco-diff-within-impact)は
+      register の diff_audit フィールドを持つ ECO のみ検査し(opt-in)、git 実行不能時は
+      X-GIT-001(info)で fail-open する(仕様 §2.17)。
       各所見は rule id・severity・ファイル・位置(行または selector)・対象 ID・メッセージを持つ。
     rationale: >-
       規則の正体・severity・ゲートは全て ref-v0 に規定済みで、本要求は「その忠実な実装」。
@@ -523,4 +527,28 @@ requirements:
     acceptance_intent: { depth_hint: unit, tolerance_hint: "全 rule メッセージに4要素(what/where/why/fix-target)", approver_hint: automated }
     counterexamples:
       - メッセージが reference not found の一言だけの所見(どの台帳を直すか不明)が量産される
+    unresolved_questions: []
+
+  # ============================================================
+  # ECO-002 追加(2026-07-03)
+  # ============================================================
+  - id: REQ-027
+    statement: >-
+      --sarif 指定時、--out に SARIF 2.1.0 準拠の sarif.json を追加生成する(既定は生成しない=既存出力不変)。
+      写像は仕様 §2.9(rev3): rule→ruleId / severity→level(error/warning/note)/ 正準パス+行→location /
+      抑制済み→suppressions[kind=external] / 発火規則のみ driver.rules[]。決定性は §2.9 規約に従う。
+    rationale: >-
+      DEC-0004 の後段(SARIF は将来の追加出力として ECO で扱う=本 ECO)。用途は GitHub code scanning /
+      汎用 SARIF ビューアとの統合(CI 常設の次の一歩)。plm-diag/1 が一次契約のまま — SARIF は派生ビューで
+      あり情報の追加源泉にしない。深さ unit(既知 fixture の期待 SARIF 断面一致)+スキーマ適合。
+    rationale_precision: ok
+    classification_hint: surface
+    external_source: "SARIF 2.1.0(OASIS 標準)"
+    priority: should
+    source_refs: [bomdd/65-decision-register.yaml, bomdd/60-change-order-eco-002.md]
+    acceptance_intent: { depth_hint: unit, tolerance_hint: "results の件数・ruleId 集合・level 写像・suppressions が diagnostics と整合(exact)", approver_hint: automated }
+    counterexamples:
+      - SARIF 側にだけ存在する情報が生まれ二重管理に陥る(DEC-0004 違反)
+      - level 写像で info を warning に格上げして CI が偽ブロック
+      - suppressions を落として抑制済み所見が code scanning で再燃
     unresolved_questions: []

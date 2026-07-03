@@ -1,0 +1,22 @@
+{
+  "case": "S-24",
+  "fixture": "fixtures/path-forms-single/repo",
+  "gate": "always",
+  "expect_exit": 0,
+  "findings": [],
+  "infos": [
+    {
+      "rule": "X-XREPO-001",
+      "severity": "info",
+      "file": "repo/bomdd/10-requirements.yaml",
+      "message_contains": "othercad:資料/design.md"
+    },
+    {
+      "rule": "X-XREPO-001",
+      "severity": "info",
+      "file": "repo/bomdd/10-requirements.yaml",
+      "message_contains": "othercad:docs/spec.md"
+    }
+  ],
+  "note": "ECO-002(仕様 §2.4 rev3): 単一リポ(暗黙 workspace)実行で repo: 形の repo 名 othercad は不在 → X-XREPO-001 info で skip(error/warn ゼロ・exit 0)。docs/local.md(repo 相対形・実在)は解決。ViewPrism2 pre-commit 常駐で観測した実害(正当な cross-repo 参照 7 件が R-004 error)の再現形"
+}

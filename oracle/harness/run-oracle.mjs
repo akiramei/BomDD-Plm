@@ -6,7 +6,8 @@ import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
-import { compareFindings, compareInfos, hashTree, diffTree, byteEqual, checkSelfContained } from './lib.mjs';
+import { compareFindings, compareInfos, hashTree, diffTree, byteEqual, checkSelfContained, checkSarif } from './lib.mjs';
+import { buildGitFixture } from './build-git-fixture.mjs';
 
 const ORACLE = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -106,6 +107,38 @@ for (const file of readdirSync(join(ORACLE, 'expected')).sort()) {
       if (run.stdout_contains && !stdout.includes(run.stdout_contains)) p.push('stdout_contains failed');
       if (run.stdout_is_json) { try { JSON.parse(stdout); } catch { p.push('stdout not JSON'); } }
       judge(`S-11[${i}] ${run.args.join(' ')}`, p.length === 0, p);
+    });
+  } else if (spec.git_fixture) {       // S-22: git 履歴付き fixture を治具が組み立て(ECO-002)
+    let root;
+    try { root = buildGitFixture(); }
+    catch (e) { judge(`${spec.case} (git fixture build)`, false, [String(e)]); continue; }
+    const before = (spec.readonly_paths ?? []).map(p => [p, hashTree(join(root, p))]);
+    spec.runs.forEach((run, i) =>
+      checkRun(`${spec.case}[${i}] ${run.eco ? '+eco' : 'no-eco'}`, root, run));
+    const roProblems = [];
+    for (const [p, h] of before) {
+      const d = diffTree(h, hashTree(join(root, p)));
+      if (!d.ok) roProblems.push(`${p}: ${JSON.stringify(d)}`);
+    }
+    judge(`${spec.case} read-only (fixture tree invariant)`, roProblems.length === 0, roProblems);
+  } else if (spec.sarif_check) {       // S-23: SARIF 追加出力(ECO-002)
+    spec.runs.forEach((run, i) => {
+      const p = [];
+      const plain = runCli(run.fixture, { gate: run.gate });
+      if (existsSync(join(plain.out, 'sarif.json'))) p.push('sarif.json generated without --sarif');
+      const a = runCli(run.fixture, { gate: run.gate, extraArgs: ['--sarif'] });
+      const b = runCli(run.fixture, { gate: run.gate, extraArgs: ['--sarif'] });
+      if (!existsSync(join(a.out, 'sarif.json'))) p.push('sarif.json missing with --sarif');
+      else {
+        if (!byteEqual(join(a.out, 'sarif.json'), join(b.out, 'sarif.json'))) p.push('sarif.json byte-diff (determinism)');
+        let sarif, d;
+        try { sarif = readJson(join(a.out, 'sarif.json')); d = diag(a.out); } catch (e) { p.push('sarif/diag unreadable'); }
+        if (sarif && d) {
+          const c = checkSarif(sarif, d.findings ?? [], { expectSuppressed: run.expect_suppressed });
+          if (!c.ok) p.push(...c.problems);
+        }
+      }
+      judge(`${spec.case}[${i}] ${run.fixture}`, p.length === 0, p);
     });
   } else if (spec.runs) {              // S-07 / S-12(複数ラン)
     spec.runs.forEach((run, i) =>

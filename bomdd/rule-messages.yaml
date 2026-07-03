@@ -25,10 +25,12 @@ rules:
   - { rule: R-041, message: "trace_link {targetId} の from/to が解決できません",                                    fixTarget: "エンドポイントを実在 ID または実在パスへ修正する" }
   - { rule: R-050, message: "特性 {targetId} が最新 As-Built の test_evidence に被覆されていません",                fixTarget: "50-as-built.yaml の test_evidence_refs に本特性の証跡を追加する" }
   - { rule: R-051, message: "ECO {targetId} の影響分析に解決できない ID {ref} があります",                          fixTarget: "60-change-register.yaml の affected_refs を実在 ID へ修正する" }
+  - { rule: R-052, message: "ECO {targetId} の実 diff にあるファイル {ref} が宣言影響集合(bomdd/+allowed_paths)の外にあります", fixTarget: "影響分析を改訂して allowed_paths へ追加するか、影響外の変更を取り消す(unnecessary modification)" }
   - { rule: X-PARSE-001,    message: "構文エラー: {ref}",                                                          fixTarget: "当該ファイルの構文を修正する(hint がある場合はそれに従う)" }
   - { rule: X-TYPE-001,     message: "フィールド {ref} の型が ref-v0 の規定と一致しません",                         fixTarget: "当該フィールドの値を規定の型に修正する" }
   - { rule: X-SCHEMA-001,   message: "スキーマのエントリ {ref} は本実装が未対応の記法です(当該エントリを無効化)",   fixTarget: "ref-v0 のエントリ記法を見直すか、実装の対応を ECO で追加する" }
   - { rule: X-ID-001,       message: "定義値 {targetId} がどの family にも一致しません",                            fixTarget: "ID を既存 family の文法に合わせるか、id-grammar への family 追加を裁定する" }
   - { rule: X-XREPO-001,    message: "cross-repo 参照 {ref} は解決先候補リポが workspace に無いため skip しました",  fixTarget: "検査したい場合は bomdd-workspace.yaml に対象リポを追加する" }
+  - { rule: X-GIT-001,      message: "ECO {targetId} の diff-audit は git が実行不能または baseline {ref} が解決不能のため skip しました", fixTarget: "git 環境と diff_audit.baseline(タグ/SHA)を確認する(検査不能は fail-open)" }
   - { rule: X-SUPPRESS-001, message: "suppress[{supIndex}] に reason がありません(この行は無効)",                   fixTarget: "suppress 行に理由を記入する(理由なき抑制は認めない)" }
   - { rule: X-SUPPRESS-002, message: "suppress[{supIndex}] はどの所見にも一致しません(死んだ抑制)",                 fixTarget: "解消済みなら suppress 行を削除する" }

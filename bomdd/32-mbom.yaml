@@ -32,6 +32,7 @@ mbom:
     - id: M-CORE-GRAPH-002
       name: スキーマ読込+索引+参照解決+workspace
       ebom_refs: [E-CORE-SCHEMA-004, E-CORE-RESOLVE-005, E-CORE-WORKSPACE-006]
+      rev_note: "ECO-002: repo: 形の repo 不在= X-XREPO skip(§2.4 rev3)+schema/load が diff_audit を読む"
       kbom_refs: [K-REFV0, K-TS-DETERMINISM, K-NODE-PORTABILITY]
       artifact: { path: packages/core/src, type: ts-module }
       interface_contract:
@@ -42,7 +43,8 @@ mbom:
       fmea_refs: [FMEA-003, FMEA-005, FMEA-010]
     - id: M-CORE-RULES-003
       name: リント規則+ゲート+抑制
-      ebom_refs: [E-CORE-LINT-007, E-CORE-GATE-008, E-CORE-SUPPRESS-009]
+      ebom_refs: [E-CORE-LINT-007, E-CORE-GATE-008, E-CORE-SUPPRESS-009, E-CORE-GITDIFF-030]
+      rev_note: "ECO-002: R-052 eco-diff-within-impact(§2.17)+E-CORE-GITDIFF-030(git 読み取りアダプタ)を編入"
       kbom_refs: [K-REFV0]
       artifact: { path: packages/core/src, type: ts-module }
       interface_contract:
@@ -53,7 +55,8 @@ mbom:
       fmea_refs: [FMEA-003, FMEA-004, FMEA-006]
     - id: M-CORE-OUTPUT-004
       name: 正規シリアライザ+出力契約スキーマ
-      ebom_refs: [E-CORE-OUTPUT-010, E-CONTRACT-DIAG-018]
+      ebom_refs: [E-CORE-OUTPUT-010, E-CONTRACT-DIAG-018, E-CLI-SARIF-031]
+      rev_note: "ECO-002: SARIF 2.1.0 ビルダ(--sarif opt-in・§2.9 rev3)を編入"
       kbom_refs: [K-TS-DETERMINISM]
       artifact: { path: packages/core/src, type: ts-module+json-schema }
       interface_contract:
@@ -64,6 +67,7 @@ mbom:
     - id: M-CLI-005
       name: CLI
       ebom_refs: [E-CLI-011]
+      rev_note: "ECO-002: --sarif フラグ追加(§2.10 rev3。他フラグの挙動不変)"
       kbom_refs: [K-NODE-CLI, K-NODE-PORTABILITY]
       artifact: { path: packages/cli/, type: ts-cli(bin=bomdd-lint) }
       interface_contract:

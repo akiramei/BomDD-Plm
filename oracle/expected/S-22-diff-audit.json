@@ -1,0 +1,42 @@
+{
+  "case": "S-22",
+  "git_fixture": true,
+  "runs": [
+    {
+      "eco": true,
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-052",
+          "severity": "error",
+          "file": "gitrepo/bomdd/60-change-register.yaml",
+          "targetId": "ECO-902",
+          "message_contains": "src/outside/b.txt"
+        },
+        {
+          "rule": "R-052",
+          "severity": "error",
+          "file": "gitrepo/bomdd/60-change-register.yaml",
+          "targetId": "ECO-902",
+          "message_contains": "src/外側/日本語 データ.txt"
+        }
+      ],
+      "infos": [
+        {
+          "rule": "X-GIT-001",
+          "severity": "info",
+          "file": "gitrepo/bomdd/60-change-register.yaml",
+          "targetId": "ECO-903"
+        }
+      ],
+      "note": "ECO-901(allowed_paths=src/)= diff 全許容で所見なし / ECO-902(src/allowed/ のみ)= はみ出し2ファイル(日本語+空白パスが quotepath エスケープされないこと込み)/ ECO-903= baseline 不能で X-GIT-001 skip / ECO-904(diff_audit なし・過去 ECO)= 非起動"
+    },
+    {
+      "expect_exit": 0,
+      "findings": [],
+      "note": "--eco なし= R-052/X-GIT-001 とも非発火(gate=eco)。register 由来の他所見もなし"
+    }
+  ],
+  "readonly_paths": ["bomdd", "src"],
+  "note": "fixture は build-git-fixture.mjs が一時 dir に決定的に組み立てる(履歴: eco-base タグ→変更コミット)。readonly_paths は実行前後の hashTree 不変検査(git diff が作業ツリーへ書き込まないこと= §2.17 read-only 契約)"
+}

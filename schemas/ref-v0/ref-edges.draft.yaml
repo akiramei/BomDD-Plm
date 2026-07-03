@@ -5,7 +5,12 @@
 #
 # 意味論は縛らない: ここに無いフィールドは自由。ここに有るフィールドも「型と参照先ファミリー」だけを縛る。
 
-edges_version: ref-v0.6
+edges_version: ref-v0.7
+# ref-v0.7(2026-07-03・BomDD-Plm ECO-002 と同時): R-052 の入力形を規定 —
+#   60-change-register の changes[] エントリに diff_audit: { baseline: <git rev(タグ名推奨)>,
+#   allowed_paths: [<リポ内相対プレフィックス>...] } を持つ場合に限り R-052 を検査する(opt-in)。
+#   許容集合= bomdd/(常時)+allowed_paths(前方一致)。git/baseline 不能= 検査系 info(実装側の X-GIT 系)で skip。
+#   R-052 note の「PLM v0 Phase 1 実装対象」は BomDD-Plm v0.5(ECO-002)で実装済みに更新。
 # ref-v0.6(2026-07-03・ViewPrism2 ECO-029 実装と同時): trace-map の 1対多対応を配列で正規化 —
 #   (a) uiIr/uiBom エッジに配列形(uiIr[]/uiBom[])を併記。モック1要素が IR の複数要素
 #       (CMP+ACT+STA 等)に対応する実態(ViewPrism2 で 77 所見)は正当な 1対多 — JSON では配列で表す。
@@ -217,6 +222,8 @@ artifacts:
     defines:
       - selector: "changes[].id"
         family: [ECO, CAPA]
+        # ref-v0.7: changes[].diff_audit = { baseline, allowed_paths[] } は R-052 の opt-in 入力(参照エッジではない —
+        # baseline は git rev・allowed_paths はプレフィックスにつき実在検査しない)
     refs:
       - { selector: "changes[].affected_refs[]", family: [REQ, E, M, K, CP, DC, DE], severity: error, rule: R-051, gate: eco, note: "ref-v0.2: 専用規則エッジ — 不解決は R-051(gate=eco)でのみ所見化し、汎用 R-003(always)から除外する(初回製造で2工場とも二重計上に落ちた欠陥の補正)。register 不在のプロジェクトでは R-051 = skip(info)" }
       - { selector: "changes[].order_ref",       kind: path, severity: warn, note: "対応する 60-change-order-*.md" }
@@ -388,4 +395,4 @@ lint_rules:
     rule: ECO の実 diff(git)が宣言影響集合(+影響なし予測の否定)の内側にある(63-diff-audit の機械化)
     gate: eco
     severity: error
-    note: git 連携が要る。PLM v0 Phase 1 実装対象(v0 では手動 63 と併用)。
+    note: "git 連携が要る。BomDD-Plm v0.5(ECO-002)で実装済み — 入力は register の diff_audit(opt-in・ref-v0.7 ヘッダ参照)。diff_audit の無いエントリは検査しない。手動 63 と併用可。"

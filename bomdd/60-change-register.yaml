@@ -21,3 +21,21 @@ changes:
       - CP-RESOLVE-005
       - CP-LINT-007
       - K-REFV0
+
+  - id: ECO-002
+    title: "v0.5: R-052 diff-audit 機械化(git 連携)+SARIF 2.1.0 追加出力+repo: 不在の skip 一貫化"
+    status: in-progress
+    opened: 2026-07-03
+    order_ref: bomdd/60-change-order-eco-002.md
+    affected_refs:
+      - REQ-007
+      - REQ-010
+      - E-CORE-RESOLVE-005
+      - E-CORE-LINT-007
+      - M-CORE-GRAPH-002
+      - M-CORE-RULES-003
+      - M-CORE-OUTPUT-004
+      - M-CLI-005
+      - CP-RESOLVE-005
+      - CP-LINT-007
+      - K-REFV0

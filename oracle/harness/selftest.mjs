@@ -90,4 +90,51 @@ t('SVG xmlns は許容・外部参照は検出', () => {
   assert.equal(checkSelfContained('<img src="https://example.com/i.png">').ok, false);
 });
 
+// ---- ECO-002 追補(2026-07-03): 新検査器も凍結前にセルフテスト(H001 教訓: 比較すべき断面込み) ----
+console.log('== checkSarif(ECO-002) ==');
+{
+  const { checkSarif } = await import('./lib.mjs');
+  const findings = [
+    { rule: 'R-003', severity: 'error', file: 'repo/bomdd/30-ebom.yaml', line: 7 },
+    { rule: 'R-004', severity: 'warn',  file: 'repo/bomdd/30-ebom.yaml', suppressed: true },
+  ];
+  const good = { version: '2.1.0', runs: [{ tool: { driver: { name: 'bomdd-lint', rules: [{ id: 'R-003' }, { id: 'R-004' }] } },
+    results: [
+      { ruleId: 'R-003', level: 'error',   message: { text: 'm' }, locations: [{ physicalLocation: { artifactLocation: { uri: 'repo/bomdd/30-ebom.yaml' }, region: { startLine: 7 } } }] },
+      { ruleId: 'R-004', level: 'warning', message: { text: 'm' }, locations: [{ physicalLocation: { artifactLocation: { uri: 'repo/bomdd/30-ebom.yaml' } } }], suppressions: [{ kind: 'external' }] },
+    ] }] };
+  assert.equal(checkSarif(good, findings).ok, true);
+  const clone = () => JSON.parse(JSON.stringify(good));
+  let x = clone(); x.runs[0].results[1].level = 'error';
+  assert.equal(checkSarif(x, findings).ok, false);
+  x = clone(); delete x.runs[0].results[1].suppressions;
+  assert.equal(checkSarif(x, findings).ok, false);
+  x = clone(); x.runs[0].tool.driver.rules = [{ id: 'R-003' }];
+  assert.equal(checkSarif(x, findings).ok, false);
+  x = clone(); x.runs[0].results[1].locations[0].physicalLocation.region = { startLine: 1 };
+  assert.equal(checkSarif(x, findings).ok, false);
+  n++; console.log('  ok SARIF 写像: 整合で ok・level/suppressions/rules/region の各不整合を検出');
+}
+
+console.log('== buildGitFixture(ECO-002) ==');
+{
+  const { execFileSync } = await import('node:child_process');
+  let hasGit = true;
+  try { execFileSync('git', ['--version'], { encoding: 'utf-8' }); } catch { hasGit = false; }
+  if (!hasGit) {
+    console.log('  (git 不在につき skip — CI/基準機では実行される)');
+  } else {
+    const { buildGitFixture } = await import('./build-git-fixture.mjs');
+    const root = buildGitFixture();
+    const out = execFileSync('git', ['-c', 'core.quotepath=false', 'diff', '--name-only', 'eco-base', 'HEAD'], { cwd: root, encoding: 'utf-8' });
+    const files = out.split('\n').filter(Boolean).sort();
+    assert.deepEqual(files, ['bomdd/60-change-register.yaml', 'src/allowed/a.txt', 'src/outside/b.txt', 'src/外側/日本語 データ.txt'].sort());
+    let bad = false;
+    try { execFileSync('git', ['diff', '--name-only', 'no-such-rev', 'HEAD'], { cwd: root, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'pipe'] }); }
+    catch { bad = true; }
+    assert.equal(bad, true);
+    n++; console.log('  ok git fixture: diff 集合(日本語+空白パス込み)と baseline 不能分岐が期待どおり');
+  }
+}
+
 console.log(`\nselftest: ${n} tests PASS`);

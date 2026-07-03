@@ -81,7 +81,8 @@ control_plan:
       approver: automated
       fmea_refs: [FMEA-003, FMEA-005]
       test_vectors: [id-or-path 4分岐, family tie(定義順), M01 vs M-BOM 分離, 散文中「E-BOM」語の非抽出, ECOファイル名右端一致, 大小文字違いパス(同定OK), ECO-001-child(1トークン),
-        "ECO-001 受理形(S-20): 単一セグメント dir 実在=解決 / 単一セグメント file 実在=解決 / 多セグメント dir=解決 / 正準形=解決 / repo:形 実在=解決 / repo:形 repo名不在=R-004(形式2へ非フォールバック)/ 真に不在=R-004 / id-or-path②も同受理形"]
+        "ECO-001 受理形(S-20): 単一セグメント dir 実在=解決 / 単一セグメント file 実在=解決 / 多セグメント dir=解決 / 正準形=解決 / repo:形 実在=解決 / 真に不在=R-004 / id-or-path②も同受理形",
+        "ECO-002 改訂(S-20/S-24): repo:形 repo名不在= X-XREPO-001 info で skip(形式2へ非フォールバックは維持・単一リポ実行でも同様)/ repo:形 repo実在パス不在= R-004 のまま"]
     - id: CP-WORKSPACE-006
       characteristic: cross_repo 解決 / 候補リポ不在 skip(X-XREPO) / R-002 workspace 全域
       classification: surface
@@ -93,7 +94,7 @@ control_plan:
       approver: automated
       test_vectors: [2リポ解決, 単一リポ skip, 別リポ同 family 同 ID(R-002)]
     - id: CP-LINT-007
-      characteristic: R-*(R-052除く)+X-* 全規則 — 規則ごとに違反/クリーン fixture 対で期待所見プロファイル完全一致(message/fixTarget 凍結文言込み)
+      characteristic: "R-*+X-* 全規則(rev3/ECO-002: R-052 を編入 — v0 の除外を解除)— 規則ごとに違反/クリーン fixture 対で期待所見プロファイル完全一致(message/fixTarget 凍結文言込み)"
       classification: surface
       verifies: [E-CORE-LINT-007]
       requirement_refs: [REQ-010, REQ-011, REQ-026]
@@ -103,7 +104,8 @@ control_plan:
       approver: automated
       fmea_refs: [FMEA-003, FMEA-004]
       test_vectors: [R-020 複数 trace-map, R-040 lineage 除外, R-010 retired 除外, advisory=warn 止まり, reserved=info,
-        "ECO-001 per-file(S-21): per-file 宣言サイトのファイル内重複=R-002 発火 / 別ファイル間同名=非発火(合法)/ 宣言なしサイトのファイル間重複=発火維持 / per-file 対象 ID への参照解決=従来どおり全域索引"]
+        "ECO-001 per-file(S-21): per-file 宣言サイトのファイル内重複=R-002 発火 / 別ファイル間同名=非発火(合法)/ 宣言なしサイトのファイル間重複=発火維持 / per-file 対象 ID への参照解決=従来どおり全域索引",
+        "ECO-002 R-052(S-22): diff_audit あり+許容内 diff= 所見なし / はみ出し1ファイル=R-052 error 1所見(targetId=ECO id)/ diff_audit なしエントリ= 非起動 / git・baseline 不能= X-GIT-001 info で skip / --eco なし= 非起動(gate)"]
     - id: CP-GATE-008
       characteristic: ゲート×規則マトリクス+eco 合成+不正値 exit 2
       classification: core
@@ -229,3 +231,42 @@ control_plan:
       fixture: test/viewer.test.js
       approver: automated
       test_vectors: [required_states 全状態の出現, 二重符号化(記号+色)の存在]
+
+    # ================= ECO-002 追加(2026-07-03) =================
+    - id: CP-SARIF-020
+      characteristic: "--sarif 指定時のみ sarif.json 追加生成(§2.9 rev3)— schemaVersion 2.1.0・results が diagnostics と件数/ruleId/level 写像/suppressions 整合・発火規則のみ rules[]・正規シリアライズ"
+      classification: surface
+      verifies: [E-CLI-SARIF-031]
+      requirement_refs: [REQ-027]
+      depth: unit
+      tolerance: "exact(results 件数・ruleId 集合・level 写像・suppressions・locations の断面一致+--sarif なしで sarif.json 非生成)"
+      fixture: oracle/fixtures/rules/R-003   # S-23: 既存 fixture を --sarif で実行
+      approver: automated
+      change_ref: ECO-002
+      test_vectors:
+        - "--sarif なし= sarif.json を生成しない(既定不変)"
+        - "error→error / warn→warning / info→note の level 写像"
+        - "抑制済み所見= results に含み suppressions[kind=external]"
+        - "line 欠落所見= region 省略(欠落を 0 等で偽装しない)"
+        - "rules[]= 発火規則のみ・id 昇順"
+        - "決定性: 同一入力2回で sarif.json byte 同一"
+    - id: CP-GITDIFF-021
+      characteristic: "R-052(§2.17)— diff_audit opt-in の git diff 監査: 許容内=所見なし / はみ出し=1ファイル1所見 / git・baseline 不能= X-GIT-001 skip / 読み取り専用"
+      classification: surface
+      verifies: [E-CORE-GITDIFF-030]
+      requirement_refs: [REQ-010]
+      depth: unit
+      tolerance: exact(3分岐+read-only)
+      fixture: oracle/harness/build-git-fixture.mjs   # S-22: git 履歴付き fixture は治具が組み立てる
+      approver: automated
+      fmea_refs: [FMEA-009]
+      change_ref: ECO-002
+      test_vectors:
+        - "許容内 diff(bomdd/+allowed_paths 内)= R-052 所見なし"
+        - "はみ出し1ファイル= R-052 error 1所見(targetId=ECO id・message にファイル)"
+        - "diff_audit なしエントリ= 非起動(過去 ECO に発火しない)"
+        - "baseline 不能(存在しない rev)= X-GIT-001 info・R-052 判定 skip"
+        - "非 git リポ= X-GIT-001 info(クラッシュしない)"
+        - "--eco なし= R-052/X-GIT とも非発火(gate)"
+        - "read-only: 検査実行前後で fixture リポの SHA ツリー不変(git が書き込まない)"
+        - "日本語パスのはみ出しファイルが quotepath エスケープされず正しく報告される"

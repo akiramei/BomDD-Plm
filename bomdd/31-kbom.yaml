@@ -127,3 +127,21 @@ kbom:
         - マトリクスセル= 記号(✓/✗/—)+色の二重符号化(色単独禁止)
       risk_if_implicit: 素の panel/text へ退化(S2)・色単独符号化で色覚非対応
       consumers: [E-DESIGN-SEVCHIP-021, E-DESIGN-FAMCHIP-022, E-DESIGN-SUMCARD-023, E-DESIGN-FINDROW-024, E-DESIGN-NODE-025, E-DESIGN-CALLOUT-026, E-DESIGN-TRACECELL-027, E-DESIGN-LEDGERTBL-028, E-DESIGN-EMPTY-029]
+
+    # ================= ECO-002 追加(2026-07-03) =================
+    - id: K-GIT
+      name: git 読み取り呼び出し慣習パック(R-052 用)
+      knowledge_kind: tool-grammar
+      version: v1
+      source: ECO-002 K-BOM 事前抽出(2026-07-03・設計者による慣習判断の列挙)
+      managed_knowledge:
+        - "呼び出し: child_process spawnSync('git', [...], { cwd: <対象リポ絶対パス>, encoding: 'utf8' })。shell: true は使わない(引数注入防止・クォート差異排除)"
+        - "diff 取得: git -c core.quotepath=false diff --name-only <baseline> HEAD — quotepath=false で日本語パスの 8進エスケープを抑止(出力は生 UTF-8)"
+        - "baseline..HEAD でなく baseline HEAD(2引数)— 3点差分(merge-base)でなく2点差分。ECO の diff 監査は「baseline から現在まで」の実変更"
+        - "出力の行区切りは LF(git 既定)。空行は無視。パスは常にリポルート相対・/ 区切り(git 既定)= 正準化不要"
+        - "許容サブコマンドは diff/rev-parse 系読み取りのみ。書き込み系(add/commit/checkout 等)の発行はコード上存在させない"
+        - "実行不能判定: spawnSync の error(ENOENT=git 不在)または status≠0(baseline 不能・非 git リポ)→ X-GIT-001 info で skip(§2.17 fail-open)"
+        - "rename 検出は既定(-M)のまま name-only(rename は新旧両パスでなく新パスのみ出る場合がある — 監査は保守側: 出たパスを判定)"
+        - "サブモジュール・worktree 境界は v0.5 対象外(単一リポの register が正)"
+      risk_if_implicit: "quotepath 未指定で日本語パスがエスケープされ前方一致が壊れる / shell:true でパスにスペース・記号があると分岐 / 3点差分と2点差分の取り違えで diff 集合が変わる"
+      consumers: [E-CORE-GITDIFF-030]

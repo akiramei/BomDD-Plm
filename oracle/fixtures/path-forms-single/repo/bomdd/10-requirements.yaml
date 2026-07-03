@@ -1,0 +1,13 @@
+bomdd:
+  product: path-forms-single
+  layer: Requirements
+
+# S-24 fixture: 単一リポ実行での repo: 形 cross-repo 参照(ViewPrism2 pre-commit 実害の再現形)。
+# ECO-002(§2.4 rev3): repo 名が workspace に不在= X-XREPO-001 info で skip(error にしない)。
+requirements:
+  - id: REQ-001
+    statement: repo コロン形の cross-repo 参照(対象リポは本 workspace に不在)
+    source_refs: ["othercad:資料/design.md"]
+  - id: REQ-002
+    statement: 同上(複数参照でも各1 info)
+    source_refs: ["othercad:docs/spec.md", "docs/local.md"]

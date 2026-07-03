@@ -1,0 +1,18 @@
+{
+  "case": "S-23",
+  "sarif_check": true,
+  "runs": [
+    {
+      "fixture": "fixtures/rules/R-003/repo",
+      "gate": "G3",
+      "note": "基本写像: R-003(error→error)/R-004(warn は本 fixture では error 既定)等 — results が diagnostics と件数・ruleId・level・location で整合"
+    },
+    {
+      "fixture": "fixtures/suppress/repo",
+      "gate": "G3",
+      "expect_suppressed": true,
+      "note": "抑制済み所見= results に含まれ suppressions[kind=external] が付く(非表示にしない)"
+    }
+  ],
+  "note": "各 run で検査: (a) --sarif なし= sarif.json 非生成 (b) --sarif あり= sarif.json 生成・schemaVersion 2.1.0・runs[0].tool.driver.name=bomdd-lint (c) results 件数= diagnostics 全所見数・ruleId 集合一致・level 写像(error/warning/note)・uri= 正準パス・line ある所見のみ region (d) rules[]= 発火規則のみ id 昇順 (e) 2回実行 byte 同一(決定性)"
+}

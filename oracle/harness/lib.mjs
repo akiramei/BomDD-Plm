@@ -87,3 +87,37 @@ export function checkSelfContained(html) {
   }
   return { ok: violations.length === 0, violations };
 }
+
+/** S-23: sarif.json の断面検査(diagnostics との整合)。仕様 §2.9 rev3 の写像規約。 */
+export function checkSarif(sarif, diagFindings, { expectSuppressed = false } = {}) {
+  const problems = [];
+  const LEVEL = { error: 'error', warn: 'warning', info: 'note' };
+  if (sarif.version !== '2.1.0' && sarif.schemaVersion !== '2.1.0')
+    problems.push(`schemaVersion/version != 2.1.0 (${sarif.version ?? sarif.schemaVersion})`);
+  const run = sarif.runs?.[0];
+  if (!run) { problems.push('runs[0] missing'); return { ok: false, problems }; }
+  if (run.tool?.driver?.name !== 'bomdd-lint') problems.push(`driver.name != bomdd-lint`);
+  const results = run.results ?? [];
+  if (results.length !== diagFindings.length)
+    problems.push(`results ${results.length} != findings ${diagFindings.length}`);
+  const n = Math.min(results.length, diagFindings.length);
+  for (let i = 0; i < n; i++) {
+    const r = results[i], f = diagFindings[i];
+    if (r.ruleId !== f.rule) problems.push(`[${i}] ruleId ${r.ruleId} != ${f.rule}`);
+    if (r.level !== LEVEL[f.severity]) problems.push(`[${i}] level ${r.level} != map(${f.severity})`);
+    const loc = r.locations?.[0]?.physicalLocation;
+    if (loc?.artifactLocation?.uri !== f.file) problems.push(`[${i}] uri ${loc?.artifactLocation?.uri} != ${f.file}`);
+    if (f.line != null) {
+      if (loc?.region?.startLine !== f.line) problems.push(`[${i}] startLine ${loc?.region?.startLine} != ${f.line}`);
+    } else if (loc?.region !== undefined) problems.push(`[${i}] region present for line-less finding`);
+    const sup = Boolean(r.suppressions?.some(s => s.kind === 'external'));
+    if (sup !== Boolean(f.suppressed)) problems.push(`[${i}] suppressions ${sup} != suppressed ${Boolean(f.suppressed)}`);
+  }
+  const fired = [...new Set(diagFindings.map(f => f.rule))].sort();
+  const listed = (run.tool?.driver?.rules ?? []).map(r => r.id);
+  if (JSON.stringify(listed) !== JSON.stringify(fired))
+    problems.push(`driver.rules ${JSON.stringify(listed)} != fired ${JSON.stringify(fired)}`);
+  if (expectSuppressed && !diagFindings.some(f => f.suppressed))
+    problems.push('fixture has no suppressed finding (test precondition)');
+  return { ok: problems.length === 0, problems };
+}
