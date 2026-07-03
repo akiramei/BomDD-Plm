@@ -9,6 +9,9 @@ on:
 
 jobs:
   oracle:
+    permissions:
+      contents: read
+      security-events: write   # SARIF アップロード(code scanning)用
     strategy:
       fail-fast: false
       matrix:
@@ -38,9 +41,28 @@ jobs:
       - name: unit tests (node --test)
         run: node --test
 
-      - name: fixed oracle (27 cases)
+      - name: fixed oracle (全採点行)
         working-directory: oracle
         run: node harness/run-oracle.mjs --cli "node ../packages/cli/dist/main.js"
+
+      # ---- ECO-002 SARIF の後段活用: self-hosting 所見を GitHub code scanning へ ----
+      # ubuntu 1系統のみ(2 OS からの二重アップロード回避)。error ゲートの前に置く:
+      # ゲートが赤になる push/PR でも所見の SARIF が Security タブ/PR 注釈に届くように。
+      # 変換(uri のリポ相対化+note 級の除外)の意図は .github/scripts/sarif-for-code-scanning.mjs 冒頭に記載。
+      - name: sarif for code scanning (self-hosting)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          node packages/cli/dist/main.js . --sarif --out "$RUNNER_TEMP/plm-sarif" || true
+          node .github/scripts/sarif-for-code-scanning.mjs \
+            "$RUNNER_TEMP/plm-sarif/sarif.json" "$RUNNER_TEMP/bomdd-lint.sarif" "$(basename "$PWD")/"
+
+      # fork PR は GITHUB_TOKEN に security-events: write が付かないためスキップ(GitHub の標準制約)
+      - name: upload sarif to code scanning
+        if: matrix.os == 'ubuntu-latest' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ runner.temp }}/bomdd-lint.sarif
+          category: bomdd-lint-self-hosting
 
       # self-hosting: 自リポの bomdd/ 台帳を error ゲートで lint(ドッグフーディング防壁)。
       # --out は対象リポ外必須(S-10 read-only: リポ内出力は exit 2)。
