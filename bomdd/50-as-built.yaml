@@ -101,7 +101,7 @@ as_built:
     input_bom_tag: eco-001-input(25c6fe8)
     baseline: v0.1-plm-accepted(4533b5d)   # As-Maintained=factory-03 系ソース。diff 基準点
     ai_model: claude-opus-4-8        # factory-eco01。対照個体: factory-eco02(claude-sonnet-5)は採点のみ・非採用
-    isolation: clean(隔離パッケージ: オラクル・設計対話・影響なし予測61§2・51/52/65 非同梱)
+    isolation: "clean(隔離パッケージ: オラクル・設計対話・影響なし予測61§2・51/52/65 非同梱)"
     artifact_location: 製品リポ packages/core/src 4ファイル+test/ 2ファイル+fixtures を採用
     self_acceptance: "build 警告0 / node --test 96/96(既存87退行なし+新規9) / L1 自リポスモーク緑"
     cheats: "blocker 0 / friction 0 / minor 2(F01-001 per-file×全域の同一ID共有スコープ未規定 / F01-002 repo:判定のドライブレターガード)"

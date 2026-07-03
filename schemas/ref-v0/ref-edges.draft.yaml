@@ -5,7 +5,14 @@
 #
 # 意味論は縛らない: ここに無いフィールドは自由。ここに有るフィールドも「型と参照先ファミリー」だけを縛る。
 
-edges_version: ref-v0.5
+edges_version: ref-v0.6
+# ref-v0.6(2026-07-03・ViewPrism2 ECO-029 実装と同時): trace-map の 1対多対応を配列で正規化 —
+#   (a) uiIr/uiBom エッジに配列形(uiIr[]/uiBom[])を併記。モック1要素が IR の複数要素
+#       (CMP+ACT+STA 等)に対応する実態(ViewPrism2 で 77 所見)は正当な 1対多 — JSON では配列で表す。
+#       `A / B` の合成文字列・`0061/0062` の短縮連番は不正(機械可読トレースを壊す)。
+#   (b) 非モデル化宣言は uiIr: null+注記フィールド(uiIrNote 等)で表す(null は解決検査対象外)。
+#   注: 単純な値の配列化だけでは旧セレクタ(単数形)が配列に対し黙ってスキップし「検査が消える」—
+#       配列エッジの併記が必須(この項の存在理由)。
 # ref-v0.5(2026-07-03・ViewPrism2 ECO-030 実装検証で発見): FMEA 定義サイトの両対応(実物が正・6回目) —
 #   32-mbom トップレベル fmea[].id を定義サイトに追加。ViewPrism2 は FMEA 構造表(36定義・
 #   {id, unit, failure_mode, effect, targeted_by})を 32-mbom に置いており、ref-v0.3 の規定
@@ -249,7 +256,9 @@ artifacts:
   - file: "bomdd/ui/**/ui-trace-map.json"
     refs:
       - { selector: "entries[].uiIr",        family: [TMP-UI-SCR, TMP-UI-REG, TMP-UI-CMP, TMP-UI-OCC, TMP-UI-ACT, TMP-UI-INP, TMP-UI-STA, TMP-UI-DOM, TMP-UI-LIV], severity: error }
+      - { selector: "entries[].uiIr[]",      family: [TMP-UI-SCR, TMP-UI-REG, TMP-UI-CMP, TMP-UI-OCC, TMP-UI-ACT, TMP-UI-INP, TMP-UI-STA, TMP-UI-DOM, TMP-UI-LIV], severity: error, note: "ref-v0.6: 1対多は配列(/ 合成文字列は不正)" }
       - { selector: "entries[].uiBom",       family: [TMP-UI-SCR, TMP-UI-REG, TMP-UI-CMP, TMP-UI-OCC, TMP-UI-ACT, TMP-UI-INP, TMP-UI-STA, TMP-UI-DOM, TMP-UI-LIV], severity: error }
+      - { selector: "entries[].uiBom[]",     family: [TMP-UI-SCR, TMP-UI-REG, TMP-UI-CMP, TMP-UI-OCC, TMP-UI-ACT, TMP-UI-INP, TMP-UI-STA, TMP-UI-DOM, TMP-UI-LIV], severity: error, note: "ref-v0.6: 同上" }
       - { selector: "entries[].ebomItemRef[]", family: E, severity: error, cross_repo: true, note: "UI-CAD リポ → 製造リポの越境参照。workspace 設定で解決" }
 
 # ---- クロスリポ解決 ----
