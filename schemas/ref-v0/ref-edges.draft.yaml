@@ -5,7 +5,12 @@
 #
 # 意味論は縛らない: ここに無いフィールドは自由。ここに有るフィールドも「型と参照先ファミリー」だけを縛る。
 
-edges_version: ref-v0.2
+edges_version: ref-v0.3
+# ref-v0.3(2026-07-03): S-19 実リポ遡及の裁定ループで確定した補正(実物が正の初適用群) —
+#   (a) TMP-UI-LIV を ui-bom/ui-trace-map の family 列挙に追加 (b) FMEA の定義サイト(33 fmea[].id)を追加
+#   (c) ui-id family に domain.* を追加(ViewPrism2 実 IR の慣行) (d) 31-kbom の直下リスト構造を許容
+# ref-v0.4 候補(製品側 ECO と同時): TMP-UI-*/ui-id の一意性スコープ=抽出ファイル単位(per-file)。
+#   ViewPrism2 は画面別 ui-ir(3ファイル)で仮品番を各々 0001 から採番しており、workspace 全域 R-002 が誤発火する。
 # ref-v0.2(2026-07-03): BomDD-Plm 初回製造(2工場)の差分帰属で確定した補正 —
 #   (a) 専用規則エッジの rule/gate 上書き(affected_refs=R-051/eco。R-003 二重計上の排他)
 #   (b) candidate 定義の fallback 意味論(正定義不在時のみ索引登録。60-*.md を candidate 化)
@@ -68,6 +73,9 @@ artifacts:
     defines:
       - selector: kbom.items[].id
         family: K
+      - selector: kbom[].id
+        family: K
+        note: "ref-v0.3(S-19 裁定): ViewPrism2 実物は kbom: 直下リスト構造。両セレクタを試行(実物が正)"
     refs:
       - { selector: "kbom.items[].consumers[]",       family: [E, M], severity: error }
       - { selector: "kbom.items[].depends_on[]",      family: K,      severity: error }
@@ -93,6 +101,9 @@ artifacts:
     defines:
       - selector: control_plan.characteristics[].id
         family: CP
+      - selector: control_plan.fmea[].id
+        family: FMEA
+        note: "ref-v0.3(S-19 裁定): FMEA の機械可読な定義サイト。id-grammar の FMEA は advisory のまま(構造が題材間で揺れるため。本 selector に合致しない題材では従来どおり散文扱い)"
     refs:
       - { selector: "control_plan.characteristics[].verifies[]",         family: [E, M], severity: error }
       - { selector: "control_plan.characteristics[].requirement_refs[]", family: REQ,    severity: error }
@@ -209,12 +220,12 @@ artifacts:
 
   - file: "bomdd/ui/**/ui-bom.json"
     refs:
-      - { selector: "items[].tempPartNo", family: [TMP-UI-SCR, TMP-UI-REG, TMP-UI-CMP, TMP-UI-OCC, TMP-UI-ACT, TMP-UI-INP, TMP-UI-STA, TMP-UI-DOM], severity: error, note: "UI-BOM は UI-IR の昇格 — 新規採番せず IR の仮品番を引き継ぐ" }
+      - { selector: "items[].tempPartNo", family: [TMP-UI-SCR, TMP-UI-REG, TMP-UI-CMP, TMP-UI-OCC, TMP-UI-ACT, TMP-UI-INP, TMP-UI-STA, TMP-UI-DOM, TMP-UI-LIV], severity: error, note: "UI-BOM は UI-IR の昇格 — 新規採番せず IR の仮品番を引き継ぐ。TMP-UI-LIV は ref-v0.3 で追加(S-19 裁定: layoutInvariant の昇格が解決不能になっていた)" }
 
   - file: "bomdd/ui/**/ui-trace-map.json"
     refs:
-      - { selector: "entries[].uiIr",        family: [TMP-UI-SCR, TMP-UI-REG, TMP-UI-CMP, TMP-UI-OCC, TMP-UI-ACT, TMP-UI-INP, TMP-UI-STA, TMP-UI-DOM], severity: error }
-      - { selector: "entries[].uiBom",       family: [TMP-UI-SCR, TMP-UI-REG, TMP-UI-CMP, TMP-UI-OCC, TMP-UI-ACT, TMP-UI-INP, TMP-UI-STA, TMP-UI-DOM], severity: error }
+      - { selector: "entries[].uiIr",        family: [TMP-UI-SCR, TMP-UI-REG, TMP-UI-CMP, TMP-UI-OCC, TMP-UI-ACT, TMP-UI-INP, TMP-UI-STA, TMP-UI-DOM, TMP-UI-LIV], severity: error }
+      - { selector: "entries[].uiBom",       family: [TMP-UI-SCR, TMP-UI-REG, TMP-UI-CMP, TMP-UI-OCC, TMP-UI-ACT, TMP-UI-INP, TMP-UI-STA, TMP-UI-DOM, TMP-UI-LIV], severity: error }
       - { selector: "entries[].ebomItemRef[]", family: E, severity: error, cross_repo: true, note: "UI-CAD リポ → 製造リポの越境参照。workspace 設定で解決" }
 
 # ---- クロスリポ解決 ----

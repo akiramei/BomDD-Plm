@@ -34,7 +34,7 @@ control_plan:
       requirement_refs: [REQ-001, REQ-002]
       depth: L3
       tolerance: exact(hash 差ゼロ・残留物ゼロ)
-      fixture: oracle/harness/readonly-check
+      fixture: oracle/harness/run-oracle.mjs  # S-10 手続き
       approver: automated
       fmea_refs: [FMEA-009]
       test_vectors: [通常実行, --out 省略, --out がリポ内(exit 2), 異常終了時の temp 掃除]
@@ -45,7 +45,7 @@ control_plan:
       requirement_refs: [REQ-003]
       depth: unit
       tolerance: exact
-      fixture: oracle/fixtures/discover-*
+      fixture: oracle/fixtures/clean
       approver: automated
       test_vectors: [標準構成, 複数パターン一致(先勝ち), 入れ子 ui/**, パターン外ファイル混在]
     - id: CP-PARSE-003
@@ -66,7 +66,7 @@ control_plan:
       requirement_refs: [REQ-006]
       depth: unit
       tolerance: exact(3分岐)
-      fixture: oracle/fixtures/schema-*
+      fixture: oracle/README.md  # S-13: スキーマ変種は実行時生成
       approver: automated
       fmea_refs: [FMEA-010]
       test_vectors: [family 追加, pattern 変更, 未対応 selector, トップキー欠落(exit 2)]
@@ -77,7 +77,7 @@ control_plan:
       requirement_refs: [REQ-007]
       depth: unit
       tolerance: exact
-      fixture: oracle/fixtures/resolve-*
+      fixture: oracle/fixtures/rules/R-003
       approver: automated
       fmea_refs: [FMEA-003, FMEA-005]
       test_vectors: [id-or-path 4分岐, family tie(定義順), M01 vs M-BOM 分離, 散文中「E-BOM」語の非抽出, ECOファイル名右端一致, 大小文字違いパス(同定OK), ECO-001-child(1トークン)]
@@ -88,7 +88,7 @@ control_plan:
       requirement_refs: [REQ-009]
       depth: unit
       tolerance: exact
-      fixture: oracle/fixtures/workspace-*
+      fixture: oracle/fixtures/workspace
       approver: automated
       test_vectors: [2リポ解決, 単一リポ skip, 別リポ同 family 同 ID(R-002)]
     - id: CP-LINT-007
@@ -98,7 +98,7 @@ control_plan:
       requirement_refs: [REQ-010, REQ-011, REQ-026]
       depth: unit
       tolerance: exact(過検出・過少検出とも FAIL)
-      fixture: oracle/fixtures/rules/R-*/{violation,clean}
+      fixture: oracle/fixtures/rules
       approver: automated
       fmea_refs: [FMEA-003, FMEA-004]
       test_vectors: [R-020 複数 trace-map, R-040 lineage 除外, R-010 retired 除外, advisory=warn 止まり, reserved=info]
@@ -119,7 +119,7 @@ control_plan:
       requirement_refs: [REQ-015]
       depth: unit
       tolerance: exact
-      fixture: oracle/fixtures/suppress-*
+      fixture: oracle/fixtures/suppress
       approver: automated
       fmea_refs: [FMEA-006]
       test_vectors: [error→info+exit 0, パス target(case-insensitive 同定), ID target(case-sensitive), reason 空, 死抑制]
@@ -130,7 +130,7 @@ control_plan:
       requirement_refs: [REQ-008, REQ-013, REQ-017]
       depth: L3
       tolerance: byte-exact(仕様化された正規形)
-      fixture: oracle/harness/determinism-check
+      fixture: oracle/harness/run-oracle.mjs  # S-09 手続き
       approver: automated
       fmea_refs: [FMEA-001]
       test_vectors: [同一入力2回, readdir 順撹乱, line 欠損所見の順序, 絶対パス/時刻の grep 検査]
@@ -141,7 +141,7 @@ control_plan:
       requirement_refs: [REQ-014, REQ-016]
       depth: L2
       tolerance: exact
-      fixture: oracle/fixtures/cli-matrix.yaml
+      fixture: oracle/expected/S-11-cli-matrix.json
       approver: automated
       test_vectors: [正常 text/json, error あり exit 1, --fail-on warn, 不正 gate exit 2, 不存在パス exit 2, --help/--version 優先, 日本語パス]
     - id: CP-VIEWER-012
@@ -151,7 +151,7 @@ control_plan:
       requirement_refs: [REQ-018]
       depth: L2
       tolerance: exact(外部 URL 参照の静的 grep=0・リポ不在描画)
-      fixture: oracle/harness/viewer-selfcontained
+      fixture: oracle/harness/lib.mjs  # S-14 検査器
       approver: automated
       test_vectors: [http/https 参照ゼロ, fetch/XHR 不使用, localStorage 不使用]
     - id: CP-VIEW-FINDINGS-013
@@ -161,7 +161,7 @@ control_plan:
       requirement_refs: [REQ-019]
       depth: L2
       tolerance: DE 全行 required-elements-present+件数 exact
-      fixture: oracle/harness/view-findings(DOM 検査)
+      fixture: test/viewer.test.js  # 工場ハーネスの DOM データ契約検査
       approver: automated
       test_vectors: [通常, 空状態(達成表示), 抑制行, 201件(ページング)]
     - id: CP-VIEW-GRAPH-014
@@ -171,7 +171,7 @@ control_plan:
       requirement_refs: [REQ-020]
       depth: L2
       tolerance: 集合 exact
-      fixture: oracle/harness/view-graph
+      fixture: test/viewer.test.js
       approver: automated
       fmea_refs: [FMEA-007]
       test_vectors: [初期選択規則(error あり/なし/ノードゼロ), superseded 表現, R-040 コールアウト, レイアウト決定性(2回生成同一)]
@@ -182,7 +182,7 @@ control_plan:
       requirement_refs: [REQ-021]
       depth: L2
       tolerance: 集合 exact
-      fixture: oracle/harness/view-trace
+      fixture: test/viewer.test.js
       approver: automated
       fmea_refs: [FMEA-008]
       test_vectors: [未被覆あり, 全被覆, draft 灰, 複数所見1セル]
@@ -193,7 +193,7 @@ control_plan:
       requirement_refs: [REQ-022]
       depth: L2
       tolerance: 集合 exact
-      fixture: oracle/fixtures/ledger-*
+      fixture: oracle/fixtures/ledger
       approver: automated
       test_vectors: [ECO md+register 併存, register なし, 見出し複数 ID(最初採用), family ID 見出しゼロ(非構造)]
     - id: CP-NFR-017
@@ -203,7 +203,7 @@ control_plan:
       requirement_refs: [REQ-024, REQ-025]
       depth: L3
       tolerance: 閾値(≤10s / ≤15s)・OS=両方 pass
-      fixture: oracle/harness/perf-bench(基準 workspace)
+      fixture: examples/viewprism-workspace.yaml  # S-18 実測
       approver: automated
       fmea_refs: [FMEA-005]
       test_vectors: [基準 workspace 実測, CRLF fixture, 日本語パス fixture]
@@ -214,7 +214,7 @@ control_plan:
       requirement_refs: [REQ-023]
       depth: G
       tolerance: 表示契約要素の存在+意味一致(pixel-exact 不採用)。境界状態(空/4桁/長大パス)含む
-      fixture: 43-visual-gap-analysis.md(Phase 5)
+      fixture: examples/viewprism-plm-view.html  # golden 候補
       approver: akira
       test_vectors: [M1 と同データでのスクリーンショット突合, 空状態, 1204 件表示]
     - id: CP-DESIGN-SYSTEM-019
@@ -224,6 +224,6 @@ control_plan:
       requirement_refs: [REQ-023]
       depth: L2
       tolerance: coverage_matrix 全行 covered(DOM クラス/構造検査)+G(CP-VISUAL-GAP-018 と併走)
-      fixture: oracle/harness/design-parts-check
+      fixture: test/viewer.test.js
       approver: automated
       test_vectors: [required_states 全状態の出現, 二重符号化(記号+色)の存在]

@@ -7,20 +7,20 @@ exploratory_probes:
   - id: P-01
     scenario: 通常実行時の stderr 出力を観測
     dimension: ログ・進捗の書式(仕様掃討で exploratory 宣言)
-    sweep_ref: 32-mbom silence_sweep「ログ(stderr)」
+    sweep_ref: "bomdd/32-mbom.yaml#silence_sweep"
     observed: { factory-01: ~, factory-02: ~ }
   - id: P-02
     scenario: core の内部並列度・処理順の実装を観測
     dimension: 並行性(INV-003 を壊さない限り自由)
-    sweep_ref: 32-mbom silence_sweep「並行性」
+    sweep_ref: "bomdd/32-mbom.yaml#silence_sweep"
     observed: { factory-01: ~, factory-02: ~ }
   - id: P-03
     scenario: plm-view.html の DOM 構造・CSS クラス命名を観測(表示契約外の内部構造)
     dimension: viewer 内部実装(契約は DC/DE と K-VIEWER-VANILLA の範囲のみ)
-    sweep_ref: 32-mbom silence_sweep「viewer 内部構造」
+    sweep_ref: "bomdd/32-mbom.yaml#silence_sweep"
     observed: { factory-01: ~, factory-02: ~ }
   - id: P-04
     scenario: packages/ 配下のファイル分割・命名・エクスポート構成を観測
     dimension: コード構造(gap-analysis B2 — 挙動に出ない構造分散の実測)
-    sweep_ref: 32-mbom silence_sweep「コード規約」
+    sweep_ref: "bomdd/32-mbom.yaml#silence_sweep"
     observed: { factory-01: ~, factory-02: ~ }

@@ -6,83 +6,471 @@
     "status": "approved — モック v0.1 を設計原器として akira 承認(2026-07-03)",
     "extractedAt": "2026-07-03",
     "sources": [
-      { "id": "M1", "file": "bomdd/ui/mock/bomdd-plm-viewer.html", "role": "全4ビュー+シェルの実行可能モック(data-ui-id 埋込済み)" }
+      {
+        "id": "M1",
+        "file": "bomdd/ui/mock/bomdd-plm-viewer.html",
+        "role": "全4ビュー+シェルの実行可能モック(data-ui-id 埋込済み)"
+      }
     ]
   },
   "screens": [
-    { "tempPartNo": "TMP-UI-SCR-0001", "uiId": "screen.findings",     "name": "所見ビュー",             "source": ["M1"], "confidence": "high" },
-    { "tempPartNo": "TMP-UI-SCR-0002", "uiId": "screen.item-graph",   "name": "品目グラフビュー",       "source": ["M1"], "confidence": "high" },
-    { "tempPartNo": "TMP-UI-SCR-0003", "uiId": "screen.trace-matrix", "name": "トレースマトリクスビュー", "source": ["M1"], "confidence": "high" },
-    { "tempPartNo": "TMP-UI-SCR-0004", "uiId": "screen.ledgers",      "name": "台帳ビュー",             "source": ["M1"], "confidence": "high" }
+    {
+      "tempPartNo": "TMP-UI-SCR-0001",
+      "uiId": "screen.findings",
+      "name": "所見ビュー",
+      "source": [
+        "M1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "tempPartNo": "TMP-UI-SCR-0002",
+      "uiId": "screen.item-graph",
+      "name": "品目グラフビュー",
+      "source": [
+        "M1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "tempPartNo": "TMP-UI-SCR-0003",
+      "uiId": "screen.trace-matrix",
+      "name": "トレースマトリクスビュー",
+      "source": [
+        "M1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "tempPartNo": "TMP-UI-SCR-0004",
+      "uiId": "screen.ledgers",
+      "name": "台帳ビュー",
+      "source": [
+        "M1"
+      ],
+      "confidence": "high"
+    }
   ],
   "regions": [
-    { "tempPartNo": "TMP-UI-REG-0001", "uiId": "region.shell-topbar",     "name": "シェル上部バー(ブランド+READ-ONLY+workspace+ゲート)", "owner": "shell", "notes": "全ビュー共有・固定(スクロールしない)" },
-    { "tempPartNo": "TMP-UI-REG-0002", "uiId": "region.shell-nav",        "name": "ビュー切替ナビ", "owner": "shell" },
-    { "tempPartNo": "TMP-UI-REG-0003", "uiId": "region.design-direction", "name": "DESIGN DIRECTION", "owner": "shell", "notes": "designIntent。アプリ画面要素ではなく設計憲章" },
-    { "tempPartNo": "TMP-UI-REG-0004", "uiId": "region.findings-summary", "name": "所見サマリカード行",   "screen": "TMP-UI-SCR-0001" },
-    { "tempPartNo": "TMP-UI-REG-0005", "uiId": "region.findings-filter",  "name": "所見フィルタバー",     "screen": "TMP-UI-SCR-0001" },
-    { "tempPartNo": "TMP-UI-REG-0006", "uiId": "region.graph-toolbar",    "name": "グラフツールバー",     "screen": "TMP-UI-SCR-0002" },
-    { "tempPartNo": "TMP-UI-REG-0007", "uiId": "region.graph-detail",     "name": "品目詳細パネル(右・固定幅)", "screen": "TMP-UI-SCR-0002" },
-    { "tempPartNo": "TMP-UI-REG-0008", "uiId": "region.trace-toolbar",    "name": "トレースツールバー(被覆率サマリ含む)", "screen": "TMP-UI-SCR-0003" },
-    { "tempPartNo": "TMP-UI-REG-0009", "uiId": "region.ledger-tabs",      "name": "台帳サブタブ(ECO/ずる/裁定+件数)", "screen": "TMP-UI-SCR-0004" },
-    { "tempPartNo": "TMP-UI-REG-0010", "uiId": "region.run-meta",         "name": "実行メタ情報フッタ", "owner": "shell", "notes": "input/schema/diagnostics版/走査規模。時刻は含めない(REQ-013)" }
+    {
+      "tempPartNo": "TMP-UI-REG-0001",
+      "uiId": "region.shell-topbar",
+      "name": "シェル上部バー(ブランド+READ-ONLY+workspace+ゲート)",
+      "owner": "shell",
+      "notes": "全ビュー共有・固定(スクロールしない)"
+    },
+    {
+      "tempPartNo": "TMP-UI-REG-0002",
+      "uiId": "region.shell-nav",
+      "name": "ビュー切替ナビ",
+      "owner": "shell"
+    },
+    {
+      "tempPartNo": "TMP-UI-REG-0003",
+      "uiId": "region.design-direction",
+      "name": "DESIGN DIRECTION",
+      "owner": "shell",
+      "notes": "designIntent。アプリ画面要素ではなく設計憲章"
+    },
+    {
+      "tempPartNo": "TMP-UI-REG-0004",
+      "uiId": "region.findings-summary",
+      "name": "所見サマリカード行",
+      "screen": "TMP-UI-SCR-0001"
+    },
+    {
+      "tempPartNo": "TMP-UI-REG-0005",
+      "uiId": "region.findings-filter",
+      "name": "所見フィルタバー",
+      "screen": "TMP-UI-SCR-0001"
+    },
+    {
+      "tempPartNo": "TMP-UI-REG-0006",
+      "uiId": "region.graph-toolbar",
+      "name": "グラフツールバー",
+      "screen": "TMP-UI-SCR-0002"
+    },
+    {
+      "tempPartNo": "TMP-UI-REG-0007",
+      "uiId": "region.graph-detail",
+      "name": "品目詳細パネル(右・固定幅)",
+      "screen": "TMP-UI-SCR-0002"
+    },
+    {
+      "tempPartNo": "TMP-UI-REG-0008",
+      "uiId": "region.trace-toolbar",
+      "name": "トレースツールバー(被覆率サマリ含む)",
+      "screen": "TMP-UI-SCR-0003"
+    },
+    {
+      "tempPartNo": "TMP-UI-REG-0009",
+      "uiId": "region.ledger-tabs",
+      "name": "台帳サブタブ(ECO/ずる/裁定+件数)",
+      "screen": "TMP-UI-SCR-0004"
+    },
+    {
+      "tempPartNo": "TMP-UI-REG-0010",
+      "uiId": "region.run-meta",
+      "name": "実行メタ情報フッタ",
+      "owner": "shell",
+      "notes": "input/schema/diagnostics版/走査規模。時刻は含めない(REQ-013)"
+    }
   ],
   "components": [
-    { "tempPartNo": "TMP-UI-CMP-0001", "uiId": "component.workspace-chip",   "name": "workspace チップ", "elements": ["workspace名", "リポ構成(tooltip)"], "contentVariance": { "dimension": "workspace名+リポ数", "bounds": "1リポ〜5リポ・名前長", "boundaryStates": ["最大幅(長名)", "単一リポ"] } },
-    { "tempPartNo": "TMP-UI-CMP-0002", "uiId": "component.summary-card",     "name": "サマリカード(マスター)", "elements": ["件数(tabular-nums)", "severityラベル"], "contentVariance": { "dimension": "件数の桁", "bounds": "0〜9999", "boundaryStates": ["0", "4桁"] }, "notes": "出現: error/warn/info/suppressed の4つ" },
-    { "tempPartNo": "TMP-UI-CMP-0003", "uiId": "component.findings-table",   "name": "所見テーブル", "elements": ["severity", "rule", "位置", "対象", "内容と是正先"], "contentVariance": { "dimension": "行数", "bounds": "0〜10,000", "boundaryStates": ["空(→TMP-UI-STA-0002)", "1万行(仮想化/ページング要検討)"] } },
-    { "tempPartNo": "TMP-UI-CMP-0004", "uiId": "component.finding-row",      "name": "所見行", "elements": ["severityチップ", "rule ID", "パス:行(中央省略)", "対象IDチップ", "メッセージ", "是正先(→ 是正先:)"], "notes": "状態: suppressed(灰+打消線+理由表示)" },
-    { "tempPartNo": "TMP-UI-CMP-0005", "uiId": "component.severity-chip",    "name": "severity チップ", "notes": "error/warn/info/suppressed の4状態。色言語は designIntent 参照" },
-    { "tempPartNo": "TMP-UI-CMP-0006", "uiId": "component.family-chip",      "name": "family チップ(品番)", "notes": "REQ/E/M/K/CP/SB。グラフノードと同一の色言語" },
-    { "tempPartNo": "TMP-UI-CMP-0007", "uiId": "component.graph-canvas",     "name": "参照グラフキャンバス", "contentVariance": { "dimension": "ノード数", "bounds": "5〜5,000", "boundaryStates": ["近傍のみ表示(既定)", "全体表示の性能限界"] } },
-    { "tempPartNo": "TMP-UI-CMP-0008", "uiId": "component.graph-node",       "name": "品目ノード", "elements": ["品番", "名前(短縮)", "family色"], "notes": "状態: selected(強調枠)/superseded(灰+破線)" },
-    { "tempPartNo": "TMP-UI-CMP-0009", "uiId": "component.violation-callout", "name": "R-040 違反コールアウト", "notes": "superseded への active 参照の説明+当事者品番" },
-    { "tempPartNo": "TMP-UI-CMP-0010", "uiId": "component.trace-matrix",     "name": "トレースマトリクス", "elements": ["REQ行", "仕様節/E/M/CP/証跡 列"], "contentVariance": { "dimension": "REQ行数", "bounds": "5〜200", "boundaryStates": ["全被覆(✗ゼロ)", "未被覆のみフィルタ時の空"] } },
-    { "tempPartNo": "TMP-UI-CMP-0011", "uiId": "component.trace-cell",       "name": "被覆セル", "notes": "状態: ok(✓+品番)/uncovered(✗+lint所見対応)/draft(—)" },
-    { "tempPartNo": "TMP-UI-CMP-0012", "uiId": "component.ledger-table",     "name": "台帳テーブル(マスター)", "notes": "出現: eco/cheat/dec。散文台帳は見出し+ID のみ抽出の注記を持つ" },
-    { "tempPartNo": "TMP-UI-CMP-0013", "uiId": "component.scan-stats",       "name": "走査規模表示", "elements": ["files", "IDs", "refs"], "contentVariance": { "dimension": "数値桁", "bounds": "各0〜100万", "boundaryStates": ["大規模時の桁"] } },
-    { "tempPartNo": "TMP-UI-CMP-0014", "uiId": "state.findings.empty",       "name": "空状態(達成表示)", "elements": ["✓マーク", "現ゲートで所見なし", "走査規模"], "notes": "空白ではなく達成の明示。IRでは component 扱い" },
-    { "tempPartNo": "TMP-UI-CMP-0015", "uiId": "component.trace-legend",     "name": "マトリクス凡例" }
+    {
+      "tempPartNo": "TMP-UI-CMP-0001",
+      "uiId": "component.workspace-chip",
+      "name": "workspace チップ",
+      "elements": [
+        "workspace名",
+        "リポ構成(tooltip)"
+      ],
+      "contentVariance": {
+        "dimension": "workspace名+リポ数",
+        "bounds": "1リポ〜5リポ・名前長",
+        "boundaryStates": [
+          "最大幅(長名)",
+          "単一リポ"
+        ]
+      }
+    },
+    {
+      "tempPartNo": "TMP-UI-CMP-0002",
+      "uiId": "component.summary-card",
+      "name": "サマリカード(マスター)",
+      "elements": [
+        "件数(tabular-nums)",
+        "severityラベル"
+      ],
+      "contentVariance": {
+        "dimension": "件数の桁",
+        "bounds": "0〜9999",
+        "boundaryStates": [
+          "0",
+          "4桁"
+        ]
+      },
+      "notes": "出現: error/warn/info/suppressed の4つ"
+    },
+    {
+      "tempPartNo": "TMP-UI-CMP-0003",
+      "uiId": "component.findings-table",
+      "name": "所見テーブル",
+      "elements": [
+        "severity",
+        "rule",
+        "位置",
+        "対象",
+        "内容と是正先"
+      ],
+      "contentVariance": {
+        "dimension": "行数",
+        "bounds": "0〜10,000",
+        "boundaryStates": [
+          "空(→TMP-UI-STA-0002)",
+          "1万行(仮想化/ページング要検討)"
+        ]
+      }
+    },
+    {
+      "tempPartNo": "TMP-UI-CMP-0004",
+      "uiId": "component.finding-row",
+      "name": "所見行",
+      "elements": [
+        "severityチップ",
+        "rule ID",
+        "パス:行(中央省略)",
+        "対象IDチップ",
+        "メッセージ",
+        "是正先(→ 是正先:)"
+      ],
+      "notes": "状態: suppressed(灰+打消線+理由表示)"
+    },
+    {
+      "tempPartNo": "TMP-UI-CMP-0005",
+      "uiId": "component.severity-chip",
+      "name": "severity チップ",
+      "notes": "error/warn/info/suppressed の4状態。色言語は designIntent 参照"
+    },
+    {
+      "tempPartNo": "TMP-UI-CMP-0006",
+      "uiId": "component.family-chip",
+      "name": "family チップ(品番)",
+      "notes": "REQ/E/M/K/CP/SB。グラフノードと同一の色言語"
+    },
+    {
+      "tempPartNo": "TMP-UI-CMP-0007",
+      "uiId": "component.graph-canvas",
+      "name": "参照グラフキャンバス",
+      "contentVariance": {
+        "dimension": "ノード数",
+        "bounds": "5〜5,000",
+        "boundaryStates": [
+          "近傍のみ表示(既定)",
+          "全体表示の性能限界"
+        ]
+      }
+    },
+    {
+      "tempPartNo": "TMP-UI-CMP-0008",
+      "uiId": "component.graph-node",
+      "name": "品目ノード",
+      "elements": [
+        "品番",
+        "名前(短縮)",
+        "family色"
+      ],
+      "notes": "状態: selected(強調枠)/superseded(灰+破線)"
+    },
+    {
+      "tempPartNo": "TMP-UI-CMP-0009",
+      "uiId": "component.violation-callout",
+      "name": "R-040 違反コールアウト",
+      "notes": "superseded への active 参照の説明+当事者品番"
+    },
+    {
+      "tempPartNo": "TMP-UI-CMP-0010",
+      "uiId": "component.trace-matrix",
+      "name": "トレースマトリクス",
+      "elements": [
+        "REQ行",
+        "仕様節/E/M/CP/証跡 列"
+      ],
+      "contentVariance": {
+        "dimension": "REQ行数",
+        "bounds": "5〜200",
+        "boundaryStates": [
+          "全被覆(✗ゼロ)",
+          "未被覆のみフィルタ時の空"
+        ]
+      }
+    },
+    {
+      "tempPartNo": "TMP-UI-CMP-0011",
+      "uiId": "component.trace-cell",
+      "name": "被覆セル",
+      "notes": "状態: ok(✓+品番)/uncovered(✗+lint所見対応)/draft(—)"
+    },
+    {
+      "tempPartNo": "TMP-UI-CMP-0012",
+      "uiId": "component.ledger-table",
+      "name": "台帳テーブル(マスター)",
+      "notes": "出現: eco/cheat/dec。散文台帳は見出し+ID のみ抽出の注記を持つ"
+    },
+    {
+      "tempPartNo": "TMP-UI-CMP-0013",
+      "uiId": "component.scan-stats",
+      "name": "走査規模表示",
+      "elements": [
+        "files",
+        "IDs",
+        "refs"
+      ],
+      "contentVariance": {
+        "dimension": "数値桁",
+        "bounds": "各0〜100万",
+        "boundaryStates": [
+          "大規模時の桁"
+        ]
+      }
+    },
+    {
+      "tempPartNo": "TMP-UI-CMP-0014",
+      "name": "空状態(達成表示)",
+      "elements": [
+        "✓マーク",
+        "現ゲートで所見なし",
+        "走査規模"
+      ],
+      "notes": "空白ではなく達成の明示。IRでは component 扱い / uiId は状態側 TMP-UI-STA-0002 が保持(裁定: R-002 self-hosting)"
+    },
+    {
+      "tempPartNo": "TMP-UI-CMP-0015",
+      "uiId": "component.trace-legend",
+      "name": "マトリクス凡例"
+    }
   ],
   "actions": [
-    { "tempPartNo": "TMP-UI-ACT-0001", "uiId": "action.nav.findings",        "name": "ビュー切替", "notes": "findings/graph/trace/ledgers の4出現" },
-    { "tempPartNo": "TMP-UI-ACT-0002", "uiId": "input.shell.gate-select",    "name": "ゲート選択(表示規則集合の切替)", "notes": "always/G1/G3/freeze/acceptance+ecoチェック。lint結果の再フィルタであり再実行ではない" },
-    { "tempPartNo": "TMP-UI-ACT-0003", "uiId": "action.findings.filter-severity", "name": "severity フィルタトグル" },
-    { "tempPartNo": "TMP-UI-ACT-0004", "uiId": "action.graph.filter-family", "name": "family フィルタトグル" },
-    { "tempPartNo": "TMP-UI-ACT-0005", "uiId": "action.graph.select-node",   "name": "品目ノード選択(詳細パネル更新)" },
-    { "tempPartNo": "TMP-UI-ACT-0006", "uiId": "action.trace.only-uncovered", "name": "未被覆のみ表示トグル" },
-    { "tempPartNo": "TMP-UI-ACT-0007", "uiId": "action.ledgers.tab-eco",     "name": "台帳サブタブ切替", "notes": "eco/cheat/dec の3出現" }
+    {
+      "tempPartNo": "TMP-UI-ACT-0001",
+      "uiId": "action.nav.findings",
+      "name": "ビュー切替",
+      "notes": "findings/graph/trace/ledgers の4出現"
+    },
+    {
+      "tempPartNo": "TMP-UI-ACT-0002",
+      "uiId": "input.shell.gate-select",
+      "name": "ゲート選択(表示規則集合の切替)",
+      "notes": "always/G1/G3/freeze/acceptance+ecoチェック。lint結果の再フィルタであり再実行ではない"
+    },
+    {
+      "tempPartNo": "TMP-UI-ACT-0003",
+      "uiId": "action.findings.filter-severity",
+      "name": "severity フィルタトグル"
+    },
+    {
+      "tempPartNo": "TMP-UI-ACT-0004",
+      "uiId": "action.graph.filter-family",
+      "name": "family フィルタトグル"
+    },
+    {
+      "tempPartNo": "TMP-UI-ACT-0005",
+      "uiId": "action.graph.select-node",
+      "name": "品目ノード選択(詳細パネル更新)"
+    },
+    {
+      "tempPartNo": "TMP-UI-ACT-0006",
+      "uiId": "action.trace.only-uncovered",
+      "name": "未被覆のみ表示トグル"
+    },
+    {
+      "tempPartNo": "TMP-UI-ACT-0007",
+      "uiId": "action.ledgers.tab-eco",
+      "name": "台帳サブタブ切替",
+      "notes": "eco/cheat/dec の3出現"
+    }
   ],
   "inputs": [
-    { "tempPartNo": "TMP-UI-INP-0001", "uiId": "input.findings.rule-filter", "name": "rule 絞り込みセレクト" },
-    { "tempPartNo": "TMP-UI-INP-0002", "uiId": "input.findings.search",      "name": "所見検索(ファイル・ID)" },
-    { "tempPartNo": "TMP-UI-INP-0003", "uiId": "input.graph.search",         "name": "品目検索" },
-    { "tempPartNo": "TMP-UI-INP-0004", "uiId": "input.graph.depth",          "name": "近傍深さ選択(1/2/3)" }
+    {
+      "tempPartNo": "TMP-UI-INP-0001",
+      "uiId": "input.findings.rule-filter",
+      "name": "rule 絞り込みセレクト"
+    },
+    {
+      "tempPartNo": "TMP-UI-INP-0002",
+      "uiId": "input.findings.search",
+      "name": "所見検索(ファイル・ID)"
+    },
+    {
+      "tempPartNo": "TMP-UI-INP-0003",
+      "uiId": "input.graph.search",
+      "name": "品目検索"
+    },
+    {
+      "tempPartNo": "TMP-UI-INP-0004",
+      "uiId": "input.graph.depth",
+      "name": "近傍深さ選択(1/2/3)"
+    }
   ],
   "states": [
-    { "tempPartNo": "TMP-UI-STA-0001", "uiId": "state.shell.read-only",       "name": "READ-ONLY バッジ", "notes": "常時表示。書き込みゼロ保証(REQ-002)の可視化" },
-    { "tempPartNo": "TMP-UI-STA-0002", "uiId": "state.findings.empty",        "name": "所見ゼロ(達成)状態" },
-    { "tempPartNo": "TMP-UI-STA-0003", "uiId": "component.finding-row.suppressed", "name": "抑制済み所見行", "notes": "非表示にしない。理由+suppress定義位置を表示(REQ-015)" },
-    { "tempPartNo": "TMP-UI-STA-0004", "uiId": "state.graph.superseded-node", "name": "superseded 品目ノード", "notes": "灰+破線+supersede先の表示" },
-    { "tempPartNo": "TMP-UI-STA-0005", "uiId": "state.graph.violation-edge",  "name": "R-040 違反エッジ(赤)" },
-    { "tempPartNo": "TMP-UI-STA-0006", "uiId": "state.trace.uncovered-cell",  "name": "未被覆セル", "notes": "対応する lint 所見と1対1(整合はL2検査)" }
+    {
+      "tempPartNo": "TMP-UI-STA-0001",
+      "uiId": "state.shell.read-only",
+      "name": "READ-ONLY バッジ",
+      "notes": "常時表示。書き込みゼロ保証(REQ-002)の可視化"
+    },
+    {
+      "tempPartNo": "TMP-UI-STA-0002",
+      "uiId": "state.findings.empty",
+      "name": "所見ゼロ(達成)状態"
+    },
+    {
+      "tempPartNo": "TMP-UI-STA-0003",
+      "uiId": "component.finding-row.suppressed",
+      "name": "抑制済み所見行",
+      "notes": "非表示にしない。理由+suppress定義位置を表示(REQ-015)"
+    },
+    {
+      "tempPartNo": "TMP-UI-STA-0004",
+      "uiId": "state.graph.superseded-node",
+      "name": "superseded 品目ノード",
+      "notes": "灰+破線+supersede先の表示"
+    },
+    {
+      "tempPartNo": "TMP-UI-STA-0005",
+      "uiId": "state.graph.violation-edge",
+      "name": "R-040 違反エッジ(赤)"
+    },
+    {
+      "tempPartNo": "TMP-UI-STA-0006",
+      "uiId": "state.trace.uncovered-cell",
+      "name": "未被覆セル",
+      "notes": "対応する lint 所見と1対1(整合はL2検査)"
+    }
   ],
   "domainConcepts": [
-    { "tempPartNo": "TMP-UI-DOM-0001", "name": "Finding(所見)", "relatedTo": ["TMP-UI-CMP-0003", "TMP-UI-CMP-0004"] },
-    { "tempPartNo": "TMP-UI-DOM-0002", "name": "Item(品目)+Family", "relatedTo": ["TMP-UI-CMP-0006", "TMP-UI-CMP-0008"] },
-    { "tempPartNo": "TMP-UI-DOM-0003", "name": "Gate(検査ゲート)", "relatedTo": ["TMP-UI-ACT-0002"] },
-    { "tempPartNo": "TMP-UI-DOM-0004", "name": "Suppress(理由付き抑制)", "relatedTo": ["TMP-UI-STA-0003"] },
-    { "tempPartNo": "TMP-UI-DOM-0005", "name": "TraceCoverage(被覆)", "relatedTo": ["TMP-UI-CMP-0010", "TMP-UI-CMP-0011"] },
-    { "tempPartNo": "TMP-UI-DOM-0006", "name": "Ledger(ECO/ずる/裁定台帳)", "relatedTo": ["TMP-UI-CMP-0012"] },
-    { "tempPartNo": "TMP-UI-DOM-0007", "name": "Workspace(複数リポ)", "relatedTo": ["TMP-UI-CMP-0001"] }
+    {
+      "tempPartNo": "TMP-UI-DOM-0001",
+      "name": "Finding(所見)",
+      "relatedTo": [
+        "TMP-UI-CMP-0003",
+        "TMP-UI-CMP-0004"
+      ]
+    },
+    {
+      "tempPartNo": "TMP-UI-DOM-0002",
+      "name": "Item(品目)+Family",
+      "relatedTo": [
+        "TMP-UI-CMP-0006",
+        "TMP-UI-CMP-0008"
+      ]
+    },
+    {
+      "tempPartNo": "TMP-UI-DOM-0003",
+      "name": "Gate(検査ゲート)",
+      "relatedTo": [
+        "TMP-UI-ACT-0002"
+      ]
+    },
+    {
+      "tempPartNo": "TMP-UI-DOM-0004",
+      "name": "Suppress(理由付き抑制)",
+      "relatedTo": [
+        "TMP-UI-STA-0003"
+      ]
+    },
+    {
+      "tempPartNo": "TMP-UI-DOM-0005",
+      "name": "TraceCoverage(被覆)",
+      "relatedTo": [
+        "TMP-UI-CMP-0010",
+        "TMP-UI-CMP-0011"
+      ]
+    },
+    {
+      "tempPartNo": "TMP-UI-DOM-0006",
+      "name": "Ledger(ECO/ずる/裁定台帳)",
+      "relatedTo": [
+        "TMP-UI-CMP-0012"
+      ]
+    },
+    {
+      "tempPartNo": "TMP-UI-DOM-0007",
+      "name": "Workspace(複数リポ)",
+      "relatedTo": [
+        "TMP-UI-CMP-0001"
+      ]
+    }
   ],
   "layoutInvariants": [
-    { "tempPartNo": "TMP-UI-LIV-0001", "region": "shell", "invariant": "topbar/viewtabs/フッタは固定。スクロールは main のみ(二重スクロール禁止)" },
-    { "tempPartNo": "TMP-UI-LIV-0002", "region": "region.findings-summary", "invariant": "サマリカードは固定幅。件数が0〜4桁に変動しても後続カード・フィルタ行の位置が不変", "verifiedBy": "モックの空状態デモ(件数 3/27/1204→0 切替)" },
-    { "tempPartNo": "TMP-UI-LIV-0003", "region": "region.graph-detail", "invariant": "詳細パネルは固定幅300px。品目名長・参照リスト長がグラフ領域幅を変えない(パネル内で折返し・スクロール)" },
-    { "tempPartNo": "TMP-UI-LIV-0004", "region": "component.findings-table", "invariant": "位置列は固定幅+先頭側省略。長大パス(200文字級)が行高・他列幅を変えない", "verifiedBy": "モック3行目の長大パスサンプル" }
+    {
+      "tempPartNo": "TMP-UI-LIV-0001",
+      "region": "shell",
+      "invariant": "topbar/viewtabs/フッタは固定。スクロールは main のみ(二重スクロール禁止)"
+    },
+    {
+      "tempPartNo": "TMP-UI-LIV-0002",
+      "region": "region.findings-summary",
+      "invariant": "サマリカードは固定幅。件数が0〜4桁に変動しても後続カード・フィルタ行の位置が不変",
+      "verifiedBy": "モックの空状態デモ(件数 3/27/1204→0 切替)"
+    },
+    {
+      "tempPartNo": "TMP-UI-LIV-0003",
+      "region": "region.graph-detail",
+      "invariant": "詳細パネルは固定幅300px。品目名長・参照リスト長がグラフ領域幅を変えない(パネル内で折返し・スクロール)"
+    },
+    {
+      "tempPartNo": "TMP-UI-LIV-0004",
+      "region": "component.findings-table",
+      "invariant": "位置列は固定幅+先頭側省略。長大パス(200文字級)が行高・他列幅を変えない",
+      "verifiedBy": "モック3行目の長大パスサンプル"
+    }
   ],
   "unmodeledElements": [
-    { "locator": "details.design-direction 内の各カード", "handling": "designIntent", "reason": "設計憲章。design-intent.md へ" }
+    {
+      "locator": "details.design-direction 内の各カード",
+      "handling": "designIntent",
+      "reason": "設計憲章。design-intent.md へ"
+    }
   ]
 }

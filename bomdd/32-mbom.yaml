@@ -22,7 +22,7 @@ mbom:
       name: 発見+頑健パース
       ebom_refs: [E-CORE-READONLY-001, E-CORE-DISCOVER-002, E-CORE-PARSE-003]
       kbom_refs: [K-REFV0, K-TS-DETERMINISM, K-YAML-AUTHORING, K-NODE-PORTABILITY]
-      artifact: { path: packages/core/src/(runtime/, discover/, parse/), type: ts-module }
+      artifact: { path: packages/core/src, type: ts-module }
       interface_contract:
         discover: "discover(ws: Workspace, schema: RefSchema): Artifact[]  // Artifact={repo, canonicalPath, type}。ソート済み"
         parse: "parseArtifact(a: Artifact): {doc?: unknown, findings: Finding[]}  // クラッシュしない。X-PARSE/X-TYPE"
@@ -33,7 +33,7 @@ mbom:
       name: スキーマ読込+索引+参照解決+workspace
       ebom_refs: [E-CORE-SCHEMA-004, E-CORE-RESOLVE-005, E-CORE-WORKSPACE-006]
       kbom_refs: [K-REFV0, K-TS-DETERMINISM, K-NODE-PORTABILITY]
-      artifact: { path: packages/core/src/(schema/, resolve/, workspace/), type: ts-module }
+      artifact: { path: packages/core/src, type: ts-module }
       interface_contract:
         loadSchema: "loadSchema(dir: string): RefSchema | ExitError(2)  // 未対応記法= X-SCHEMA 所見"
         buildModel: "buildModel(docs, schema, ws): {index, edges, findings}  // family 判定・id-or-path・X-ID/X-XREPO"
@@ -44,7 +44,7 @@ mbom:
       name: リント規則+ゲート+抑制
       ebom_refs: [E-CORE-LINT-007, E-CORE-GATE-008, E-CORE-SUPPRESS-009]
       kbom_refs: [K-REFV0]
-      artifact: { path: packages/core/src/(rules/, gate/, suppress/), type: ts-module }
+      artifact: { path: packages/core/src, type: ts-module }
       interface_contract:
         evaluate: "evaluate(model, schema): Finding[]  // R-* 全評価+gate 付与"
         applyGate: "appliedRules(gate, eco): Set<RuleId>  // §2.7 の式"
@@ -55,7 +55,7 @@ mbom:
       name: 正規シリアライザ+出力契約スキーマ
       ebom_refs: [E-CORE-OUTPUT-010, E-CONTRACT-DIAG-018]
       kbom_refs: [K-TS-DETERMINISM]
-      artifact: { path: "packages/core/src/output/ + schemas/(plm-diag-1.schema.json, plm-graph-1.schema.json)", type: ts-module+json-schema }
+      artifact: { path: packages/core/src, type: ts-module+json-schema }
       interface_contract:
         serialize: "serializeDiagnostics(model): string / serializeGraph(model): string / serializeLedger(model): string  // §2.9 正規形(3出力)"
       invariants: [INV-003, INV-009]
@@ -74,7 +74,7 @@ mbom:
       name: viewer 静的生成+シェル
       ebom_refs: [E-VIEWER-SHELL-001]
       kbom_refs: [K-VIEWER-VANILLA, K-DESIGN-PLM]
-      artifact: { path: packages/viewer/src/(generate.ts, shell/), type: ts-module }
+      artifact: { path: packages/viewer/src, type: ts-module }
       interface_contract:
         generate: "generateView(diagJson: string, graphJson: string, ledgerJson: string): string  // 自己完結 HTML。純粋関数(I/O なし)"
       invariants: [INV-008, "LIV-0001"]
@@ -85,7 +85,7 @@ mbom:
                   E-DESIGN-SEVCHIP-021, E-DESIGN-FAMCHIP-022, E-DESIGN-SUMCARD-023, E-DESIGN-FINDROW-024,
                   E-DESIGN-NODE-025, E-DESIGN-CALLOUT-026, E-DESIGN-TRACECELL-027, E-DESIGN-LEDGERTBL-028, E-DESIGN-EMPTY-029]
       kbom_refs: [K-VIEWER-VANILLA, K-DESIGN-PLM]
-      artifact: { path: packages/viewer/src/views/, type: 埋込 JS/CSS(生成 HTML に内包) }
+      artifact: { path: packages/viewer/src, type: 埋込 JS/CSS(生成 HTML に内包) }
       display_contract:
         refs: [DC-FINDINGS-001, DC-GRAPH-001, DC-TRACE-001, DC-LEDGER-001]
         required_elements: [DE-F01, DE-F02, DE-F03, DE-F04, DE-F05, DE-F06, DE-G01, DE-G02, DE-G03, DE-G04, DE-G05, DE-G06, DE-T01, DE-T02, DE-T03, DE-T04, DE-L01, DE-L02, DE-L03, DE-L04, DE-L05]

@@ -155,9 +155,9 @@ families:
     defined_in: "bomdd/ui/**/ui-ir.json#layoutInvariants[].tempPartNo"
     strictness: strict
 
-  - prefix: ui-id  # data-ui-id 名前空間(screen.* / region.* / component.* / action.* / input.* / state.* / modal.*)
+  - prefix: ui-id  # data-ui-id 名前空間(screen.* / region.* / component.* / action.* / input.* / state.* / modal.* / domain.*)
     name: UI stable id
-    family_pattern: "^(screen|region|component|button|action|input|state|modal)\\.[A-Za-z0-9._-]+$"
+    family_pattern: "^(screen|region|component|button|action|input|state|modal|domain)\\.[A-Za-z0-9._-]+$"
     defined_in: "bomdd/ui/**/ui-ir.json#*.uiId(HTML data-ui-id と対応)"
     strictness: advisory
 

@@ -70,7 +70,7 @@ ebom:
       invariants: [INV-001, INV-002]
       granularity: { level: component, rationale: 出力先検証・temp管理・書込禁止を単独で受入可能(CP-READONLY-001) }
       acceptance_refs: [CP-READONLY-001]
-      planned_output_artifact_ref: packages/core/src/runtime/
+      planned_output_artifact_ref: packages/core/src
     - id: E-CORE-DISCOVER-002
       name: 成果物発見・型付け(1ファイル=1型・配列順先勝ち)
       classification: surface
@@ -79,7 +79,7 @@ ebom:
       requirement_refs: [REQ-003]
       kbom_refs: [K-REFV0, K-TS-DETERMINISM]
       acceptance_refs: [CP-DISCOVER-002]
-      planned_output_artifact_ref: packages/core/src/discover/
+      planned_output_artifact_ref: packages/core/src
     - id: E-CORE-PARSE-003
       name: 頑健パーサ(X-PARSE/X-TYPE・罠3型ヒント・継続)
       classification: core
@@ -88,7 +88,7 @@ ebom:
       kbom_refs: [K-YAML-AUTHORING, K-TS-DETERMINISM]
       invariants: ["重複キーは X-TYPE-001(warn)+後勝ち採用(K-TS-DETERMINISM)"]
       acceptance_refs: [CP-PARSE-003]
-      planned_output_artifact_ref: packages/core/src/parse/
+      planned_output_artifact_ref: packages/core/src
     - id: E-CORE-SCHEMA-004
       name: ref-v0 実行時読込(焼き込み禁止・exit2/X-SCHEMA境界)
       classification: core
@@ -97,7 +97,7 @@ ebom:
       kbom_refs: [K-REFV0]
       invariants: [INV-007]
       acceptance_refs: [CP-SCHEMA-004]
-      planned_output_artifact_ref: packages/core/src/schema/
+      planned_output_artifact_ref: packages/core/src
     - id: E-CORE-RESOLVE-005
       name: ID索引・参照解決(family判定・IDトークン貪欲・散文規律)
       classification: surface
@@ -107,7 +107,7 @@ ebom:
       kbom_refs: [K-REFV0, K-TS-DETERMINISM]
       invariants: [INV-004]
       acceptance_refs: [CP-RESOLVE-005]
-      planned_output_artifact_ref: packages/core/src/resolve/
+      planned_output_artifact_ref: packages/core/src
     - id: E-CORE-WORKSPACE-006
       name: workspace解決(cross_repo・skip・R-002全域適用)
       classification: surface
@@ -116,7 +116,7 @@ ebom:
       requirement_refs: [REQ-009]
       kbom_refs: [K-REFV0]
       acceptance_refs: [CP-WORKSPACE-006]
-      planned_output_artifact_ref: packages/core/src/workspace/
+      planned_output_artifact_ref: packages/core/src
     - id: E-CORE-LINT-007
       name: リント規則エンジン(R-*全評価・X-*7種・message凍結文言)
       classification: surface
@@ -125,14 +125,14 @@ ebom:
       requirement_refs: [REQ-010, REQ-011, REQ-026]
       kbom_refs: [K-REFV0]
       acceptance_refs: [CP-LINT-007]
-      planned_output_artifact_ref: packages/core/src/rules/
+      planned_output_artifact_ref: packages/core/src
     - id: E-CORE-GATE-008
       name: ゲート合成(梯子+eco直交)
       classification: core
       rationale_type: requirement
       requirement_refs: [REQ-012]
       acceptance_refs: [CP-GATE-008]
-      planned_output_artifact_ref: packages/core/src/gate/
+      planned_output_artifact_ref: packages/core/src
     - id: E-CORE-SUPPRESS-009
       name: 抑制(3必須・info降格・無効行/死抑制の所見化)
       classification: core
@@ -140,7 +140,7 @@ ebom:
       requirement_refs: [REQ-015]
       invariants: [INV-005]
       acceptance_refs: [CP-SUPPRESS-009]
-      planned_output_artifact_ref: packages/core/src/suppress/
+      planned_output_artifact_ref: packages/core/src
     - id: E-CORE-OUTPUT-010
       name: 正規シリアライザ+diagnostics/graph生成
       classification: core
@@ -150,7 +150,7 @@ ebom:
       invariants: [INV-003, INV-009]
       graph_edges: { owner: ~, consumers: [E-CLI-011, E-VIEWER-SHELL-001] }
       acceptance_refs: [CP-OUTPUT-010]
-      planned_output_artifact_ref: packages/core/src/output/
+      planned_output_artifact_ref: packages/core/src
     - id: E-CONTRACT-DIAG-018
       name: 出力契約スキーマ(plm-diag/1・plm-graph/1・plm-ledger/1 JSON Schema)
       classification: core
@@ -197,7 +197,7 @@ ebom:
       design_system_refs: [E-DESIGN-SEVCHIP-021, E-DESIGN-FAMCHIP-022, E-DESIGN-SUMCARD-023, E-DESIGN-FINDROW-024, E-DESIGN-EMPTY-029]
       invariants: ["LIV-0002 サマリ固定幅", "LIV-0004 パス中央省略"]
       acceptance_refs: [CP-VIEW-FINDINGS-013]
-      planned_output_artifact_ref: packages/viewer/src/views/findings/
+      planned_output_artifact_ref: packages/viewer/src  # as-built: 4ビューは client-script.ts に同居(P-03 裁定)
     - id: E-VIEWER-GRAPH-003
       name: 品目グラフビュー
       classification: surface
@@ -209,7 +209,7 @@ ebom:
       design_system_refs: [E-DESIGN-NODE-025, E-DESIGN-CALLOUT-026, E-DESIGN-FAMCHIP-022]
       invariants: ["LIV-0003 詳細パネル固定幅300px"]
       acceptance_refs: [CP-VIEW-GRAPH-014]
-      planned_output_artifact_ref: packages/viewer/src/views/graph/
+      planned_output_artifact_ref: packages/viewer/src
     - id: E-VIEWER-TRACE-004
       name: トレースマトリクスビュー
       classification: surface
@@ -221,7 +221,7 @@ ebom:
       design_system_refs: [E-DESIGN-TRACECELL-027, E-DESIGN-FAMCHIP-022]
       invariants: [INV-010]
       acceptance_refs: [CP-VIEW-TRACE-015]
-      planned_output_artifact_ref: packages/viewer/src/views/trace/
+      planned_output_artifact_ref: packages/viewer/src
     - id: E-VIEWER-LEDGER-005
       name: 台帳ビュー
       classification: surface
@@ -232,7 +232,7 @@ ebom:
       display_contract_refs: [DC-LEDGER-001]
       design_system_refs: [E-DESIGN-LEDGERTBL-028, E-DESIGN-SEVCHIP-021]
       acceptance_refs: [CP-VIEW-LEDGER-016]
-      planned_output_artifact_ref: packages/viewer/src/views/ledgers/
+      planned_output_artifact_ref: packages/viewer/src
 
     # ================= design system parts(35 と同期。R-021) =================
     - { id: E-DESIGN-SEVCHIP-021,   name: SeverityChip,   classification: surface, rationale_type: design-token, external_source_ref: K-DESIGN-PLM, kbom_refs: [K-DESIGN-PLM], acceptance_refs: [CP-DESIGN-SYSTEM-019], granularity: { level: component } }
