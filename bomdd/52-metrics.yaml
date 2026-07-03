@@ -1,0 +1,46 @@
+bomdd:
+  product: BomDD-Plm
+  experiment: plm-v0
+  layer: Metrics
+
+# 規律: raw 一致率単独で報告しない — blocker / 残渣 / 帰属分解で読む(method-v1 §6)
+
+plm_v0:
+  input_bom: { seed: plm-v0-input(1f21035), rev1: plm-v0-input-rev1(a3bf23e) }
+  gates: { G0: pass, G1: pass, G2: "pass(3+2リーダー・2ラウンド)", G3: "pass(fresh 2ラウンド・13問全回答)" }
+
+  convergence:                       # 固定オラクル 25 ケース(凍結・rev1 で S-03/S-12[0] のみ文書化改訂)
+    - { rev: rev0, factory: factory-01(opus),   score: "14/25", attribution: "spec_omission 2系統 / refv0_gap 2系統 / 工場能力 3系統(parse全滅含む)" }
+    - { rev: rev0, factory: factory-02(sonnet), score: "13/25", attribution: "同 BOM 系統 4/4 再現(欠陥は BOM に宿る) / 工場能力は逆転分布(parse優・family劣)" }
+    - { rev: rev1, factory: "factory-03(混成 opus→sonnet)", score: "25/25(残渣ゼロ)", note: "1改訂で0到達。修正はBOMに宿る" }
+
+  two_axis:
+    determinism: "SO-1(targetId)で 2工場が別解釈(null/所有ID)=未規定次元に分散が集中。SO-2 では2工場一致(共有解釈を rev1 で仕様化)"
+    correctness: "S-09 決定性(byte同一)・S-10 read-only・S-14 自己完結は 3/3 個体で初回から緑(K-BOM [決定性]13判断の事前固定が寄与)"
+
+  cheats:
+    factory_01: { blocker: 0, friction: 3, minor: 7 }
+    factory_02: { blocker: 3, friction: 10, minor: 10 }
+    factory_03: { blocker: "4(全て引継修正=前任実欠陥)", friction: 2, minor: 7 }
+    harness:    { count: 2, ids: [CHEAT-PLM-V0-H001, CHEAT-PLM-V0-H002], note: "C2-in-harness 7例目。偽FAIL 7件を製品帰属の前に治具帰属(凍結プロトコル§3が機能)" }
+
+  acceptance:
+    fixed_oracle: "25/25(factory-03)"
+    performance_S18: "0.75s(中央値・基準workspace 48files/685ids/1404refs) ≦ 15s — 13倍マージン"
+    golden: "承認: akira 2026-07-03(TE-PLM-018。S1/S2/S3 指摘なし)"
+    real_repo_S19:
+      self_hosting: { before: "error+warn 67", after: 0, fixes: "自リポ台帳60件+TE証跡19行+ref-v0.3(2系統)" }
+      viewprism:    { before: "error+warn 412", after_schema_fixes: 286, adjudicated: "全数帰属 — schema 5補正(実物が正)/ ViewPrism2 ECO候補6 / 製品ECO候補2(PD-7/8)/ ref-v0.4候補1" }
+      genuine_defects_caught: "dangling CP参照 / プレースホルダ残 / test_vectors 欠落6(CHEAT-005予防の的中) / FMEA構造表不在 / 自リポTE証跡不在"
+    pending: "Linux 側実行(CI 整備時)"
+
+  refv0_validation:                  # draft 卒業条件 §4 の第1データ点
+    revisions: { v0.1: "G3由来 4補正", v0.2: "初回製造由来 2補正", v0.3: "S-19由来 5補正(うち4は実物が正)", v0.4_candidate: "per-file 一意性スコープ" }
+    false_positive_rate_after: "self-hosting 0 / viewprism 286(全数帰属済み・大半は実リポ側の台帳スタイル債務)"
+
+  method_feedback_candidates:        # BomDD 本体への還元候補(未起票)
+    - "治具セルフテストの盲点: 比較器は検証したが『仕様のどの断面を比較すべきか』は未検証(H001)→ 較正手順への追補"
+    - "マルチリーダー監査の指摘は本文照合で真偽裁定してから採用(haiku 再監査の誤読3件=specified_contract_miss の監査版)"
+    - "『実物が正』の裁定ループはスキーマの書き癖を体系的に剥がす(5回適用)→ draft 運用の標準工程化"
+    - "工場能力は単一軸でない(parse=sonnet優/family=opus優の逆転)→ 多工場の価値は序列でなく分散観測"
+    - "セッション上限・API中断への工程設計: 混成個体の as-built 正直記録+引継 work order 様式"

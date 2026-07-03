@@ -42,6 +42,10 @@
 - 仕様監査リーダー数(G2): 3
 - 承認者: akira(Web ビューは golden+承認者の G。CLI は automated)
 
+> **ループ完了宣言(2026-07-03)**: 完了の定義を全達成 — 固定オラクル 25/25(factory-03)・blocker ずるゼロ・
+> 実リポ受入(全 false positive 裁定済み)・golden 承認(akira)。測定値= [52-metrics.yaml](52-metrics.yaml)。
+> 残タスクは Linux/CI(CP-NFR-017 後半)と記録済み ECO 候補群のみ。
+
 ## 完了の定義
 - **固定オラクル全通過**: 本題材の固定オラクルは「**既知欠陥を植えた fixture リポ群+正しいリポに対する期待所見プロファイル**」
   (壊れ参照・重複 ID・IR なし UI surface・superseded への active 参照 等を1件ずつ植えた合成 bomdd/ リポ)。
