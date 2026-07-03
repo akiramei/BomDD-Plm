@@ -8,7 +8,7 @@ bomdd:
 # 「既知欠陥を植えた fixture への期待所見プロファイル一致」= 較正がそのまま製品オラクル。
 
 fixed_oracle:
-  frozen_since: "tag eco-002-input(2026-07-03。ECO-002: S-22/S-23/S-24 を新規行として追加+S-20 の ghost 行のみ §2.4 rev3 の意味論変更(repo:不在= X-XREPO skip)に追随する文書化改訂 — rev1 の S-03/S-12[0] と同型。他 26 ケースの fixture・expected は不変)/ 前版 tag eco-001-input(ECO-001: S-20/S-21 追加)/ tag plm-v0-input-rev1(S-03/S-12[0] の rev1 追随)/ 初版 tag plm-v0-input"
+  frozen_since: "ECO-003 追補(2026-07-03。S-25 を新規行として追加 — 意味論変更なしの現行挙動固定につき較正= 変更前個体で 34/34 PASS。製造なし・既存 33 採点行の fixture・expected 不変)/ 前版 tag eco-002-input(2026-07-03。ECO-002: S-22/S-23/S-24 を新規行として追加+S-20 の ghost 行のみ §2.4 rev3 の意味論変更(repo:不在= X-XREPO skip)に追随する文書化改訂 — rev1 の S-03/S-12[0] と同型。他 26 ケースの fixture・expected は不変)/ tag eco-001-input(ECO-001: S-20/S-21 追加)/ tag plm-v0-input-rev1(S-03/S-12[0] の rev1 追随)/ 初版 tag plm-v0-input"
   self_test: >-
     oracle/harness/selftest.mjs — 11 tests PASS(2026-07-03)。比較器(完全集合/subset/message部分一致)・
     hashツリー差分・byte比較・自己完結検査器を合成データで検証済み。
@@ -53,3 +53,5 @@ fixed_oracle:
     - { id: S-22, scenario: "R-052 diff-audit — git 履歴付き fixture(治具が組み立て)で 許容内/はみ出し/baseline不能/diff_auditなし/--ecoなし の5分岐", contract_expectation: "はみ出しのみ R-052 error(1ファイル1所見)・baseline 不能= X-GIT-001 info・他は所見なし/非起動。fixture リポは read-only", spec_ref: "bomdd/20-spec.md#2.17", depth: unit, fixture: oracle/harness/build-git-fixture.mjs, change_ref: ECO-002 }
     - { id: S-23, scenario: "SARIF 追加出力 — 既存 R-003 fixture を --sarif で実行し sarif.json の断面照合+--sarif なしで非生成", contract_expectation: "schemaVersion 2.1.0・results= diagnostics と件数/ruleId/level 整合・抑制= suppressions・決定性(2回 byte 同一)", spec_ref: "bomdd/20-spec.md#2.9(rev3)", depth: unit, fixture: oracle/fixtures/rules/R-003, change_ref: ECO-002 }
     - { id: S-24, scenario: "単一リポ実行での repo: 形 cross-repo 参照= X-XREPO skip(ViewPrism2 pre-commit 実害の再現形)", contract_expectation: "error/warn ゼロ・X-XREPO-001 info が repo: 参照分・exit 0", spec_ref: "bomdd/20-spec.md#2.4(rev3)", depth: unit, fixture: oracle/fixtures/path-forms-single, change_ref: ECO-002 }
+    # ---- ECO-003 追加行(2026-07-03。既存行は不変 — 現行挙動の固定につき較正= 変更前個体で PASS) ----
+    - { id: S-25, scenario: "trace_links エンドポイント4態(ID 形 family 不在/repo: 形 repo 不在/解決/エッジ宣言なし成果物)", contract_expectation: "R-041 warn 発火分岐の初固定+ID 形は skip しない(裁定 CH-B)+repo: 形= X-XREPO skip(CH-3 全経路共通の R-041 経路での初固定)+不解決 ID の二重所見(R-003+R-041)は from/to がエッジ宣言にも載る 10-requirements のみ(観測固定)", spec_ref: "bomdd/20-spec.md#2.4", depth: unit, fixture: oracle/fixtures/rules/R-041, change_ref: ECO-003 }

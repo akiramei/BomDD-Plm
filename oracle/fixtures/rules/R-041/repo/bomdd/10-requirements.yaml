@@ -1,0 +1,15 @@
+bomdd:
+  product: r041-fixture
+  layer: Requirements
+
+# S-25 fixture: trace_links エンドポイントの解決4態(ECO-003 裁定 CH-B の固定)。
+#   TL-R41-001: to= family 形 ID・索引不在 → R-003(エッジ並走)+ R-041(スキャン)の二重所見
+#   TL-R41-002: to= repo: 形・repo 不在   → X-XREPO-001 info skip のみ(CH-3 全経路共通)
+#   TL-R41-003: to= 解決する ID           → 所見なし
+requirements:
+  - id: REQ-001
+    statement: sample requirement
+    trace_links:
+      - { trace_id: TL-R41-001, from: REQ-001, to: E-CORE-999, relation: satisfies }
+      - { trace_id: TL-R41-002, from: REQ-001, to: "ghost:docs/x.md", relation: satisfies }
+      - { trace_id: TL-R41-003, from: REQ-001, to: REQ-001, relation: refines }

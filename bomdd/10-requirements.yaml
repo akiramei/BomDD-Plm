@@ -141,6 +141,10 @@ requirements:
       パス値の受理形は3種(仕様 §2.4): 正準 `<repo>/<相対>` / repo 相対(セグメント数・file/dir 不問)/
       `repo名:相対`(正準と等価。rev3/ECO-002: repo 名が workspace に不在なら X-XREPO skip —
       ID 参照の cross_repo と同じ意味論。単一リポ実行を error で汚さない)。
+    note: >-
+      ECO-003(2026-07-03・改訂なしの明確化): skip は cross-repo 意図の明示(repo: 前置または
+      エッジ宣言 cross_repo)がある場合に限る。ID 形(id-or-path ①・trace_links エンドポイント=
+      R-041)は skip しない(§2.4 明文化・S-25 固定)。
     rationale: >-
       本製品の中核機能。正しさの基準はスキーマ(SRC-01)と実リポ(SRC-04)。
       深さ unit(合成フィクスチャで定義数・解決数・不解決数の完全一致)。

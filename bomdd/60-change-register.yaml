@@ -43,3 +43,18 @@ changes:
       - CP-RESOLVE-005
       - CP-LINT-007
       - K-REFV0
+
+  - id: ECO-003
+    title: "R-041 ID 形エンドポイントへの CH-3(cross-repo skip)適用是非 — 裁定+仕様/オラクル固定"
+    status: verified   # 2026-07-03 裁定 CH-B(非適用+文書化)。src 変更なし・S-25 追加・34/34 PASS。詳細= order_ref §5
+    opened: 2026-07-03
+    closed: 2026-07-03
+    order_ref: bomdd/60-change-order-eco-003.md
+    diff_audit:   # R-052 自己適用 — 文書化 ECO の diff が bomdd/+oracle/ に閉じることを機械監査
+      baseline: v0.3-eco-002-accepted
+      allowed_paths: [oracle/]
+    affected_refs:
+      - REQ-007
+      - E-CORE-RESOLVE-005
+      - M-CORE-GRAPH-002
+      - CP-RESOLVE-005

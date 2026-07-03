@@ -1,0 +1,13 @@
+bomdd:
+  product: r041-fixture
+  layer: MBOM
+
+# S-25 fixture: エッジ宣言のない成果物の trace_links は R-041 スキャンのみが検査する
+#   (10-requirements と異なり R-003 は並走しない= 単独所見)。
+#   TL-R41-004: from= 解決する M unit ID / to= family 形 ID・索引不在 → R-041 warn 1件のみ
+mbom:
+  manufacturing_units:
+    - id: M-R41-001
+      name: probe unit
+      trace_links:
+        - { trace_id: TL-R41-004, from: M-R41-001, to: E-CORE-998, relation: implements }

@@ -60,6 +60,7 @@ eco_001:                             # 初の PLM 自身への Phase 7(2026-07-0
 
   product_eco_candidates:            # 未起票の製品 ECO 候補
     - "ECO-002 候補: repo: 形パス参照の repo 不在は R-004 でなく X-XREPO 系 skip(info)へ — ID 参照の cross_repo(候補リポ不在= skip)との一貫性。ViewPrism2 pre-commit 常駐(単一リポ実行)で7件の正当な cross-repo 参照が error になった非対称の実測(2026-07-03。当面の運用= workspace 宣言で回避)"
+    - "軽微債務: resolve/model.ts(buildNodes)と rules/evaluate.ts(emitOrphans)の dedup キー区切りに生の NUL バイト(U+0000)がソース直埋め — 機能は同値だが ripgrep 系ツールが両ファイルをバイナリ判定して検索から脱落する実害(2026-07-03 ECO-003 起票調査中に発見)。是正はエスケープ表記 \\u0000 への置換のみ(1文字×2ファイル)。単独 ECO は過剰 — 次の src 変更 ECO に便乗が適切"
 
 eco_002:                             # v0.5(2026-07-03): R-052 diff-audit+SARIF+repo:skip
   change: "R-052(63 の機械化・製品初 git 連携)+SARIF 2.1.0 追加出力(DEC-0004 後段)+repo: 不在 skip(CI 実害の是正)"
@@ -73,3 +74,15 @@ eco_002:                             # v0.5(2026-07-03): R-052 diff-audit+SARIF+
   r052_dogfood: "自己適用成立 — 本 ECO の register に diff_audit を宣言し R-052 所見 0(手動 63 と同一結論)。63 の機械化が 63 自身の受入で初稼働"
   harness: "H004(S-23[1] fixture 指定ミス= suppress は workspace 経由。precondition 検査が治具前提不成立を製品欠陥と区別)/ D002(E-BOM external_source_ref 散文値をリンタが検出= 設計者捕捉4例目→ K-SARIF 新設)"
   failure_5class: { regression: 0, change_miss: 0, data_preservation_miss: "n/a", unnecessary_modification: 0, nonconformance: 0 }
+
+eco_003:                             # 2026-07-03: R-041 ID 形への CH-3 適用是非 — 裁定 CH-B(非適用+文書化)
+  change: "opus 指摘 Q3(ECO-002 対照個体)の残課題を裁定 — skip の原理を「cross-repo 意図の明示(repo: 前置/エッジ宣言)がある場合に限る」で統一し §2.4 に明文化。src 変更なし"
+  adjudication: "akira 2026-07-03: CH-B 採択(CH-A= family 不在 skip は棄却 — 意図明示なき skip は過剰受理・R-003 との新非対称・救う実例 0)"
+  evidence: "R-041 発火実績 0(ViewPrism2 両モード・self-hosting。dormant rule)/ 実物 trace_links[] 3 リポとも本番台帳 0 行 / オラクルに R-041 発火分岐の固定なし(検証の穴)→ S-25 で初固定"
+  observed_and_pinned: "起票プローブで観測した現行挙動を S-25 が固定 — (a) 10-requirements の不解決 ID は R-003+R-041 二重所見(エッジ宣言と R-041 スキャンの並走。エッジ宣言なし成果物は R-041 単独)(b) R-041 はエンドポイント単位発火 (c) ghost repo: 形は X-XREPO skip= CH-3 全経路共通の R-041 経路確認"
+  acceptance: "34/34 PASS(既存 33 不変+S-25。現行挙動固定につき較正= 変更前個体 PASS が凍結条件)/ self-hosting error+warn 0 維持(--eco 込み)"
+  manufacturing: "なし(designer 作業のみ)— 文書化 ECO の初例。61 影響分析は order §2 の表で代替(under/over-inclusion の測定対象なし)"
+  r052_dogfood: "文書化 ECO でも diff_audit を宣言(baseline= v0.3-eco-002-accepted・allowed_paths= oracle/)— diff が bomdd/+oracle/ に閉じることを機械監査"
+
+  product_debt_candidates:           # 軽微債務(未起票)
+    - "R-041 メッセージに endpoint 値({ref})が出ない — from/to 双方不解決時に同一 trace_id で 2 所見が並び判別不能(S-25 起票プローブで観測。rule-messages の message へ {ref} 追加のみ・次の src 変更 ECO に便乗)"
