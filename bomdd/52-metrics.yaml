@@ -38,9 +38,22 @@ plm_v0:
     revisions: { v0.1: "G3由来 4補正", v0.2: "初回製造由来 2補正", v0.3: "S-19由来 5補正(うち4は実物が正)", v0.4_candidate: "per-file 一意性スコープ" }
     false_positive_rate_after: "self-hosting 0 / viewprism 286(全数帰属済み・大半は実リポ側の台帳スタイル債務)"
 
-  method_feedback_candidates:        # BomDD 本体への還元候補(未起票)
+  method_feedback_candidates:        # BomDD 本体への還元候補(反映済み 2026-07-03: BomDD 50cbdea)
     - "治具セルフテストの盲点: 比較器は検証したが『仕様のどの断面を比較すべきか』は未検証(H001)→ 較正手順への追補"
     - "マルチリーダー監査の指摘は本文照合で真偽裁定してから採用(haiku 再監査の誤読3件=specified_contract_miss の監査版)"
     - "『実物が正』の裁定ループはスキーマの書き癖を体系的に剥がす(5回適用)→ draft 運用の標準工程化"
     - "工場能力は単一軸でない(parse=sonnet優/family=opus優の逆転)→ 多工場の価値は序列でなく分散観測"
     - "セッション上限・API中断への工程設計: 混成個体の as-built 正直記録+引継 work order 様式"
+
+eco_001:                             # 初の PLM 自身への Phase 7(2026-07-03)
+  change: "PD-7/PD-8(パス受理形3種)+per-file 一意性スコープ(ref-v0.4 とセット)"
+  input_bom: eco-001-input(25c6fe8)
+  baseline: v0.1-plm-accepted(4533b5d)
+  calibration: "変更前個体で既存25=PASS・S-20/S-21=FAIL(差分=変更断面のみ)。期待側 severity 断面誤り1件を凍結前捕捉(H003)"
+  factories:
+    - { factory: eco01(opus),   oracle: "27/27", self_acceptance: "96/96", unnecessary_modification: 0, cheats: "minor 2", adopted: true }
+    - { factory: eco02(sonnet), oracle: "27/27", self_acceptance: "95/95", unnecessary_modification: 0, cheats: "friction 1(環境復旧)", adopted: false }
+  impact_prediction: { under_inclusion: 0, over_inclusion: 0, unit_granularity: "2/8 unit(絞り込み有効 — forward-01.5 の 3/3 と対照。局所性依存の反例データ)" }
+  real_repo_effect: "self-hosting 0 維持 / ViewPrism 286→261(per-file 18 全解消+PD-8 実在5解消・真正壊れ参照は残存=過剰受理なし)"
+  failure_5class: { regression: 0, change_miss: 0, data_preservation_miss: "n/a(移行なし)", unnecessary_modification: 0, nonconformance: 0 }
+  designer_side: "CHEAT-ECO-001-D001(41 追記の YAML 記法ミス=フロースタイル裸ブラケット。self-hosting lint が検出=防壁価値の初実証。yaml-authoring-traps 第4型)"

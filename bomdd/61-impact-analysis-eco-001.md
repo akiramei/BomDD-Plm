@@ -49,7 +49,15 @@
 | S-19 実リポ遡及 | 契約不変 | 契約は「クラッシュ0・全所見裁定可能」。所見**数**は減る方向(PD-7/8/per-file の誤検出解消= ECO の目的そのもの)だが、これは S-20/S-21 が合成 fixture で固定する変更受入であり S-19 の契約ではない |
 | 非対象ファイル群 | diff 0 | packages/cli・packages/viewer・core の discover/parse/gate/suppress/output/util — 63 の diff 監査で測定 |
 
-## 3. 採点(製造・回帰の後に記入)
-- under-inclusion(影響なし予測が外れた箇所):
-- over-inclusion(影響ありとしたが変わらなかった箇所):
-- 粒度の観察(絞り込み効果が出たか):
+## 3. 採点(2026-07-03 記入 — fresh 2工場の回帰結果)
+- **under-inclusion: 0** — §2 の全予測が的中。既存 S-01〜S-19(25ケース)は両工場とも 25/25 PASS。
+  cli / viewer / core 他モジュールへの src diff は両工場とも 0。
+- **over-inclusion: 0** — 影響ありに挙げた全段が実際に変わった(仕様2節・E-BOM 2品目・M 2unit=src 4ファイル・
+  CP 2特性・S-20/S-21・K-REFV0=ref-v0.4 差替・40/60 台帳)。
+- **粒度の観察: unit 粒度の絞り込みが今回は効いた** — 影響集合は 8 unit 中 2(M-CORE-GRAPH-002 / M-CORE-RULES-003)。
+  forward-01.5(3/3 unit・絞り込み効果なし)と対照的で、「小規模 ECO では unit 粒度が効かない」は
+  規模でなく**変更の局所性**に依存することの初の反例データ。src レベルでは両工場とも
+  影響分析どおりの4ファイルに収束(model.ts / evaluate.ts / load.ts / types.ts)。
+- 予測対象外の観測: 設計者側の 41-fixed-oracle.yaml 追記に YAML 記法ミス(フロースタイル内の裸 `[ ]`)が
+  混入し、self-hosting lint(X-PARSE-001)が検出した([51](51-cheat-log.md) CHEAT-ECO-001-D001)。
+  工場・オラクル採点には無影響(41 は非同梱・採点は expected ベース)。

@@ -97,6 +97,8 @@ export function buildModel(parsedArtifacts, schema, repos) {
                 };
                 if (line !== undefined)
                     dfn.line = line;
+                if (def.uniquenessScope === "per-file")
+                    dfn.uniquenessScope = "per-file";
                 applyNodeAttrs(dfn, parent);
                 definitions.push(dfn);
                 // X-ID-001 for definition values that match no family (only for non-candidate structured defs).
@@ -402,19 +404,49 @@ function lookupIndex(index, family, id) {
     const list = fam.get(id);
     return !!list && list.length > 0;
 }
-/** Check path existence relative to any repo (canonical path = `<repo>/<rel>`). */
-function pathExists(canonPath, repos) {
-    const slash = canonPath.indexOf("/");
-    if (slash < 0)
+/**
+ * Path existence check with the three acceptance forms of §2.4 (rev2 / ref-v0.4).
+ *   1. Canonical `<repo>/<rel>` — if the leading segment is a workspace repo name, check
+ *      relative to that repo.
+ *   2. repo-relative `<rel>` (no repo prefix) — resolve against ANY repo. Segment count is
+ *      irrelevant (single segment `test` / `single.md` accepted); file or dir both accepted.
+ *   3. `repo:rel` — equivalent to canonical (`:` read as `/`). If the repo name is absent
+ *      from the workspace, UNRESOLVED — no fallback to form 2 (the explicit repo name is intent).
+ * Forms 1 and 2 combine: a leading segment that is NOT a repo name is tried as form 2
+ * (§2.4: "正準形の先頭セグメントが repo 名に一致しない場合は形式2 として扱う").
+ * `existsSync` is used for both files and directories (存在検査).
+ */
+function pathExists(value, repos) {
+    // Form 3: `repo名:相対` — strict, no fallback to form 2.
+    const colon = value.indexOf(":");
+    // Guard against Windows drive-letter / bare `:`: only treat as form 3 when there is a
+    // repo-name segment before the colon and a relative part after it.
+    if (colon > 0 && colon < value.length - 1) {
+        const repoName = value.slice(0, colon);
+        const rel = value.slice(colon + 1);
+        const repo = repos.find((r) => r.name === repoName);
+        if (repo) {
+            return existsSync(join(repo.absPath, ...splitPath(rel)));
+        }
+        // repo name not in workspace => unresolved (do NOT fall back to form 2).
         return false;
-    const repoName = canonPath.slice(0, slash);
-    const rel = canonPath.slice(slash + 1);
-    const repo = repos.find((r) => r.name === repoName);
-    if (!repo) {
-        // path may be repo-relative without repo prefix (e.g. within same repo) — try all repos.
-        return repos.some((r) => existsSync(join(r.absPath, ...canonPath.split("/"))));
     }
-    return existsSync(join(repo.absPath, ...rel.split("/")));
+    const segs = splitPath(value);
+    // Form 1: canonical `<repo>/<rel>` — leading segment matches a repo name.
+    if (segs.length >= 2) {
+        const repo = repos.find((r) => r.name === segs[0]);
+        if (repo && existsSync(join(repo.absPath, ...segs.slice(1)))) {
+            return true;
+        }
+        // leading segment is not a repo name (or that repo path did not exist):
+        // fall through to form 2 (repo-relative against all repos).
+    }
+    // Form 2: repo-relative — try the whole value relative to any repo. Any segment count.
+    return repos.some((r) => existsSync(join(r.absPath, ...segs)));
+}
+/** Split a `/`-separated relative path into segments (drops empty segments from `//`). */
+function splitPath(rel) {
+    return rel.split("/").filter((s) => s.length > 0);
 }
 function collectTraceLinks(pa, index, schema, repos, out) {
     // trace_links appear at various selectors; find any `trace_links` arrays with from/to.

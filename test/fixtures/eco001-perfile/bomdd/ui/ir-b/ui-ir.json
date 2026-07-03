@@ -1,0 +1,9 @@
+{
+  "meta": { "sources": [] },
+  "screens": [
+    { "tempPartNo": "TMP-UI-SCR-0002", "uiId": "screen.gamma" }
+  ],
+  "trace_links": [
+    { "trace_id": "TL-DUP", "from": "screen.gamma", "to": "screen.gamma" }
+  ]
+}

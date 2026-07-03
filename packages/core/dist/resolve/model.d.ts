@@ -17,6 +17,12 @@ export interface Definition {
     name?: string;
     lifecycle?: string;
     supersededByNonEmpty?: boolean;
+    /**
+     * R-002 uniqueness scope of the originating define site (ref-v0.4).
+     * "per-file" => R-002 duplicate detection is scoped to canonicalPath; unset => workspace-global.
+     * Does NOT affect ID index registration / reference resolution (always workspace-global).
+     */
+    uniquenessScope?: "per-file";
 }
 export interface RefResult {
     /** the reference edge's declared family list */

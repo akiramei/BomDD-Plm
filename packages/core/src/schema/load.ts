@@ -135,6 +135,9 @@ function parseDefine(raw: Record<string, unknown>): DefineSite | undefined {
   if (!selector) return undefined;
   const d: DefineSite = { selector, families: familyList(raw["family"]) };
   if (raw["candidate"] === true) d.candidate = true;
+  // ref-v0.4: uniqueness_scope. Only "per-file" is recognized; unknown values are ignored
+  // (forward-compatible with future scopes).
+  if (asString(raw["uniqueness_scope"]) === "per-file") d.uniquenessScope = "per-file";
   return d;
 }
 

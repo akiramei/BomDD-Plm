@@ -94,3 +94,20 @@ as_built:
       - { evidence_id: TE-PLM-017, cp_ref: CP-NFR-017,           result: pass, evidence_path: examples/viewprism-workspace.yaml, notes: S-18 基準機 0.75s。Linux 側は CI 整備時に追補 }
       - { evidence_id: TE-PLM-018, cp_ref: CP-VISUAL-GAP-018,    result: pass, evidence_path: examples/viewprism-plm-view.html, notes: "golden 承認: akira 2026-07-03(実 ViewPrism データでの4ビュー確認・S1/S2/S3 指摘なし)" }
       - { evidence_id: TE-PLM-019, cp_ref: CP-DESIGN-SYSTEM-019, result: pass, evidence_path: oracle/README.md, notes: 工場 test/ の design token・DE 存在検査 }
+
+  - id: AB-PLM-ECO-001
+    lifecycle_state: accepted        # ★ECO-001 採用個体(部分改修 — 変更4ファイル+テストのみ製品リポへ適用)
+    work_order_ref: bomdd/40-work-order-eco-001.md@eco-001-input
+    input_bom_tag: eco-001-input(25c6fe8)
+    baseline: v0.1-plm-accepted(4533b5d)   # As-Maintained=factory-03 系ソース。diff 基準点
+    ai_model: claude-opus-4-8        # factory-eco01。対照個体: factory-eco02(claude-sonnet-5)は採点のみ・非採用
+    isolation: clean(隔離パッケージ: オラクル・設計対話・影響なし予測61§2・51/52/65 非同梱)
+    artifact_location: 製品リポ packages/core/src 4ファイル+test/ 2ファイル+fixtures を採用
+    self_acceptance: "build 警告0 / node --test 96/96(既存87退行なし+新規9) / L1 自リポスモーク緑"
+    cheats: "blocker 0 / friction 0 / minor 2(F01-001 per-file×全域の同一ID共有スコープ未規定 / F01-002 repo:判定のドライブレターガード)"
+    inspections:
+      fixed_oracle: "**27/27 PASS**(回帰 S-01〜S-19=25 不変+変更受入 S-20/S-21=2)。対照個体(sonnet)も 27/27"
+      diff_audit_63: "src diff=影響分析どおり4ファイルのみ(model/evaluate/load/types)・既存テスト改変0・**不要改変0**。対照個体も同4ファイル+test追加のみ(既存テストへの追記は import 行拡張1行=test-only)"
+      impact_prediction_61: "under-inclusion 0 / over-inclusion 0(全的中)。unit 粒度絞り込み 2/8(forward-01.5 の 3/3 と対照)"
+      real_repo_recheck: "self-hosting error+warn 0 維持 / ViewPrism workspace 286→**261**(R-002 per-file 18件全解消+PD-8 実在5件解消。残存 repo: 系3件は真正壊れ参照2+複合散文1=過剰受理なし)"
+      cross_factory_note: "2工場とも初回 27/27・不要改変0 — 改訂 BOM の一発転移(ECO でも「修正は BOM に宿る」)。実装は独立に同一4ファイルへ収束"

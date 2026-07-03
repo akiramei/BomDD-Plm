@@ -8,8 +8,9 @@ bomdd:
 changes:
   - id: ECO-001
     title: パス受理形の仕様化(PD-7/PD-8)+R-002 一意性スコープ per-file(ref-v0.4)
-    status: in-progress
+    status: verified   # 2026-07-03: fresh 2工場 27/27・不要改変0・影響なし予測全的中・実リポ再検証済み(61 §3 / 50 AB-PLM-ECO-001)
     opened: 2026-07-03
+    closed: 2026-07-03
     order_ref: bomdd/60-change-order-eco-001.md
     affected_refs:
       - REQ-007

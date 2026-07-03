@@ -8,6 +8,7 @@
 | 1 | リスト項目が `*` で始まる | YAML alias と誤解釈され ScannerError | `- **TypeScript 系**で実装する。` |
 | 2 | 複数行 plain scalar 中の行末コロン | mapping key と誤解釈され「could not find expected ':'」 | `- 構成は core/cli/viewer の3分割:`(次行に続く) |
 | 3 | リスト項目が引用符で始まり後続テキストが続く | 引用 scalar の終端後に content ありで ParserError | `- "M01"(移行オラクル)を誤分類`(10-requirements 初稿で3件) |
+| 4 | フロースタイル `{ }` 内の plain scalar に `[` `]` を含める | flow sequence の開始と誤解釈され ParserError | `scenario: 受理形(正準/repo相対[単一・多セグメント]/...)`(41 の ECO-001 追記。**製品 self-hosting lint の X-PARSE-001 が検出**=CHEAT-ECO-001-D001。2026-07-03) |
 
 ## 含意(要求への反映先)
 

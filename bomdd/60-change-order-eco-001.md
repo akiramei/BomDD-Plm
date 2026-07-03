@@ -74,9 +74,20 @@
 - 自己受入: 既存 `node --test`(87)+変更対象の追加 unit test(受理形3種・per-file の test_vectors)。**赤=stop/report**
 - 事前宣言: 「影響分析にある箇所だけを改修。影響なし箇所への変更は禁止。diff を測定する」
 
-## 5. 回帰+変更受入(失敗5分類)
-- 実行: 既存 S-01〜S-19(25ケース)+新規 S-20/S-21。納品 diff を tag 基準で 63 監査。
-- 結果: (製造後に記入)
+## 5. 回帰+変更受入(失敗5分類) — 結果(2026-07-03)
+| 測定 | factory-eco01(opus・採用) | factory-eco02(sonnet・対照) |
+|---|---|---|
+| 回帰 S-01〜S-19(25ケース・不変) | 25/25 | 25/25 |
+| 変更受入 S-20/S-21 | 2/2 | 2/2 |
+| 不要改変(影響分析外 src diff) | **0** | **0**(既存テストへの追記は import 行1件=test-only) |
+| 自己受入 | 96/96 | 95/95 |
+| 失敗5分類 | 全分類 0 | 全分類 0 |
+- 両工場とも src 変更は影響分析どおりの4ファイル(model/evaluate/load/types)に独立収束。
+- 実リポ再検証: self-hosting error+warn 0 維持 / ViewPrism workspace 286→**261**(per-file 18件全解消+
+  PD-8 実在5件解消。残存 repo: 系3件は真正壊れ参照2+複合散文1=**過剰受理なし**)。
+- 特記: 採点治具は変更前個体較正で期待側欠陥1件を凍結前捕捉(H003)。設計者側の 41 追記に YAML 記法ミスが
+  混入し self-hosting lint が検出(D001 — 製品が設計者を検査した初事例)。
 
 ## 6. 記録
-- As-Built 追記(AB-PLM-ECO-001)/ cheat-log / 52-metrics ECO 行 / 61 §3 採点(影響なし予測の的中率)
+- As-Built: 50 AB-PLM-ECO-001(採用=opus 個体・対照=sonnet)/ cheat-log: H003・D001+工場3件取込み /
+  52-metrics: eco_001 節 / 61 §3: under/over-inclusion 0・unit 絞り込み 2/8 / register: verified

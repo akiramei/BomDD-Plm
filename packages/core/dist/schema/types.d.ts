@@ -28,6 +28,11 @@ export interface DefineSite {
     selector: string;
     families: string[];
     candidate?: boolean;
+    /**
+     * R-002 uniqueness scope (ref-v0.4). "per-file" = duplicate detection is limited to
+     * the extracting file; unset = workspace-global (legacy). Unknown values are ignored.
+     */
+    uniquenessScope?: "per-file";
 }
 export interface ArtifactType {
     /** glob against `bomdd/`-relative path */

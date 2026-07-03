@@ -25,3 +25,21 @@
   (この断面は S-01〜S-19 で凍結済みの挙動の連続)。
 - 重大度: none(凍結前捕捉=較正プロトコルが機能。H001 の教訓「比較すべき断面はセルフテストで検証されない」の
   再演を較正が防いだ — playbook §4.4 較正3段の実証2例目)
+
+## CHEAT-ECO-001-D001 [designer] 41-fixed-oracle 追記行の YAML 記法ミス(self-hosting lint が検出)
+- 手法が与えなかったもの: フロースタイル mapping 内の plain scalar に `[ ]` を含めてはならない、という
+  YAML 記述罠の警告(plm-intake/yaml-authoring-traps.md の既知3型に含まれていなかった第4型)。
+- 代替した判断: S-20/S-21 の scenario/contract_expectation をダブルクォートで囲んで修正(意味内容は不変)。
+- 重大度: friction(X-PARSE-001 error 55件が self-hosting に発生。**製品リンタが設計者の記述ミスを検出した**
+  = self-hosting の防壁価値の初実証。工場パッケージ・オラクル採点(expected ベース)には無影響。
+  凍結 tag `eco-001-input` 時点から混入 — 凍結前の self-hosting lint を工程に足すべき示唆)。
+
+## ECO-001 工場ずる報告の取込み(受入確定 2026-07-03)
+- **CHEAT-ECO01-F01-001 [minor/採用個体]** per-file 宣言サイトと全域サイトが同一 family/ID を共有する場合の
+  R-002 スコープが未規定 → per-file サイトを独立名前空間とする最も素直な読みで実装(仕様の穴として記録)。
+- **CHEAT-ECO01-F01-002 [minor/採用個体]** `repo:` 判定の Windows ドライブレター誤認回避
+  (`colon>0 && colon<len-1` ガード)— 仕様非言及の防御的限定。
+- **CHEAT-ECO01-F02-001 [friction/対照個体]** node_modules 内 @bomdd/* がジャンクションでなく実体コピーで、
+  再ビルドが import に反映されない環境不整合 → npm install で復旧(パッケージ組成由来。工場は正直に申告し
+  「ビルド緑・テスト緑・実行は旧コード」の偽陰性リスクを指摘 — 工程還元候補: 隔離パッケージの組成手順に
+  node_modules コピーでなく npm ci を指定する)。
