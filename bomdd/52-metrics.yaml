@@ -61,7 +61,7 @@ eco_001:                             # 初の PLM 自身への Phase 7(2026-07-0
   product_eco_candidates:            # 未起票の製品 ECO 候補
     - "ECO-002 候補: repo: 形パス参照の repo 不在は R-004 でなく X-XREPO 系 skip(info)へ — ID 参照の cross_repo(候補リポ不在= skip)との一貫性。ViewPrism2 pre-commit 常駐(単一リポ実行)で7件の正当な cross-repo 参照が error になった非対称の実測(2026-07-03。当面の運用= workspace 宣言で回避)"
     - "軽微債務: resolve/model.ts(buildNodes)と rules/evaluate.ts(emitOrphans)の dedup キー区切りに生の NUL バイト(U+0000)がソース直埋め — 機能は同値だが ripgrep 系ツールが両ファイルをバイナリ判定して検索から脱落する実害(2026-07-03 ECO-003 起票調査中に発見)。是正はエスケープ表記 \\u0000 への置換のみ(1文字×2ファイル)。単独 ECO は過剰 — 次の src 変更 ECO に便乗が適切 → **解消(ECO-004・2026-07-04)**"
-    - "R-052 の stale 化(ECO-004 受入中に発見): diff_audit は git diff <baseline> HEAD の動的評価のため、受入後の無関係コミットが diff 窓に入り続け、verified 済み ECO の宣言影響集合を遡及的に破る(ECO-002/003 で実発生= CI 整備の .github/ を誤検出)。当面の運用= verified になったら diff_audit を register から外す(受入時 dogfood の記録は order/52 に残る)。恒久修正候補= R-052 の評価対象を open な ECO に限る / diff_audit に head:(結果タグ)アンカーを追加(ref-v0.8 候補・製品変更を伴うため別 ECO)"
+    - "R-052 の stale 化(ECO-004 受入中に発見): diff_audit は git diff <baseline> HEAD の動的評価のため、受入後の無関係コミットが diff 窓に入り続け、verified 済み ECO の宣言影響集合を遡及的に破る(ECO-002/003 で実発生= CI 整備の .github/ を誤検出)。当面の運用= verified になったら diff_audit を register から外す(受入時 dogfood の記録は order/52 に残る)。恒久修正候補= R-052 の評価対象を open な ECO に限る / diff_audit に head:(結果タグ)アンカーを追加(ref-v0.8 候補・製品変更を伴うため別 ECO)→ **解消(ECO-005・2026-07-04: head: アンカー採択・open 限定案は不採用= status が未規定語彙+恒久監査能力の喪失)**"
 
 eco_002:                             # v0.5(2026-07-03): R-052 diff-audit+SARIF+repo:skip
   change: "R-052(63 の機械化・製品初 git 連携)+SARIF 2.1.0 追加出力(DEC-0004 後段)+repo: 不在 skip(CI 実害の是正)"
@@ -93,4 +93,14 @@ eco_004:                             # 2026-07-04: 軽微債務2件の是正(設
   manufacturing: "なし(設計者適用+全再認証 — forward-03 の処置形態の準用。裁量次元ゼロの機械的是正)"
   calibration: "S-25 文書化改訂(R-041 所見 2 件へ message_contains 追加)を変更前個体で FAIL 確認 → 適用"
   acceptance: "116/116 tests・オラクル 34/34・self-hosting error/warn 0(--eco 込み)・ViewPrism2 workspace 回帰 0・dist NUL 0。実害解消の実証: rg R-041 が 1→3 ファイルを返す"
-  side_discovery: "R-052 の stale 化(verified 済み ECO の diff_audit が受入後コミットで遡及的に破れる — ECO-002/003 で実発生)。当面の運用+恒久修正候補は product_eco_candidates 参照。副次: 本 ECO 起票文書の作成中にも \\u0000 の実文字化事故が再発(ツール入力の JSON エスケープ経由)= NUL 直埋めは書く側の事故率も高い、という是正根拠の追加実測"
+  side_discovery: "R-052 の stale 化(verified 済み ECO の diff_audit が受入後コミットで遡及的に破れる — ECO-002/003 で実発生)。当面の運用+恒久修正候補は product_eco_candidates 参照(→ ECO-005 で恒久解消)。副次: 本 ECO 起票文書の作成中にも \\u0000 の実文字化事故が再発(ツール入力の JSON エスケープ経由)= NUL 直埋めは書く側の事故率も高い、という是正根拠の追加実測"
+
+eco_005:                             # 2026-07-04: R-052 stale 恒久修正 — diff_audit head: アンカー(ref-v0.8・§2.17 rev4)
+  change: "CH-1: diff_audit に head:(任意)追加= 固定窓 baseline..head(verified 後も恒久決定的。無指定= 従来の baseline..HEAD)/ CH-2: ECO-002/003 の diff_audit を head 付きで復元(ECO-004 の一時除去を撤回= 監査記録の恢復)/ CH-3: CI self-hosting に --eco 常設(fetch-depth 0)"
+  adjudication: "akira 委任裁定 2026-07-04: head: アンカー採択。対案「評価対象を open な ECO に限る」は不採用 — ① status は ref-v0 未規定語彙(意味論の未規定次元への結合)② verified 後の恒久機械監査能力を失う(検査が status 変更で黙って消える= 沈黙次元の新設)。詳細= order §2"
+  manufacturing: "なし(設計者適用+全再認証 — ECO-004 の処置形態。挙動追加だが裁量次元は §2.17 rev4 で固定済み)"
+  calibration: "S-22 改訂版(fixture 履歴へ受入後コミット追加・ECO-905 head アンカー/ECO-906 head 不能)を変更前個体で FAIL 確認 — 旧実装は head を黙って無視し ECO-905 へ R-052 誤発火= stale 現象の fixture 内再現(missing= X-GIT-001[906] / extra= R-052[905])→ 適用"
+  acceptance: "build 0 エラー・118/118 tests(head 系 2 本追加)・オラクル 34/34(S-22 改訂版 PASS)・self-hosting --eco error/warn 0(復元 ECO-002/003 恒久監査 clean・X-GIT 0= タグ全解決)・ViewPrism2 workspace 回帰 error/warn 0"
+  r052_dogfood: "新形式の初実運用 — 本 ECO 自身が diff_audit{baseline: eco-005-input}で open 窓の監査を受け、verified 時に head: v0.5-eco-005-accepted で窓を閉じる(「除去せず閉じる」運用の初適用)"
+  retro_note: "ECO-004 へは遡及宣言しない — v0.4..v0.5 タグ窓に ECO 外の CI コミット(.github/)が介在し、窓が実変更を表さないため(head アンカーは万能ではない: baseline は ECO の真の分岐点であることが前提。register 註に記録)"
+  impact_prediction: { under_inclusion: 1, over_inclusion: 0, note: "packages/cli/tsconfig.tsbuildinfo(tsc -b は依存元パッケージの tsbuildinfo も更新する — ECO-004 の core 取りこぼしと同型・ビルドキャッシュ系 2 例目)。コミット前の dogfood 点検で捕捉し allowed_paths へ exact 追加" }

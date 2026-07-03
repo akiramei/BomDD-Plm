@@ -27,9 +27,16 @@
           "severity": "info",
           "file": "gitrepo/bomdd/60-change-register.yaml",
           "targetId": "ECO-903"
+        },
+        {
+          "rule": "X-GIT-001",
+          "severity": "info",
+          "file": "gitrepo/bomdd/60-change-register.yaml",
+          "targetId": "ECO-906",
+          "message_contains": "no-such-head"
         }
       ],
-      "note": "ECO-901(allowed_paths=src/)= diff 全許容で所見なし / ECO-902(src/allowed/ のみ)= はみ出し2ファイル(日本語+空白パスが quotepath エスケープされないこと込み)/ ECO-903= baseline 不能で X-GIT-001 skip / ECO-904(diff_audit なし・過去 ECO)= 非起動"
+      "note": "ECO-901(allowed_paths=src/)= diff 全許容で所見なし / ECO-902(src/allowed/ のみ)= はみ出し2ファイル(日本語+空白パスが quotepath エスケープされないこと込み)/ ECO-903= baseline 不能で X-GIT-001 skip / ECO-904(diff_audit なし・過去 ECO)= 非起動 / ECO-905(head: eco-accept・ECO-005 改訂)= 固定窓につき受入後コミット late.txt が窓外で所見なし(head 無視の旧実装は R-052 誤発火= stale の fixture 内再現)/ ECO-906(head 不能)= X-GIT-001 skip"
     },
     {
       "expect_exit": 0,

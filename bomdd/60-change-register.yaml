@@ -28,9 +28,12 @@ changes:
     opened: 2026-07-03
     closed: 2026-07-03
     order_ref: bomdd/60-change-order-eco-002.md
-    # diff_audit は受入時に dogfood 実施済み(R-052 所見 0 = 手動 63 と同一結論。記録= order §6 / 52 eco_002)。
-    # ECO-004(2026-07-04)で除去: R-052 は baseline→HEAD の動的評価のため、受入後の無関係コミット
-    # (CI 整備の .github/)を拾って verified 済み ECO が stale 化する — 恒久修正は 52 の候補参照。
+    # diff_audit は受入時 dogfood(R-052 所見 0)→ ECO-004 で stale 化のため一時除去 →
+    # ECO-005(head: アンカー= ref-v0.8)で復元。窓= eco-002-input..v0.3-eco-002-accepted に恒久固定。
+    diff_audit:
+      baseline: eco-002-input
+      head: v0.3-eco-002-accepted
+      allowed_paths: [packages/core/, packages/cli/, test/, oracle/]
     affected_refs:
       - REQ-007
       - REQ-010
@@ -50,8 +53,12 @@ changes:
     opened: 2026-07-03
     closed: 2026-07-03
     order_ref: bomdd/60-change-order-eco-003.md
-    # diff_audit は受入時に dogfood 実施済み(R-052 所見 0。記録= order §5 / 52 eco_003)。
-    # ECO-004(2026-07-04)で除去: 理由は ECO-002 の註と同一(verified 後の stale 化)。
+    # diff_audit は受入時 dogfood(R-052 所見 0)→ ECO-004 で一時除去 → ECO-005 で復元(head: 固定窓)。
+    # 窓内の介在コミット 9653e87(docs= bomdd/ のみ)は常時許容につき清浄。
+    diff_audit:
+      baseline: v0.3-eco-002-accepted
+      head: v0.4-eco-003-accepted
+      allowed_paths: [oracle/]
     affected_refs:
       - REQ-007
       - E-CORE-RESOLVE-005
@@ -65,8 +72,31 @@ changes:
     closed: 2026-07-04
     order_ref: bomdd/60-change-order-eco-004.md
     # diff_audit 非宣言: 受入中に「verified 済み ECO の diff_audit が stale 化する」を発見したため
-    # (order §4)。63 手動監査で代替(変更 6 ファイル=影響分析どおり)。恒久修正は 52 の候補参照。
+    # (order §4)。63 手動監査で代替(変更 6 ファイル=影響分析どおり)。恒久修正= ECO-005。
+    # ECO-005 の head アンカーでも遡及宣言しない: baseline..head 窓(v0.4..v0.5 タグ間)に
+    # ECO 外の CI コミット(.github/)が挟まっており、窓が本 ECO の実変更を表さないため。
     affected_refs:
       - E-CORE-LINT-007
       - M-CORE-RULES-003
       - M-CORE-GRAPH-002
+
+  - id: ECO-005
+    title: "R-052 stale 恒久修正 — diff_audit に head: アンカー(ref-v0.8)+ verified ECO 監査の復元/常設"
+    status: verified   # 2026-07-04: 較正の赤= stale の fixture 内再現 → 118/118 tests・オラクル 34/34・self-hosting --eco 0・ViewPrism2 回帰 0。詳細= order_ref §5
+    opened: 2026-07-04
+    closed: 2026-07-04
+    order_ref: bomdd/60-change-order-eco-005.md
+    diff_audit:   # R-052 自己適用 — 新形式の初実運用。verified につき head: で窓を閉じた(除去しない= 本 ECO の主旨)
+      baseline: eco-005-input
+      head: v0.5-eco-005-accepted
+      # packages/cli/tsconfig.tsbuildinfo = 依存先 core の d.ts 変更に伴うビルドキャッシュ(コミット前点検で
+      # 捕捉した under-inclusion 1 件 — order §5。前方一致につき当該 1 ファイルのみを許容)
+      allowed_paths: [packages/core/, packages/cli/tsconfig.tsbuildinfo, schemas/, test/, oracle/, .github/]
+    affected_refs:
+      - REQ-010
+      - E-CORE-GITDIFF-030
+      - E-CORE-LINT-007
+      - M-CORE-RULES-003
+      - CP-GITDIFF-021
+      - K-GIT
+      - K-REFV0

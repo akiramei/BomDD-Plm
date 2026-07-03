@@ -116,8 +116,8 @@ const TABLE: Record<string, MessageTemplate> = {
     fixTarget: "検査したい場合は bomdd-workspace.yaml に対象リポを追加する",
   },
   "X-GIT-001": {
-    message: "ECO {targetId} の diff-audit は git が実行不能または baseline {ref} が解決不能のため skip しました",
-    fixTarget: "git 環境と diff_audit.baseline(タグ/SHA)を確認する(検査不能は fail-open)",
+    message: "ECO {targetId} の diff-audit は git が実行不能または rev {ref} が解決不能のため skip しました",
+    fixTarget: "git 環境と diff_audit.baseline/head(タグ/SHA)を確認する(検査不能は fail-open)",
   },
   "X-SUPPRESS-001": {
     message: "suppress[{supIndex}] に reason がありません(この行は無効)",

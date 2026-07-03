@@ -22,14 +22,18 @@ function write(root, rel, content) {
 }
 
 /**
- * 組み立てる履歴:
- *  base(tag: eco-base) … bomdd/ 台帳+src/allowed/a.txt
- *  HEAD               … a.txt 変更(許容内)+src/outside/b.txt 追加+src/外側/日本語 データ.txt 追加(はみ出し2)
- * register の ECO 4 態:
+ * 組み立てる履歴(ECO-005 で第3コミットを追加 — 「受入後の無関係コミット」の fixture 内再現):
+ *  base(tag: eco-base)     … bomdd/ 台帳+src/allowed/a.txt
+ *  change(tag: eco-accept) … a.txt 変更(許容内)+src/outside/b.txt 追加+src/外側/日本語 データ.txt 追加(はみ出し2)
+ *  HEAD                    … src/allowed/late.txt 追加(受入後コミット。901/902 の許容内に置き、期待を汚さない)
+ * register の ECO 6 態:
  *  ECO-A: diff_audit{baseline: eco-base, allowed_paths:[src/]}          → diff 全て許容内= 所見なし
  *  ECO-B: diff_audit{baseline: eco-base, allowed_paths:[src/allowed/]}  → はみ出し2ファイル= R-052 ×2
  *  ECO-C: diff_audit{baseline: no-such-rev, ...}                        → X-GIT-001 info(skip)
  *  ECO-D: diff_audit なし                                               → 非起動(所見なし)
+ *  ECO-E: diff_audit{baseline: eco-base, head: eco-accept, ...}         → 固定窓= late.txt 窓外で所見なし
+ *         (head 無視の旧実装では late.txt が動的窓に入り R-052 誤発火= stale 再現・較正の赤)
+ *  ECO-F: diff_audit{..., head: no-such-head}                           → X-GIT-001 info(skip)
  * @returns {string} fixture リポの絶対パス
  */
 export function buildGitFixture() {
@@ -72,12 +76,27 @@ changes:
   - id: ECO-904
     title: no-diff-audit(past ECO)
     status: verified
+  - id: ECO-905
+    title: head-anchored(verified — 窓は eco-base..eco-accept で恒久固定)
+    status: verified
+    diff_audit: { baseline: eco-base, head: eco-accept, allowed_paths: [src/allowed/a.txt, src/outside/, src/外側/] }
+  - id: ECO-906
+    title: bad-head
+    status: verified
+    diff_audit: { baseline: eco-base, head: no-such-head, allowed_paths: [src/] }
 `);
   write(root, 'src/allowed/a.txt', 'v2\n');
   write(root, 'src/outside/b.txt', 'new\n');
   write(root, 'src/外側/日本語 データ.txt', 'jp\n');   // quotepath 検証(日本語+空白)
   git(root, '-c', 'core.autocrlf=false', 'add', '-A');
   git(root, 'commit', '-q', '-m', 'change');
+  git(root, 'tag', 'eco-accept');
+
+  // 受入後コミット(stale 再現用)。ECO-901(src/)/902(src/allowed/)の動的窓の許容内に置く
+  // = 既存 4 態の期待は不変のまま、head アンカー(905)だけが新旧実装で判別される。
+  write(root, 'src/allowed/late.txt', 'post-accept\n');
+  git(root, '-c', 'core.autocrlf=false', 'add', '-A');
+  git(root, 'commit', '-q', '-m', 'post-accept');
 
   return root;
 }

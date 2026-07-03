@@ -1,6 +1,8 @@
-// R-052 eco-diff-within-impact (§2.17, ref-v0.7, K-GIT). Machine-checks 63-diff-audit:
-// for change-register entries carrying `diff_audit: { baseline, allowed_paths[] }` (opt-in),
-// the real git diff (baseline HEAD) must stay within bomdd/ + allowed_paths (prefix match).
+// R-052 eco-diff-within-impact (§2.17 rev4, ref-v0.8, K-GIT). Machine-checks 63-diff-audit:
+// for change-register entries carrying `diff_audit: { baseline, head?, allowed_paths[] }` (opt-in),
+// the real git diff (baseline..head, or baseline..HEAD when head is absent) must stay within
+// bomdd/ + allowed_paths (prefix match). `head` anchors the window at verify time so closed ECOs
+// stay deterministic (ECO-005: the stale-window fix).
 //
 // Evaluated ONLY when --eco is passed (§2.17: "`--eco` 実行時... のみ"; §2.6 unmodified list still
 // excludes R-052 from the "evaluate every rule always" set because it requires git I/O). This is a
@@ -39,6 +41,9 @@ function readChangeEntries(doc) {
             const baseline = str(daObj["baseline"]);
             if (baseline) {
                 entry.diffAudit = { baseline, allowedPaths: strArr(daObj["allowed_paths"]) };
+                const head = str(daObj["head"]);
+                if (head)
+                    entry.diffAudit.head = head;
             }
         }
         out.push(entry);
@@ -80,9 +85,12 @@ export function evaluateR052(model, repos, eco) {
         for (const entry of entries) {
             if (!entry.diffAudit)
                 continue; // opt-in: no diff_audit => not checked (closed/legacy ECOs)
-            const diff = gitDiffNameOnly(repo.absPath, entry.diffAudit.baseline);
+            const { baseline, head } = entry.diffAudit;
+            const diff = gitDiffNameOnly(repo.absPath, baseline, head);
             if (!diff.ok) {
-                out.push(mk("X-GIT-001", "info", "always", pa.artifact.canonicalPath, { targetId: entry.id, ref: entry.diffAudit.baseline }, entry.id));
+                out.push(mk("X-GIT-001", "info", "always", pa.artifact.canonicalPath, 
+                // どちらの rev が不能かは git 出力から特定しない(fail-open は窓単位)— 窓の表記で示す。
+                { targetId: entry.id, ref: head ? `${baseline}..${head}` : baseline }, entry.id));
                 continue; // skip R-052 judgment for this ECO (fail-open)
             }
             for (const file of diff.files) {

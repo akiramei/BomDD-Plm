@@ -1,8 +1,9 @@
-// CP-GITDIFF-021 / S-22: R-052 (eco-diff-within-impact, §2.17, ref-v0.7, K-GIT).
+// CP-GITDIFF-021 / S-22: R-052 (eco-diff-within-impact, §2.17 rev4, ref-v0.8, K-GIT).
 // diff_audit opt-in: allowed diff (bomdd/ + allowed_paths) = no finding; an out-of-impact file =
-// R-052 1 finding per file; entries without diff_audit are never checked; git/baseline failure =
-// X-GIT-001 (info) skip; --eco absence disables both R-052 and X-GIT-001 entirely (opt-in gate,
-// not just the output-side ladder filter).
+// R-052 1 finding per file; entries without diff_audit are never checked; git/baseline/head
+// failure = X-GIT-001 (info) skip; `head:` anchors the window (baseline..head) so post-accept
+// commits cannot stale a verified ECO (ECO-005); --eco absence disables both R-052 and X-GIT-001
+// entirely (opt-in gate, not just the output-side ladder filter).
 //
 // Per 40-work-order.md §2: git fixtures are built by the test itself in a temp dir (this repo may
 // not carry a .git). Skip (fail-open) when git is unavailable on the host.
@@ -19,8 +20,9 @@ import { join } from "node:path";
 const HAS_GIT = gitAvailable();
 
 function baseRegister(diffAudit) {
+  const head = diffAudit?.head ? `\n      head: ${diffAudit.head}` : "";
   const da = diffAudit
-    ? `\n    diff_audit:\n      baseline: ${diffAudit.baseline}\n      allowed_paths: [${diffAudit.allowedPaths.join(", ")}]`
+    ? `\n    diff_audit:\n      baseline: ${diffAudit.baseline}${head}\n      allowed_paths: [${diffAudit.allowedPaths.join(", ")}]`
     : "";
   return `changes:\n  - id: ECO-200\n    title: R-052 fixture ECO\n    status: open${da}\n`;
 }
@@ -191,6 +193,66 @@ test("R-052/X-GIT-001: --eco absent disables both (opt-in gate, not just the lad
     const diag = JSON.parse(res.stdout);
     assert.equal(diag.findings.filter((f) => f.rule === "R-052").length, 0);
     assert.equal(diag.findings.filter((f) => f.rule === "X-GIT-001").length, 0);
+  } finally {
+    rmSync(fx.dir, { recursive: true, force: true });
+    rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test("R-052: head anchor fixes the window — a post-head out-of-impact commit yields no finding (§2.17 rev4)", (t) => {
+  if (!HAS_GIT) return t.skip("git not available on host (fail-open)");
+  const fx = initGitFixture("bomdd-r052-head-");
+  const out = mkdtempSync(join(tmpdir(), "bomdd-r052-head-out-"));
+  try {
+    minimalBomdd(fx);
+    fx.write("src/allowed.txt", "v1\n");
+    fx.addAll();
+    fx.commit("baseline");
+    fx.tag("baseline-tag");
+
+    fx.write("bomdd/60-change-register.yaml", baseRegister({ baseline: "baseline-tag", head: "accept-tag", allowedPaths: ["src/"] }));
+    fx.write("src/allowed.txt", "v2\n"); // in-impact
+    fx.addAll();
+    fx.commit("in-impact change");
+    fx.tag("accept-tag");
+
+    // Post-accept commit OUTSIDE the impact set — the stale scenario. The anchored window
+    // (baseline-tag..accept-tag) must not see it; the old HEAD-window semantics would fire here.
+    fx.write("other/post-accept.txt", "late\n");
+    fx.addAll();
+    fx.commit("unrelated post-accept change");
+
+    const res = runCli([fx.dir, "--eco", "--format", "json", "--out", out]);
+    const diag = JSON.parse(res.stdout);
+    assert.equal(diag.findings.filter((f) => f.rule === "R-052").length, 0);
+    assert.equal(diag.findings.filter((f) => f.rule === "X-GIT-001").length, 0);
+  } finally {
+    rmSync(fx.dir, { recursive: true, force: true });
+    rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test("R-052: unresolvable head yields X-GIT-001 (info) naming the window, and skips the judgment", (t) => {
+  if (!HAS_GIT) return t.skip("git not available on host (fail-open)");
+  const fx = initGitFixture("bomdd-r052-badhead-");
+  const out = mkdtempSync(join(tmpdir(), "bomdd-r052-badhead-out-"));
+  try {
+    minimalBomdd(fx);
+    fx.write(
+      "bomdd/60-change-register.yaml",
+      baseRegister({ baseline: "HEAD", head: "no-such-head-ever", allowedPaths: ["src/"] })
+    );
+    fx.addAll();
+    fx.commit("only commit");
+
+    const res = runCli([fx.dir, "--eco", "--format", "json", "--out", out]);
+    const diag = JSON.parse(res.stdout);
+    assert.equal(diag.findings.filter((f) => f.rule === "R-052").length, 0);
+    const xgit = diag.findings.filter((f) => f.rule === "X-GIT-001");
+    assert.equal(xgit.length, 1);
+    assert.equal(xgit[0].severity, "info");
+    assert.equal(xgit[0].targetId, "ECO-200");
+    assert.match(xgit[0].message, /HEAD\.\.no-such-head-ever/);
   } finally {
     rmSync(fx.dir, { recursive: true, force: true });
     rmSync(out, { recursive: true, force: true });

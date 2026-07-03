@@ -22,6 +22,8 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # ECO-005: R-052 恒久監査(diff_audit の baseline/head タグ解決)に全履歴+タグが要る
 
       - uses: actions/setup-node@v4
         with:
@@ -66,5 +68,7 @@ jobs:
 
       # self-hosting: 自リポの bomdd/ 台帳を error ゲートで lint(ドッグフーディング防壁)。
       # --out は対象リポ外必須(S-10 read-only: リポ内出力は exit 2)。
-      - name: self-hosting lint (error gate)
-        run: node packages/cli/dist/main.js . --fail-on error --out "$RUNNER_TEMP/plm-out"
+      # --eco 常設(ECO-005): head アンカーで stale 化が構造的に不可能になったため、
+      # 復元済み ECO-002/003 の恒久監査+open ECO の diff_audit+R-051 を毎 push 検証する。
+      - name: self-hosting lint (error gate, --eco)
+        run: node packages/cli/dist/main.js . --eco --fail-on error --out "$RUNNER_TEMP/plm-out"

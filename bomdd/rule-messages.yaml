@@ -31,6 +31,6 @@ rules:
   - { rule: X-SCHEMA-001,   message: "スキーマのエントリ {ref} は本実装が未対応の記法です(当該エントリを無効化)",   fixTarget: "ref-v0 のエントリ記法を見直すか、実装の対応を ECO で追加する" }
   - { rule: X-ID-001,       message: "定義値 {targetId} がどの family にも一致しません",                            fixTarget: "ID を既存 family の文法に合わせるか、id-grammar への family 追加を裁定する" }
   - { rule: X-XREPO-001,    message: "cross-repo 参照 {ref} は解決先候補リポが workspace に無いため skip しました",  fixTarget: "検査したい場合は bomdd-workspace.yaml に対象リポを追加する" }
-  - { rule: X-GIT-001,      message: "ECO {targetId} の diff-audit は git が実行不能または baseline {ref} が解決不能のため skip しました", fixTarget: "git 環境と diff_audit.baseline(タグ/SHA)を確認する(検査不能は fail-open)" }
+  - { rule: X-GIT-001,      message: "ECO {targetId} の diff-audit は git が実行不能または rev {ref} が解決不能のため skip しました", fixTarget: "git 環境と diff_audit.baseline/head(タグ/SHA)を確認する(検査不能は fail-open)" }
   - { rule: X-SUPPRESS-001, message: "suppress[{supIndex}] に reason がありません(この行は無効)",                   fixTarget: "suppress 行に理由を記入する(理由なき抑制は認めない)" }
   - { rule: X-SUPPRESS-002, message: "suppress[{supIndex}] はどの所見にも一致しません(死んだ抑制)",                 fixTarget: "解消済みなら suppress 行を削除する" }

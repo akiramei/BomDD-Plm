@@ -116,7 +116,7 @@ console.log('== checkSarif(ECO-002) ==');
   n++; console.log('  ok SARIF 写像: 整合で ok・level/suppressions/rules/region の各不整合を検出');
 }
 
-console.log('== buildGitFixture(ECO-002) ==');
+console.log('== buildGitFixture(ECO-002。履歴3コミット化= ECO-005) ==');
 {
   const { execFileSync } = await import('node:child_process');
   let hasGit = true;
@@ -128,12 +128,16 @@ console.log('== buildGitFixture(ECO-002) ==');
     const root = buildGitFixture();
     const out = execFileSync('git', ['-c', 'core.quotepath=false', 'diff', '--name-only', 'eco-base', 'HEAD'], { cwd: root, encoding: 'utf-8' });
     const files = out.split('\n').filter(Boolean).sort();
-    assert.deepEqual(files, ['bomdd/60-change-register.yaml', 'src/allowed/a.txt', 'src/outside/b.txt', 'src/外側/日本語 データ.txt'].sort());
+    assert.deepEqual(files, ['bomdd/60-change-register.yaml', 'src/allowed/a.txt', 'src/allowed/late.txt', 'src/outside/b.txt', 'src/外側/日本語 データ.txt'].sort());
+    // head アンカー窓(eco-base..eco-accept)には受入後コミットの late.txt が入らない(ECO-005)
+    const anchored = execFileSync('git', ['-c', 'core.quotepath=false', 'diff', '--name-only', 'eco-base', 'eco-accept'], { cwd: root, encoding: 'utf-8' });
+    const anchoredFiles = anchored.split('\n').filter(Boolean).sort();
+    assert.deepEqual(anchoredFiles, ['bomdd/60-change-register.yaml', 'src/allowed/a.txt', 'src/outside/b.txt', 'src/外側/日本語 データ.txt'].sort());
     let bad = false;
     try { execFileSync('git', ['diff', '--name-only', 'no-such-rev', 'HEAD'], { cwd: root, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'pipe'] }); }
     catch { bad = true; }
     assert.equal(bad, true);
-    n++; console.log('  ok git fixture: diff 集合(日本語+空白パス込み)と baseline 不能分岐が期待どおり');
+    n++; console.log('  ok git fixture: 動的窓/固定窓の diff 集合(日本語+空白パス込み)と baseline 不能分岐が期待どおり');
   }
 }
 

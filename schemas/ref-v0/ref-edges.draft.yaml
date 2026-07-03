@@ -5,7 +5,12 @@
 #
 # 意味論は縛らない: ここに無いフィールドは自由。ここに有るフィールドも「型と参照先ファミリー」だけを縛る。
 
-edges_version: ref-v0.7
+edges_version: ref-v0.8
+# ref-v0.8(2026-07-04・BomDD-Plm ECO-005 と同時): diff_audit に head:(任意・git rev= 受入タグ推奨)を追加 —
+#   有り= 固定窓 baseline..head(HEAD 非依存で恒久決定的。verified 済み ECO の宣言影響集合が
+#   受入後コミットで遡及的に破れない= stale 恒久修正)/ 無し= 従来どおり baseline..HEAD(open ECO の生きた窓)。
+#   運用: verified 時は diff_audit を除去せず head: に受入タグを追記して窓を閉じる。head 解決不能= 検査系 info skip。
+#   (status によるゲートは非採用 — status は本スキーマの未規定語彙。裁定= BomDD-Plm ECO-005 order §2)
 # ref-v0.7(2026-07-03・BomDD-Plm ECO-002 と同時): R-052 の入力形を規定 —
 #   60-change-register の changes[] エントリに diff_audit: { baseline: <git rev(タグ名推奨)>,
 #   allowed_paths: [<リポ内相対プレフィックス>...] } を持つ場合に限り R-052 を検査する(opt-in)。
@@ -224,6 +229,7 @@ artifacts:
         family: [ECO, CAPA]
         # ref-v0.7: changes[].diff_audit = { baseline, allowed_paths[] } は R-052 の opt-in 入力(参照エッジではない —
         # baseline は git rev・allowed_paths はプレフィックスにつき実在検査しない)
+        # ref-v0.8: + head(任意)= diff 窓の終端アンカー(verified 時に受入タグで窓を閉じる。ヘッダ参照)
     refs:
       - { selector: "changes[].affected_refs[]", family: [REQ, E, M, K, CP, DC, DE], severity: error, rule: R-051, gate: eco, note: "ref-v0.2: 専用規則エッジ — 不解決は R-051(gate=eco)でのみ所見化し、汎用 R-003(always)から除外する(初回製造で2工場とも二重計上に落ちた欠陥の補正)。register 不在のプロジェクトでは R-051 = skip(info)" }
       - { selector: "changes[].order_ref",       kind: path, severity: warn, note: "対応する 60-change-order-*.md" }
@@ -395,4 +401,4 @@ lint_rules:
     rule: ECO の実 diff(git)が宣言影響集合(+影響なし予測の否定)の内側にある(63-diff-audit の機械化)
     gate: eco
     severity: error
-    note: "git 連携が要る。BomDD-Plm v0.5(ECO-002)で実装済み — 入力は register の diff_audit(opt-in・ref-v0.7 ヘッダ参照)。diff_audit の無いエントリは検査しない。手動 63 と併用可。"
+    note: "git 連携が要る。BomDD-Plm v0.5(ECO-002)で実装済み — 入力は register の diff_audit(opt-in・ref-v0.8 ヘッダ参照。head: アンカー= ECO-005)。diff_audit の無いエントリは検査しない。手動 63 と併用可。"

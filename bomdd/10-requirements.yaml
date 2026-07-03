@@ -211,11 +211,12 @@ requirements:
   # ============================================================
 
   - id: REQ-010
-    rev: 2   # ECO-002(2026-07-03): R-052 の v0 除外を解除(diff_audit opt-in+git fail-open で実装。仕様 §2.17)
+    rev: 3   # ECO-005(2026-07-04): diff_audit に head: アンカー — verified 済み ECO の監査が受入後コミットで遡及的に破れない(stale 恒久修正。仕様 §2.17 rev4)。rev2= ECO-002: R-052 の v0 除外を解除
     statement: >-
       ref-v0 リント規則 R-001〜R-052 の全規則を実装する。R-052(eco-diff-within-impact)は
       register の diff_audit フィールドを持つ ECO のみ検査し(opt-in)、git 実行不能時は
-      X-GIT-001(info)で fail-open する(仕様 §2.17)。
+      X-GIT-001(info)で fail-open する(仕様 §2.17)。diff 窓は baseline から head(無指定時 HEAD)
+      まで — head アンカーにより verified 済み ECO の監査は後続コミットに対し恒久決定的であること。
       各所見は rule id・severity・ファイル・位置(行または selector)・対象 ID・メッセージを持つ。
     rationale: >-
       規則の正体・severity・ゲートは全て ref-v0 に規定済みで、本要求は「その忠実な実装」。
