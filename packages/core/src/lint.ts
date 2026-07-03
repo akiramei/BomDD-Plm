@@ -9,6 +9,7 @@ import { parseArtifact } from "./parse/parse.js";
 import type { ParsedArtifact } from "./resolve/model.js";
 import { buildModel } from "./resolve/model.js";
 import { evaluate } from "./rules/evaluate.js";
+import { evaluateR052 } from "./rules/r052.js";
 import { applySuppress } from "./suppress/suppress.js";
 import { buildDiagnostics, buildGraph, buildLedger } from "./output/build.js";
 import { resolveWorkspace } from "./workspace/workspace.js";
@@ -47,7 +48,10 @@ export function runLint(opts: LintOptions): LintResult {
   const model = buildModel(parsed, schema, workspace.repos);
 
   const ruleFindings = evaluate(model);
-  const allFindings = [...parseFindings, ...ruleFindings];
+  // R-052 (§2.17) requires git I/O and is opt-in at the --eco boundary — excluded from the
+  // always-evaluate rule set in evaluate() (§2.6 note) and evaluated here instead.
+  const r052Findings = evaluateR052(model, workspace.repos, opts.eco);
+  const allFindings = [...parseFindings, ...ruleFindings, ...r052Findings];
 
   const suppressed = applySuppress(
     allFindings,

@@ -3,7 +3,7 @@
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath as u2p } from "node:url";
-import { runLint, canonicalJson, appliedRules, SchemaExitError, InputExitError, OutputExitError, validateOutDir, } from "@bomdd/core";
+import { runLint, canonicalJson, appliedRules, buildSarif, SchemaExitError, InputExitError, OutputExitError, validateOutDir, } from "@bomdd/core";
 import { generateView } from "@bomdd/viewer";
 import { parseCliArgs, ArgError } from "./args.js";
 import { formatText } from "./text.js";
@@ -13,6 +13,9 @@ function defaultSchemaDir() {
     const here = dirname(u2p(import.meta.url));
     return join(here, "..", "..", "..", "schemas", "ref-v0");
 }
+// informationUri は設計者供給値(仕様 §2.9 rev3 に実値を明記)。工場は製造パッケージに
+// リポ URL が無いため RFC 2606 プレースホルダで納品(CHEAT-ECO02-F02-002)— 受入時に充填。
+const INFORMATION_URI = "https://github.com/akiramei/BomDD-Plm";
 function readVersion() {
     try {
         const here = dirname(u2p(import.meta.url));
@@ -33,6 +36,7 @@ Options:
   --fail-on <error|warn>                   exit 1 の閾値 (既定: error)
   --schema <DIR>                           ref-v0 スキーマの場所 (既定: 同梱)
   --view                                   plm-view.html を追加生成
+  --sarif                                  sarif.json を追加生成
   --help                                   このヘルプを表示
   --version                                バージョンを表示
 
@@ -112,6 +116,14 @@ export function main(argv) {
             if (args.view) {
                 const html = generateView(canonicalJson(result.diagnostics), canonicalJson(result.graph), canonicalJson(result.ledger));
                 writeFileSync(join(absOut, "plm-view.html"), html);
+            }
+            if (args.sarif) {
+                const sarif = buildSarif({
+                    diagnostics: result.diagnostics,
+                    version: readVersion(),
+                    informationUri: INFORMATION_URI,
+                });
+                writeFileSync(join(absOut, "sarif.json"), canonicalJson(sarif));
             }
         }
         catch (e) {

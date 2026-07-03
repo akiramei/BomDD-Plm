@@ -74,6 +74,10 @@ const TABLE = {
         message: "ECO {targetId} の影響分析に解決できない ID {ref} があります",
         fixTarget: "60-change-register.yaml の affected_refs を実在 ID へ修正する",
     },
+    "R-052": {
+        message: "ECO {targetId} の実 diff にあるファイル {ref} が宣言影響集合(bomdd/+allowed_paths)の外にあります",
+        fixTarget: "影響分析を改訂して allowed_paths へ追加するか、影響外の変更を取り消す(unnecessary modification)",
+    },
     "X-PARSE-001": {
         message: "構文エラー: {ref}",
         fixTarget: "当該ファイルの構文を修正する(hint がある場合はそれに従う)",
@@ -93,6 +97,10 @@ const TABLE = {
     "X-XREPO-001": {
         message: "cross-repo 参照 {ref} は解決先候補リポが workspace に無いため skip しました",
         fixTarget: "検査したい場合は bomdd-workspace.yaml に対象リポを追加する",
+    },
+    "X-GIT-001": {
+        message: "ECO {targetId} の diff-audit は git が実行不能または baseline {ref} が解決不能のため skip しました",
+        fixTarget: "git 環境と diff_audit.baseline(タグ/SHA)を確認する(検査不能は fail-open)",
     },
     "X-SUPPRESS-001": {
         message: "suppress[{supIndex}] に reason がありません(この行は無効)",
@@ -122,6 +130,18 @@ export function getMessage(rule, vars = {}) {
 }
 export function hasMessage(rule) {
     return rule in TABLE;
+}
+/**
+ * The raw (unsubstituted) canonical message template for a rule, e.g. for SARIF
+ * `driver.rules[].shortDescription.text` (§2.9 rev3: "正準 message テンプレート" — placeholders
+ * are NOT expanded here, unlike getMessage()).
+ */
+export function getRawMessageTemplate(rule) {
+    const tpl = TABLE[rule];
+    if (!tpl) {
+        throw new Error(`rule-messages.yaml に規則 ${rule} の文言がありません(仕様の穴 blocker)`);
+    }
+    return tpl.message;
 }
 export function allRuleIds() {
     return Object.keys(TABLE);

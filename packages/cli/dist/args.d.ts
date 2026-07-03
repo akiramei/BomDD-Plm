@@ -7,6 +7,7 @@ export interface CliArgs {
     failOn: "error" | "warn";
     schema?: string;
     view: boolean;
+    sarif: boolean;
     help: boolean;
     version: boolean;
 }

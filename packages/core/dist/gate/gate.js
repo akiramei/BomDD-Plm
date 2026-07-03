@@ -29,6 +29,7 @@ export function appliedRules(gate, eco, schema) {
         "X-SCHEMA-001",
         "X-ID-001",
         "X-XREPO-001",
+        "X-GIT-001",
         "X-SUPPRESS-001",
         "X-SUPPRESS-002",
     ];

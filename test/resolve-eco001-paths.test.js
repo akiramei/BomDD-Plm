@@ -1,7 +1,9 @@
-// CP-RESOLVE-005 / ECO-001 (S-20): path acceptance forms (§2.4 rev2 / ref-v0.4, PD-7/PD-8).
+// CP-RESOLVE-005 / ECO-001+ECO-002 (S-20/S-24): path acceptance forms (§2.4 rev2/rev3, ref-v0.4/.7,
+// PD-7/PD-8).
 // Three acceptance forms for path values (kind: path / id-or-path ② / path-at-rev part):
 //   1. canonical `<repo>/<rel>`  2. repo-relative `<rel>` (any segment count, file/dir)
-//   3. `repo:rel` (== canonical; repo name absent => unresolved, NO fallback to form 2)
+//   3. `repo:rel` (== canonical; repo name absent => X-XREPO-001 skip (rev3/CH-3), NO fallback to
+//      form 2; repo name present but path absent => R-004 unchanged)
 // Fixture repo name (single-repo run) = directory name "eco001-paths".
 
 import { test } from "node:test";
@@ -32,13 +34,15 @@ function r004Values(diag) {
     .sort();
 }
 
-test("S-20: kind:path — the three acceptance forms resolve; only missing-repo and truly-absent are R-004", () => {
+test("S-20/S-24: kind:path — the three acceptance forms resolve; repo-absent repo: form is X-XREPO-001 skip (rev3), repo-present-path-absent and truly-absent stay R-004", () => {
   const diag = lintPaths();
   const unresolved = r004Values(diag);
   // Resolve (no R-004): testdir (single-seg dir), single.md (single-seg file), sub/nested
   // (multi-seg dir), eco001-paths/testdir (canonical), eco001-paths:single.md (repo: form).
-  // Unresolved (R-004): nosuchrepo:single.md (repo: form, repo absent — no fallback), nope/missing.md.
-  assert.deepEqual(unresolved, ["nope/missing.md", "nosuchrepo:single.md"]);
+  // X-XREPO-001 skip (rev3/CH-3, NOT R-004): nosuchrepo:single.md (repo: form, repo absent).
+  // R-004 (unchanged): eco001-paths:no-such-file.md (repo: form, repo present, path absent),
+  // nope/missing.md (truly absent).
+  assert.deepEqual(unresolved, ["eco001-paths:no-such-file.md", "nope/missing.md"]);
 });
 
 test("S-20: single-segment dir and file are accepted (PD-7 non-consistency fixed)", () => {
@@ -52,10 +56,28 @@ test("S-20: repo: form is equivalent to canonical when repo name is present", ()
   assert.ok(!unresolved.includes("eco001-paths:single.md"), "repo: form with known repo must resolve");
 });
 
-test("S-20: repo: form with an unknown repo name does NOT fall back to form 2", () => {
+test("S-20/S-24 (CH-3, rev3): repo: form with an unknown repo name does NOT fall back to form 2 — becomes X-XREPO-001 skip, not R-004", () => {
   // single.md exists repo-relative, but the explicit (absent) repo name blocks form-2 fallback.
+  // rev3/ECO-002: unresolved-repo repo: form is X-XREPO-001 (info, skip) — same semantics as the
+  // ID cross_repo skip — not R-004.
+  const diag = lintPaths();
+  const unresolved = r004Values(diag);
+  assert.ok(!unresolved.includes("nosuchrepo:single.md"), "unknown repo: name must NOT be R-004 (rev3)");
+  const xrepo = diag.findings.filter((f) => f.rule === "X-XREPO-001");
+  assert.ok(
+    xrepo.some((f) => f.message.includes("nosuchrepo:single.md")),
+    "expected an X-XREPO-001 finding referencing nosuchrepo:single.md"
+  );
+  // Neither error nor warn severity — X-XREPO-001 is always info (skip, does not wedge CI).
+  for (const f of xrepo) assert.equal(f.severity, "info");
+});
+
+test("S-24 (CH-3, rev3): repo: form with a present repo but an absent path stays R-004 (not X-XREPO)", () => {
   const unresolved = r004Values(lintPaths());
-  assert.ok(unresolved.includes("nosuchrepo:single.md"), "unknown repo: name must stay unresolved");
+  assert.ok(
+    unresolved.includes("eco001-paths:no-such-file.md"),
+    "repo present + path absent must remain R-004"
+  );
 });
 
 test("S-20: id-or-path ② accepts the same path forms (trace_link to a repo-relative path resolves)", () => {

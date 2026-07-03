@@ -267,14 +267,22 @@ function resolveEdge(edge, pa, index, schema, repos, out) {
             continue;
         }
         if (edge.kind === "path") {
-            const resolved = pathExists(value, repos);
-            out.push(mkRef(edge, [], value, undefined, pa, line, resolved, false, fromId));
+            const chk = checkPath(value, repos);
+            if (chk === "xrepo-skip") {
+                out.push(mkPathXrepo(edge, value, pa, line, fromId));
+                continue;
+            }
+            out.push(mkRef(edge, [], value, undefined, pa, line, chk === "resolved", false, fromId));
             continue;
         }
         if (edge.kind === "path-at-rev") {
             const pathPart = value.split("@")[0];
-            const resolved = pathExists(pathPart, repos);
-            out.push(mkRef(edge, [], value, undefined, pa, line, resolved, false, fromId));
+            const chk = checkPath(pathPart, repos);
+            if (chk === "xrepo-skip") {
+                out.push(mkPathXrepo(edge, value, pa, line, fromId));
+                continue;
+            }
+            out.push(mkRef(edge, [], value, undefined, pa, line, chk === "resolved", false, fromId));
             continue;
         }
         if (edge.kind === "id-or-path") {
@@ -294,7 +302,12 @@ function resolveEdge(edge, pa, index, schema, repos, out) {
             if (!resolved) {
                 // ② path fallback (strip #fragment)
                 const pathPart = value.split("#")[0];
-                if (pathExists(pathPart, repos)) {
+                const chk = checkPath(pathPart, repos);
+                if (chk === "xrepo-skip") {
+                    out.push(mkPathXrepo(edge, value, pa, line, fromId));
+                    continue;
+                }
+                if (chk === "resolved") {
                     resolved = true;
                 }
                 else if (fam) {
@@ -334,6 +347,16 @@ function pushXrepo(edge, value, pa, line, out, _schema) {
     // mark as resolved=true so no R-003; the X-XREPO info finding is emitted in rules stage.
     r.kind = "xrepo-skip";
     out.push(r);
+}
+/**
+ * rev3/ECO-002 CH-3: `repo:相対` path reference whose repo name is absent from the workspace.
+ * Same skip semantics as the ID cross_repo skip (X-XREPO-001 info) — the emitted RefResult
+ * is marked resolved (no R-004) with kind "xrepo-skip" so the rules stage emits X-XREPO-001 once.
+ */
+function mkPathXrepo(edge, value, pa, line, fromId) {
+    const r = mkRef(edge, [], value, undefined, pa, line, true, false, fromId);
+    r.kind = "xrepo-skip";
+    return r;
 }
 function hasCandidateRepo(families, index, _schema) {
     // A candidate repo exists if any definition site of the target family exists anywhere in the workspace.
@@ -404,19 +427,7 @@ function lookupIndex(index, family, id) {
     const list = fam.get(id);
     return !!list && list.length > 0;
 }
-/**
- * Path existence check with the three acceptance forms of §2.4 (rev2 / ref-v0.4).
- *   1. Canonical `<repo>/<rel>` — if the leading segment is a workspace repo name, check
- *      relative to that repo.
- *   2. repo-relative `<rel>` (no repo prefix) — resolve against ANY repo. Segment count is
- *      irrelevant (single segment `test` / `single.md` accepted); file or dir both accepted.
- *   3. `repo:rel` — equivalent to canonical (`:` read as `/`). If the repo name is absent
- *      from the workspace, UNRESOLVED — no fallback to form 2 (the explicit repo name is intent).
- * Forms 1 and 2 combine: a leading segment that is NOT a repo name is tried as form 2
- * (§2.4: "正準形の先頭セグメントが repo 名に一致しない場合は形式2 として扱う").
- * `existsSync` is used for both files and directories (存在検査).
- */
-function pathExists(value, repos) {
+function checkPath(value, repos) {
     // Form 3: `repo名:相対` — strict, no fallback to form 2.
     const colon = value.indexOf(":");
     // Guard against Windows drive-letter / bare `:`: only treat as form 3 when there is a
@@ -426,23 +437,23 @@ function pathExists(value, repos) {
         const rel = value.slice(colon + 1);
         const repo = repos.find((r) => r.name === repoName);
         if (repo) {
-            return existsSync(join(repo.absPath, ...splitPath(rel)));
+            return existsSync(join(repo.absPath, ...splitPath(rel))) ? "resolved" : "unresolved";
         }
-        // repo name not in workspace => unresolved (do NOT fall back to form 2).
-        return false;
+        // repo name not in workspace => X-XREPO-001 skip (rev3/CH-3; do NOT fall back to form 2).
+        return "xrepo-skip";
     }
     const segs = splitPath(value);
     // Form 1: canonical `<repo>/<rel>` — leading segment matches a repo name.
     if (segs.length >= 2) {
         const repo = repos.find((r) => r.name === segs[0]);
         if (repo && existsSync(join(repo.absPath, ...segs.slice(1)))) {
-            return true;
+            return "resolved";
         }
         // leading segment is not a repo name (or that repo path did not exist):
         // fall through to form 2 (repo-relative against all repos).
     }
     // Form 2: repo-relative — try the whole value relative to any repo. Any segment count.
-    return repos.some((r) => existsSync(join(r.absPath, ...segs)));
+    return repos.some((r) => existsSync(join(r.absPath, ...segs))) ? "resolved" : "unresolved";
 }
 /** Split a `/`-separated relative path into segments (drops empty segments from `//`). */
 function splitPath(rel) {
@@ -498,7 +509,11 @@ function resolveIdOrPath(value, index, schema, repos) {
     if (fam && lookupIndex(index, fam.prefix, value))
         return true;
     const pathPart = value.split("#")[0];
-    return pathExists(pathPart, repos);
+    const chk = checkPath(pathPart, repos);
+    // rev3/CH-3: a `repo:相対` endpoint whose repo is absent from the workspace is a skip, not an
+    // unresolved trace_link endpoint — the same value/selector already yields one X-XREPO-001 via
+    // the parallel ref-edge (kind: id-or-path) resolution path; R-041 must not double-report it.
+    return chk === "resolved" || chk === "xrepo-skip";
 }
 /** Build graph nodes from definitions actually present in the index (non-candidate + candidate-fallback). */
 function buildNodes(definitions, index) {

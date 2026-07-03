@@ -11,6 +11,7 @@ export interface CliArgs {
   failOn: "error" | "warn";
   schema?: string;
   view: boolean;
+  sarif: boolean;
   help: boolean;
   version: boolean;
 }
@@ -40,6 +41,7 @@ export function parseCliArgs(argv: string[]): CliArgs {
         "fail-on": { type: "string" },
         schema: { type: "string" },
         view: { type: "boolean", default: false },
+        sarif: { type: "boolean", default: false },
         help: { type: "boolean", default: false },
         version: { type: "boolean", default: false },
       },
@@ -58,6 +60,7 @@ export function parseCliArgs(argv: string[]): CliArgs {
     out: (v.out as string) ?? "./plm-out",
     failOn: "error",
     view: v.view === true,
+    sarif: v.sarif === true,
     help: v.help === true,
     version: v.version === true,
   };

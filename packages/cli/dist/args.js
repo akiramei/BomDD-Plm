@@ -23,6 +23,7 @@ export function parseCliArgs(argv) {
                 "fail-on": { type: "string" },
                 schema: { type: "string" },
                 view: { type: "boolean", default: false },
+                sarif: { type: "boolean", default: false },
                 help: { type: "boolean", default: false },
                 version: { type: "boolean", default: false },
             },
@@ -40,6 +41,7 @@ export function parseCliArgs(argv) {
         out: v.out ?? "./plm-out",
         failOn: "error",
         view: v.view === true,
+        sarif: v.sarif === true,
         help: v.help === true,
         version: v.version === true,
     };

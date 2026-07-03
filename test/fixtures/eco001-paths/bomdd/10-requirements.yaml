@@ -1,4 +1,4 @@
-# ECO-001 (S-20) path acceptance-form fixture.
+# ECO-001/ECO-002 (S-20/S-24) path acceptance-form fixture.
 # repo name (single-repo run) = directory name "eco001-paths".
 # source_refs are kind: path (R-004 on non-existence). trace_links are id-or-path.
 requirements:
@@ -10,7 +10,8 @@ requirements:
       - sub/nested                    # multi-segment dir, exists    -> resolve (form 2)
       - eco001-paths/testdir          # canonical form, exists       -> resolve (form 1)
       - eco001-paths:single.md        # repo: form, exists           -> resolve (form 3)
-      - nosuchrepo:single.md          # repo: form, repo absent      -> UNRESOLVED (no fallback to form 2)
+      - nosuchrepo:single.md          # repo: form, repo absent      -> X-XREPO-001 skip (rev3/CH-3; no fallback to form 2)
+      - eco001-paths:no-such-file.md  # repo: form, repo present, path absent -> R-004 (rev3: unchanged)
       - nope/missing.md               # truly absent                 -> UNRESOLVED
     trace_links:
       - trace_id: TL-001

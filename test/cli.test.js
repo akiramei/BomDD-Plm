@@ -16,6 +16,11 @@ test("CLI: --help exits 0 and prints usage to stdout", () => {
   assert.match(res.stdout, /Usage: bomdd-lint/);
 });
 
+test("CLI: --help lists --sarif in Options (ECO-002 CH-2)", () => {
+  const res = runCli(["--help"]);
+  assert.match(res.stdout, /--sarif\s+sarif\.json を追加生成/);
+});
+
 test("CLI: --version exits 0 and prints a version string", () => {
   const res = runCli(["--version"]);
   assert.equal(res.status, 0);
