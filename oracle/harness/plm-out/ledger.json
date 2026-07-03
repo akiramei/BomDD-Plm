@@ -1,8 +1,0 @@
-{
-  "schemaVersion": "plm-ledger/1",
-  "ledgers": {
-    "eco": [],
-    "cheat": [],
-    "decision": []
-  }
-}
