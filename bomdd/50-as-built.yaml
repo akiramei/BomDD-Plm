@@ -111,3 +111,21 @@ as_built:
       impact_prediction_61: "under-inclusion 0 / over-inclusion 0(全的中)。unit 粒度絞り込み 2/8(forward-01.5 の 3/3 と対照)"
       real_repo_recheck: "self-hosting error+warn 0 維持 / ViewPrism workspace 286→**261**(R-002 per-file 18件全解消+PD-8 実在5件解消。残存 repo: 系3件は真正壊れ参照2+複合散文1=過剰受理なし)"
       cross_factory_note: "2工場とも初回 27/27・不要改変0 — 改訂 BOM の一発転移(ECO でも「修正は BOM に宿る」)。実装は独立に同一4ファイルへ収束"
+    test_evidence_refs:   # ECO-001 回帰=S-01〜S-21 全27ケース実行(25 回帰+2 変更受入)が全 automated CP を再被覆(R-050)。追記契機: 50 構文是正後の self-hosting lint が証跡不在17件を検出(S-19 自リポ17件と同型の轍)
+      - { evidence_id: TE-ECO1-001, cp_ref: CP-READONLY-001,      result: pass, evidence_path: oracle/expected/S-01-clean.json, notes: ECO-001 回帰 }
+      - { evidence_id: TE-ECO1-002, cp_ref: CP-DISCOVER-002,      result: pass, evidence_path: oracle/expected/S-01-clean.json, notes: 同上 }
+      - { evidence_id: TE-ECO1-003, cp_ref: CP-PARSE-003,         result: pass, evidence_path: oracle/expected/S-04-parse-broken.json, notes: 同上 }
+      - { evidence_id: TE-ECO1-004, cp_ref: CP-SCHEMA-004,        result: pass, evidence_path: oracle/README.md, notes: 同上(S-13) }
+      - { evidence_id: TE-ECO1-005, cp_ref: CP-RESOLVE-005,       result: pass, evidence_path: oracle/expected/S-20-path-forms.json, notes: 回帰 S-02+変更受入 S-20(受理形3種) }
+      - { evidence_id: TE-ECO1-006, cp_ref: CP-WORKSPACE-006,     result: pass, evidence_path: oracle/expected/S-12-workspace.json, notes: ECO-001 回帰 }
+      - { evidence_id: TE-ECO1-007, cp_ref: CP-LINT-007,          result: pass, evidence_path: oracle/expected/S-21-per-file-scope.json, notes: 回帰 S-03/05/06+変更受入 S-21(per-file) }
+      - { evidence_id: TE-ECO1-008, cp_ref: CP-GATE-008,          result: pass, evidence_path: oracle/expected/S-07-gate-matrix.json, notes: ECO-001 回帰 }
+      - { evidence_id: TE-ECO1-009, cp_ref: CP-SUPPRESS-009,      result: pass, evidence_path: oracle/expected/S-08-suppress.json, notes: 同上 }
+      - { evidence_id: TE-ECO1-010, cp_ref: CP-OUTPUT-010,        result: pass, evidence_path: oracle/README.md, notes: 同上(S-09 決定性) }
+      - { evidence_id: TE-ECO1-011, cp_ref: CP-CLI-011,           result: pass, evidence_path: oracle/expected/S-11-cli-matrix.json, notes: 同上 }
+      - { evidence_id: TE-ECO1-012, cp_ref: CP-VIEWER-012,        result: pass, evidence_path: oracle/README.md, notes: 同上(S-14) }
+      - { evidence_id: TE-ECO1-013, cp_ref: CP-VIEW-FINDINGS-013, result: pass, evidence_path: oracle/expected/S-16-ledger.json, notes: 同上 }
+      - { evidence_id: TE-ECO1-014, cp_ref: CP-VIEW-GRAPH-014,    result: pass, evidence_path: oracle/README.md, notes: 同上 }
+      - { evidence_id: TE-ECO1-015, cp_ref: CP-VIEW-TRACE-015,    result: pass, evidence_path: oracle/README.md, notes: 同上(S-15) }
+      - { evidence_id: TE-ECO1-016, cp_ref: CP-VIEW-LEDGER-016,   result: pass, evidence_path: oracle/expected/S-16-ledger.json, notes: 同上 }
+      - { evidence_id: TE-ECO1-017, cp_ref: CP-DESIGN-SYSTEM-019, result: pass, evidence_path: oracle/README.md, notes: 同上(工場 test/ 由来検査は非改変・回帰緑) }
