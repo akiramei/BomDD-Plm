@@ -35,7 +35,7 @@ plm_v0:
     pending: "Linux 側実行(CI 整備時)"
 
   refv0_validation:                  # draft 卒業条件 §4 の第1データ点
-    revisions: { v0.1: "G3由来 4補正", v0.2: "初回製造由来 2補正", v0.3: "S-19由来 5補正(うち4は実物が正)", v0.4_candidate: "per-file 一意性スコープ" }
+    revisions: { v0.1: "G3由来 4補正", v0.2: "初回製造由来 2補正", v0.3: "S-19由来 5補正(うち4は実物が正)", v0.4: "ECO-001(受理形3種+per-file)", v0.5: "FMEA定義サイト両対応(実物が正6回目 — S-19裁定の誤認を実装検証が訂正)", v0.6: "trace-map 1対多の配列エッジ(単純配列化は検査が黙って消える、の対策)" }
     false_positive_rate_after: "self-hosting 0 / viewprism 286(全数帰属済み・大半は実リポ側の台帳スタイル債務)"
 
   method_feedback_candidates:        # BomDD 本体への還元候補(反映済み 2026-07-03: BomDD 50cbdea)
