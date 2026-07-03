@@ -22,7 +22,7 @@ rules:
   - { rule: R-030, message: "固定オラクル・ケース {targetId} に spec_ref がありません(期待値の典拠なき行=仕様の穴)", fixTarget: "期待値の典拠を仕様に書き、spec_ref で参照する(書けなければ Phase 2 へ差し戻し)" }
   - { rule: R-031, message: "固定オラクルの frozen_since / self_test が未記入です",                                 fixTarget: "治具セルフテスト+較正を実施し、凍結 commit/tag を記入する" }
   - { rule: R-040, message: "{targetId} が superseded/retired 品目 {ref} を active 参照しています",                fixTarget: "lineage の後継品目へ再帰属する(テンプレ 64 part-lineage-reattribution)" }
-  - { rule: R-041, message: "trace_link {targetId} の from/to が解決できません",                                    fixTarget: "エンドポイントを実在 ID または実在パスへ修正する" }
+  - { rule: R-041, message: "trace_link {targetId} の from/to({ref})が解決できません",                            fixTarget: "エンドポイントを実在 ID または実在パスへ修正する" }
   - { rule: R-050, message: "特性 {targetId} が最新 As-Built の test_evidence に被覆されていません",                fixTarget: "50-as-built.yaml の test_evidence_refs に本特性の証跡を追加する" }
   - { rule: R-051, message: "ECO {targetId} の影響分析に解決できない ID {ref} があります",                          fixTarget: "60-change-register.yaml の affected_refs を実在 ID へ修正する" }
   - { rule: R-052, message: "ECO {targetId} の実 diff にあるファイル {ref} が宣言影響集合(bomdd/+allowed_paths)の外にあります", fixTarget: "影響分析を改訂して allowed_paths へ追加するか、影響外の変更を取り消す(unnecessary modification)" }

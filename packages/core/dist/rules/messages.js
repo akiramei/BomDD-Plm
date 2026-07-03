@@ -63,7 +63,7 @@ const TABLE = {
         fixTarget: "lineage の後継品目へ再帰属する(テンプレ 64 part-lineage-reattribution)",
     },
     "R-041": {
-        message: "trace_link {targetId} の from/to が解決できません",
+        message: "trace_link {targetId} の from/to({ref})が解決できません",
         fixTarget: "エンドポイントを実在 ID または実在パスへ修正する",
     },
     "R-050": {

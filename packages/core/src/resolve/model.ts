@@ -683,7 +683,7 @@ function buildNodes(
   const seen = new Set<string>();
   for (const d of definitions) {
     if (!isCandidateInIndex(index, d) && d.candidate) continue;
-    const key = d.family + " " + d.id;
+    const key = d.family + "\u0000" + d.id;
     if (seen.has(key)) continue;
     seen.add(key);
     const n: GraphNode = { id: d.id, family: d.family, file: d.canonicalPath };

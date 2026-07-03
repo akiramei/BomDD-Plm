@@ -14,16 +14,18 @@
       "rule": "R-041",
       "severity": "warn",
       "file": "repo/bomdd/10-requirements.yaml",
-      "targetId": "TL-R41-001"
+      "targetId": "TL-R41-001",
+      "message_contains": "E-CORE-999"
     },
     {
       "rule": "R-041",
       "severity": "warn",
       "file": "repo/bomdd/32-mbom.yaml",
-      "targetId": "TL-R41-004"
+      "targetId": "TL-R41-004",
+      "message_contains": "E-CORE-998"
     }
   ],
-  "note": "ECO-003(裁定 CH-B・2026-07-03): trace_links の ID 形エンドポイントは skip しない — skip は cross-repo 意図の明示(repo: 前置またはエッジ宣言 cross_repo: true)がある場合に限る(§2.4 明文化)。R-041 発火分岐の初固定。二重所見(R-003+R-041)は 10-requirements の from/to が id-or-path エッジ宣言と R-041 スキャンの両方に載る現行挙動の観測固定(エッジ宣言なし成果物= 32-mbom は R-041 単独)。TL-R41-002(ghost repo: 形)は X-XREPO skip= CH-3 全経路共通(§2.4 rev3)の R-041 経路での初固定",
+  "note": "ECO-003(裁定 CH-B・2026-07-03): trace_links の ID 形エンドポイントは skip しない — skip は cross-repo 意図の明示(repo: 前置またはエッジ宣言 cross_repo: true)がある場合に限る(§2.4 明文化)。R-041 発火分岐の初固定。二重所見(R-003+R-041)は 10-requirements の from/to が id-or-path エッジ宣言と R-041 スキャンの両方に載る現行挙動の観測固定(エッジ宣言なし成果物= 32-mbom は R-041 単独)。TL-R41-002(ghost repo: 形)は X-XREPO skip= CH-3 全経路共通(§2.4 rev3)の R-041 経路での初固定。ECO-004(2026-07-04)文書化改訂: R-041 メッセージに endpoint 値({ref})が入る改訂に伴い message_contains を追加(from/to 双方不解決時の判別可能化を固定)",
   "infos": [
     {
       "rule": "X-XREPO-001",

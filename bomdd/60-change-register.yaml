@@ -28,9 +28,9 @@ changes:
     opened: 2026-07-03
     closed: 2026-07-03
     order_ref: bomdd/60-change-order-eco-002.md
-    diff_audit:   # R-052 自己適用(dogfood)— 本 ECO の実 diff を製品自身が監査する
-      baseline: eco-002-input
-      allowed_paths: [packages/core/, packages/cli/, test/, oracle/]
+    # diff_audit は受入時に dogfood 実施済み(R-052 所見 0 = 手動 63 と同一結論。記録= order §6 / 52 eco_002)。
+    # ECO-004(2026-07-04)で除去: R-052 は baseline→HEAD の動的評価のため、受入後の無関係コミット
+    # (CI 整備の .github/)を拾って verified 済み ECO が stale 化する — 恒久修正は 52 の候補参照。
     affected_refs:
       - REQ-007
       - REQ-010
@@ -50,11 +50,23 @@ changes:
     opened: 2026-07-03
     closed: 2026-07-03
     order_ref: bomdd/60-change-order-eco-003.md
-    diff_audit:   # R-052 自己適用 — 文書化 ECO の diff が bomdd/+oracle/ に閉じることを機械監査
-      baseline: v0.3-eco-002-accepted
-      allowed_paths: [oracle/]
+    # diff_audit は受入時に dogfood 実施済み(R-052 所見 0。記録= order §5 / 52 eco_003)。
+    # ECO-004(2026-07-04)で除去: 理由は ECO-002 の註と同一(verified 後の stale 化)。
     affected_refs:
       - REQ-007
       - E-CORE-RESOLVE-005
       - M-CORE-GRAPH-002
       - CP-RESOLVE-005
+
+  - id: ECO-004
+    title: "R-041 メッセージの判別可能化({ref})+NUL バイト債務の是正(設計者適用+全再認証)"
+    status: verified   # 2026-07-04: 116/116 tests・オラクル 34/34(S-25 文書化改訂)・self-hosting/ViewPrism2 とも 0。詳細= order_ref §3
+    opened: 2026-07-04
+    closed: 2026-07-04
+    order_ref: bomdd/60-change-order-eco-004.md
+    # diff_audit 非宣言: 受入中に「verified 済み ECO の diff_audit が stale 化する」を発見したため
+    # (order §4)。63 手動監査で代替(変更 6 ファイル=影響分析どおり)。恒久修正は 52 の候補参照。
+    affected_refs:
+      - E-CORE-LINT-007
+      - M-CORE-RULES-003
+      - M-CORE-GRAPH-002

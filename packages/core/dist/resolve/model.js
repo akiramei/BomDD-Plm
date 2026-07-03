@@ -522,7 +522,7 @@ function buildNodes(definitions, index) {
     for (const d of definitions) {
         if (!isCandidateInIndex(index, d) && d.candidate)
             continue;
-        const key = d.family + " " + d.id;
+        const key = d.family + "\u0000" + d.id;
         if (seen.has(key))
             continue;
         seen.add(key);
