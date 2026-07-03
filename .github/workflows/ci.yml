@@ -1,0 +1,48 @@
+name: ci
+
+# CP-NFR-017 後半: Windows/Linux 両 OS で固定オラクル全通過(charter 完了定義の残件)。
+# Linux はここ(ubuntu ランナー)が正式な検証環境 — ローカル基準機(Windows)は受入時に実施済み。
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  oracle:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: install
+        run: npm ci
+
+      - name: build (tsc strict, 警告 0)
+        run: npm run build
+
+      # CHEAT-ECO01-F02-001 の教訓: Windows では workspace リンクが実体コピーに落ちることがあり、
+      # build 後の dist が node_modules/@bomdd/* に反映されない偽陰性を招く。build 後に再同期する。
+      - name: relink workspaces
+        run: npm install --no-audit --no-fund
+
+      - name: unit tests (node --test)
+        run: node --test
+
+      - name: fixed oracle (27 cases)
+        working-directory: oracle
+        run: node harness/run-oracle.mjs --cli "node ../packages/cli/dist/main.js"
+
+      # self-hosting: 自リポの bomdd/ 台帳を error ゲートで lint(ドッグフーディング防壁)。
+      # --out は対象リポ外必須(S-10 read-only: リポ内出力は exit 2)。
+      - name: self-hosting lint (error gate)
+        run: node packages/cli/dist/main.js . --fail-on error --out "$RUNNER_TEMP/plm-out"

@@ -1,0 +1,26 @@
+#!/bin/sh
+# bomdd-lint self-hosting pre-commit hook(D1 対策: 「重いから使わない」の常駐解 — 実測 <1s)
+# ─────────────────────────────────────────────────────────────
+# コミット時に自リポを bomdd-lint し、error があればブロックする(warn/info は通す)。
+# 有効化(クローンごとに1回):  git config core.hooksPath bomdd/hooks
+# 手動実行:                    node packages/cli/dist/main.js .
+#
+# 規律(ViewPrism2 bomdd/hooks と同じ): 環境が無ければ fail-open(skip)し、コミットを wedge しない。
+# ブロックするのは「リンタが error 所見を返したとき」だけ。
+
+# node と ビルド済み CLI が無ければ skip
+command -v node >/dev/null 2>&1 || exit 0
+[ -f packages/cli/dist/main.js ] || exit 0
+
+OUT="${TMPDIR:-/tmp}/bomdd-plm-precommit-$$"
+node packages/cli/dist/main.js . --fail-on error --out "$OUT" >/dev/null 2>&1
+code=$?
+rm -rf "$OUT" 2>/dev/null
+
+if [ "$code" = "1" ]; then
+  echo "[bomdd-lint] error 所見があります — commit をブロックしました。"
+  echo "            詳細: node packages/cli/dist/main.js ."
+  exit 1
+fi
+# exit 2(実行障害)は fail-open(環境問題でコミットを止めない)。CI が正式ゲート。
+exit 0
