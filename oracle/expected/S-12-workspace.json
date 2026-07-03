@@ -9,11 +9,17 @@
         {
           "rule": "R-002",
           "severity": "error",
+          "file": "mfg/bomdd/31-kbom.yaml",
+          "targetId": "K-DUP"
+        },
+        {
+          "rule": "R-002",
+          "severity": "error",
           "file": "ui-cad/bomdd/31-kbom.yaml",
           "targetId": "K-DUP"
         }
       ],
-      "note": "cross_repo の ebomItemRef が解決される(R-003 なし)ことを完全集合で担保"
+      "note": "cross_repo の ebomItemRef 解決(R-003 なし)+rev1 カウント規約(両定義サイトに所見)"
     },
     {
       "target": "fixtures/workspace/ui-cad",

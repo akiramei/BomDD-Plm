@@ -5,7 +5,10 @@
 #
 # 意味論は縛らない: ここに無いフィールドは自由。ここに有るフィールドも「型と参照先ファミリー」だけを縛る。
 
-edges_version: ref-v0.1
+edges_version: ref-v0.2
+# ref-v0.2(2026-07-03): BomDD-Plm 初回製造(2工場)の差分帰属で確定した補正 —
+#   (a) 専用規則エッジの rule/gate 上書き(affected_refs=R-051/eco。R-003 二重計上の排他)
+#   (b) candidate 定義の fallback 意味論(正定義不在時のみ索引登録。60-*.md を candidate 化)
 # ref-v0.1(2026-07-03): BomDD-Plm G3 ドライランで検出された欠陥の補正 —
 #   (a) kind 語彙の凡例を明文化 (b) trace_id の分散定義を distributed_defines へ正規化
 #   (c) 台帳3成果物(51/60-register/65)を artifacts に追加 (d) 60-*.md の散文抽出エッジを廃止
@@ -112,9 +115,9 @@ artifacts:
         family: E
         candidate: true
         note: >-
-          候補定義(ref-v0.1 で意味論を明文化): candidate:true の定義サイトは ID 索引に登録せず、
-          R-002 一意性の対象にもしない(30-ebom 側が正)。R-021 が 30 との同期を検査する。
-          BomDD-Plm G3 第2回で「30/35 二重定義が常時 R-002 発火」の欠陥として検出された補正。
+          候補定義(ref-v0.2 で fallback 意味論に更新): candidate:true の定義サイトは R-002 一意性の
+          対象外。正定義が存在しない ID に限り fallback として索引に登録する(解決に使える)。
+          R-021 が 30 との同期を検査する。G3 第2回(30/35 二重定義)と初回製造 S-16(ECO 二重定義)の補正。
     refs:
       - { selector: "design_system_bom.root.ebom_item_ref",  family: E, severity: warn }
       - { selector: "design_system_bom.root.kbom_pack_ref",  family: K, severity: warn }
@@ -165,6 +168,8 @@ artifacts:
     defines:
       - selector: "filename"          # 60-change-order-eco-025.md → ECO-025
         family: [ECO, CAPA]
+        candidate: true
+        note: "ref-v0.2: register(60-change-register.yaml)と同一実体の別記録につき candidate 化(R-002 対象外)。register 不在時は fallback として索引に入る。"
     refs: []
     note: "散文本文からの ID 抽出はしない(ref-v0.1 で散文エッジ廃止 — 誤検出132件の実測+G3 Q4)。影響分析の機械検査(R-051)は 60-change-register.yaml の構造化フィールドで行う。"
 
@@ -173,7 +178,7 @@ artifacts:
       - selector: "changes[].id"
         family: [ECO, CAPA]
     refs:
-      - { selector: "changes[].affected_refs[]", family: [REQ, E, M, K, CP, DC, DE], severity: error, note: "R-051 の検査対象(gate=eco)。register 不在のプロジェクトでは R-051 = skip(info)" }
+      - { selector: "changes[].affected_refs[]", family: [REQ, E, M, K, CP, DC, DE], severity: error, rule: R-051, gate: eco, note: "ref-v0.2: 専用規則エッジ — 不解決は R-051(gate=eco)でのみ所見化し、汎用 R-003(always)から除外する(初回製造で2工場とも二重計上に落ちた欠陥の補正)。register 不在のプロジェクトでは R-051 = skip(info)" }
       - { selector: "changes[].order_ref",       kind: path, severity: warn, note: "対応する 60-change-order-*.md" }
 
   - file: "bomdd/51-cheat-log.md"

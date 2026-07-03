@@ -34,6 +34,28 @@ as_built:
       harness_defects: "CHEAT-PLM-V0-H001(ゲートフィルタ欠落・偽FAIL 5件)/ H002(フラグ値のパス解決・偽FAIL 2件) — 51-cheat-log.md"
       passed_highlights: "S-09 決定性(4出力 byte 同一)/ S-10 read-only / S-14 viewer 自己完結 / S-01 clean / S-05 R-020 / S-06 R-040(lineage 無罪込み)が初回から緑"
   - id: AB-PLM-V0-factory-02
-    lifecycle_state: manufacturing   # sonnet 工場・製造中(旧パッケージ。分散測定用に採点予定)
+    lifecycle_state: scored
+    work_order_ref: bomdd/40-work-order.md@plm-v0-input
     input_bom_tag: plm-v0-input(1f21035)
     ai_model: claude-sonnet-5
+    isolation: clean
+    artifact_location: C:\Users\akira\source\repos\BomDD-Plm-factory-02
+    self_acceptance: "build 警告0 / node --test 137/137 / L1 スモーク緑 / blocked なし(NFR実測・golden は構造的宣言)"
+    cheats: "blocker 3(うち1は自己発見修正済みバグ・2は構造的宣言) / friction 10 / minor 10 — 全 exploratory 次元報告"
+    inspections:
+      fixed_oracle: "13 PASS / 12 FAIL(治具修正後の採点)"
+      failure_attribution:
+        - { cases: "S-02/S-07/S-08(targetId 次元)", attribution: unspecified_bom_residue, id: SO-1,
+            note: "f-01=null / f-02=所有品目ID — 2工場が未規定次元で別解釈に分散。抑制照合の不発も同根" }
+        - { cases: "S-03/S-12[0](R-002 全サイト所見)", attribution: unspecified_bom_residue, id: SO-2,
+            note: "2工場一致で全サイト解釈 → rev1 でこちらを仕様化(オラクル側を追随改訂)" }
+        - { cases: "S-07(affected_refs の R-003 二重計上)", attribution: refv0_gap, id: RG-1, note: "2工場とも再現" }
+        - { cases: "S-16(ECO 二重定義 R-002)", attribution: refv0_gap, id: RG-2, note: "2工場とも再現" }
+        - { cases: "S-05/S-12(TMP-UI family の R-001 誤検出+ui-ir.json への X-TYPE)", attribution: specified_contract_miss, id: PD-4,
+            note: "id-grammar の複合接頭辞 family(TMP-UI-CMP 等)の判定壊れ — f-02 固有" }
+        - { cases: "S-16(51-cheat-log.md への X-PARSE=md を YAML 誤パース)", attribution: specified_contract_miss, id: PD-5, note: "f-02 固有" }
+        - { cases: "S-04(空ファイルの X-TYPE のみ欠落)", attribution: specified_contract_miss, id: PD-6,
+            note: "f-02 の parse は罠3型+hint+重複キーまで正解(f-01 の全滅と対照的な能力逆転)" }
+        - { cases: "S-12[1](X-XREPO skip 未実装)", attribution: specified_contract_miss, id: PD-2, note: "両工場共通" }
+      passed_highlights: "決定性・read-only・自己完結・R-040・clean・CLI マトリクス全行 — f-01 と同一の中核緑。ledger.json のフィールド抽出は f-02 が正解(f-01 の PD-3 は f-02 に無い)"
+      cross_factory_note: "BOM/ref-v0 起因 4系統は 2/2 工場で再現(欠陥は BOM に宿る)。工場能力差は parse(f-02 優位)と family 判定(f-01 優位)で逆転が観測された — 単一軸の能力序列ではない"

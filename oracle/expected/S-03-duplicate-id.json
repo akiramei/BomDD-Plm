@@ -9,7 +9,13 @@
       "severity": "error",
       "file": "repo/bomdd/30-ebom.yaml",
       "targetId": "E-CORE-001"
+    },
+    {
+      "rule": "R-002",
+      "severity": "error",
+      "file": "repo/bomdd/30-ebom.yaml",
+      "targetId": "E-CORE-001"
     }
   ],
-  "note": "カウント規約: 後発定義1件につき1所見"
+  "note": "rev1 カウント規約: 全定義サイトに1所見ずつ(同一ファイル内2定義=2所見)。仕様 §2.6"
 }
