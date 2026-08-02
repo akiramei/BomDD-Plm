@@ -166,4 +166,6 @@
   **head: v0.5-eco-006-accepted**(窓閉鎖 — 除去せず閉じる・ECO-005 運用)/52-metrics へ
   eco_006 節+候補行(§台帳債務候補)の解消マーカー追記/50-as-built へ AB-PLM-ECO-006 追記。
 - 受入タグ v0.5-eco-006-accepted は本 commit に付与(fix5 d31b835 までの全証拠を含む)。
-  CI 実測は push 後に本欄へ追記(4 値判定)。
+- **CI 実測(追記)**: accept 52f3428= **緑**(GitHub Actions 両 OS・実測)。タグ付与後の
+  self-hosting --eco で **R-052 固定窓監査 clean・X-GIT 0** を確認(「除去せず閉じる」= ECO-005
+  運用の再現)。本 ECO の全 push(c6f9d2d/8a874ea/677b43e/6ef20f7/d31b835/52f3428)= 6 本連続緑。
