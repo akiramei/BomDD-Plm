@@ -28,7 +28,7 @@
       "uqId": { "type": "string", "pattern": "^UQ-[A-Za-z0-9._-]+$" },
       "decId": { "type": "string", "pattern": "^DEC-[A-Za-z0-9._-]+$" },
       "tmpUiPartNo": { "type": "string", "pattern": "^TMP-UI-(SCR|REG|CMP|OCC|ACT|INP|STA|DOM|LIV)-[A-Za-z0-9._-]+$" },
-      "uiId": { "type": "string", "pattern": "^(screen|region|component|button|action|input|state|modal)\\.[A-Za-z0-9._-]+$" },
+      "uiId": { "type": "string", "pattern": "^(screen|region|component|button|action|input|state|modal|domain)\\.[A-Za-z0-9._-]+$" },
       "ebomOrMbomId": { "type": "string", "pattern": "^(E|M)-[A-Za-z0-9._-]+$" },
       "displayRefId": { "type": "string", "pattern": "^(DC|DE)-[A-Za-z0-9._-]+$" },
       "anyKnownId": { "type": "string", "pattern": "^(REQ|E|M|K|CP|SB|AB|S|GF|EQ|P|FMEA|TE|DC|DE|DEC|ECO|CAPA|CHEAT|TL|UQ|INV|OC|ADR|ROUTE|ROUTING|TMP-UI)[A-Za-z0-9._-]*$" }
@@ -381,11 +381,14 @@
     "uiIrFile": {
       "type": "object",
       "additionalProperties": true,
+      "$comment": "ref-v0.9: 二方言両対応 — 参照層方言= components/occurrences(判別キー: meta)/ UI-CAD 抽出方言= componentCandidates/componentOccurrences(判別キー: schemaVersion+artifactType)。同名異物は判別キーで型判別する。",
       "properties": {
         "screens": { "$ref": "#/$defs/uiIrCollection" },
         "regions": { "$ref": "#/$defs/uiIrCollection" },
         "components": { "$ref": "#/$defs/uiIrCollection" },
         "occurrences": { "$ref": "#/$defs/uiIrCollection" },
+        "componentCandidates": { "$ref": "#/$defs/uiIrCollection" },
+        "componentOccurrences": { "$ref": "#/$defs/uiIrCollection" },
         "actions": { "$ref": "#/$defs/uiIrCollection" },
         "inputs": { "$ref": "#/$defs/uiIrCollection" },
         "states": { "$ref": "#/$defs/uiIrCollection" },
@@ -409,7 +412,11 @@
     "uiTraceMapFile": {
       "type": "object",
       "additionalProperties": true,
-      "required": ["entries"],
+      "$comment": "ref-v0.9: 二方言両対応(同名異物) — 参照層方言= entries[](判別キー: meta・ViewPrism2 実物)/ UI-CAD 抽出方言= mappings[](判別キー: schemaVersion+artifactType・MoviePad 実物/テンプレ/ui-cad-gate GU5 が消費)。いずれか一方の配列を持つ。",
+      "oneOf": [
+        { "required": ["entries"] },
+        { "required": ["mappings"] }
+      ],
       "properties": {
         "entries": {
           "type": "array",
@@ -420,6 +427,26 @@
               "uiIr": { "$ref": "#/$defs/id/tmpUiPartNo" },
               "uiBom": { "$ref": "#/$defs/id/tmpUiPartNo" },
               "ebomItemRef": { "type": "array", "items": { "$ref": "#/$defs/id/ebomId" } }
+            }
+          }
+        },
+        "mappings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "uiId": { "$ref": "#/$defs/id/uiId" },
+              "tempPartNo": { "$ref": "#/$defs/id/tmpUiPartNo" },
+              "componentCandidateNo": { "$ref": "#/$defs/id/tmpUiPartNo" },
+              "uiBomItemNo": { "$ref": "#/$defs/id/tmpUiPartNo" },
+              "ebomItemRef": {
+                "oneOf": [
+                  { "type": "null" },
+                  { "$ref": "#/$defs/id/ebomId" },
+                  { "type": "array", "items": { "$ref": "#/$defs/id/ebomId" } }
+                ]
+              }
             }
           }
         }

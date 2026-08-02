@@ -121,3 +121,15 @@ changes:
       - M-SCHEMA-CONTRACT-014   # 差戻1是正(IA-02): 出力契約を供与スナップショットから分離
       - M-PKGDEF-CORE-015       # 差戻1是正(IA-01): 著述パッケージ定義を鋳造 unit から分離
       - M-PKGDEF-VIEWER-016     # 同上(viewer)
+
+  - id: ECO-007
+    title: "schemas/ref-v0 スナップショットの同期 — ref-v0.8 → v0.10(供与入力の同期遅延是正・BomDD ECO-029 の適用経路)"
+    status: verified   # 2026-08-03 設計者適用(byte 複写)・受入= self-hosting 177 同値/118/118/オラクル 34/34/ViewPrism2 workspace で v0.10 有効化(差分= 孤立解消 4 のみ・ECO-029 で機械帰属済み)。CI は push 後 order へ追記
+    opened: 2026-08-03
+    closed: 2026-08-03
+    order_ref: bomdd/60-change-order-eco-007.md
+    diff_audit:
+      baseline: "5c2965b"
+      allowed_paths: [schemas/, bomdd/]
+    affected_refs:
+      - M-SCHEMA-013

@@ -128,12 +128,14 @@ families:
     strictness: strict
   - prefix: TMP-UI-CMP
     name: UI-IR 部品マスター(仮品番)
-    defined_in: "bomdd/ui/**/ui-ir.json#components[].tempPartNo"
+    defined_in: "bomdd/ui/**/ui-ir.json#(components|componentCandidates)[].tempPartNo"
     strictness: strict
+    note: "ref-v0.9: 二方言両対応 — components=参照層方言(ViewPrism2)/componentCandidates=UI-CAD 抽出方言(テンプレ・MoviePad)。判別キーで型判別(ref-edges ヘッダ参照)。"
   - prefix: TMP-UI-OCC
     name: UI-IR 出現(仮品番)
-    defined_in: "bomdd/ui/**/ui-ir.json#occurrences[].tempPartNo"
+    defined_in: "bomdd/ui/**/ui-ir.json#(occurrences|componentOccurrences)[].tempPartNo"
     strictness: strict
+    note: "ref-v0.9: 同上(occurrences / componentOccurrences)。"
   - prefix: TMP-UI-ACT
     name: UI-IR 操作(仮品番)
     defined_in: "bomdd/ui/**/ui-ir.json#actions[].tempPartNo"
