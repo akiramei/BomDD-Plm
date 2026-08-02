@@ -498,6 +498,12 @@ M-BUILD-VIEWER-011 / `helpers/run-cli`・`cli/dist` → M-CLI-005(`run-cli.js:10
 `git status --porcelain` は `M bomdd/32-mbom.yaml` / `M bomdd/51-cheat-log.md` /
 `?? bomdd/61-impact-analysis-eco-006.md` の 3 行(bomdd/ のみ)。
 
+> **設計者追記(2026-08-02・第 4 回独立検査 NEW-IA03-01 の是正 — 追記のみ・上表は工場記録として
+> 非改竄)**: 上表 §8.5 の lint info 値(178・M-* 孤立 2)は**工場 workspace 段階**(register が
+> 起票時のまま= 新 unit 追随前)の実測である。**最終統合個体(register 追随済み・fix4= 6ef20f7)の
+> 実測は info 176・M-* 孤立 0**(order §5 追記 3 と一致・検査官の書込みなし API 再測定でも 176)。
+> 段階ラベルの欠落は IA-05/NEW-01 と同族(3 例目)の記録不整合であり、本追記で固定する。
+
 > **削除 0** は「既存 unit の他フィールド・文言を 1 文字も変えていない」ことの機械証明である
 > (追記は既存行の間への挿入のみで、既存行の書き換えを含まない)。
 > rev4 で M-CLI-005 の `depends_on` 行を書き換えているが、この行自体が rev3 で新規追加した行であり
