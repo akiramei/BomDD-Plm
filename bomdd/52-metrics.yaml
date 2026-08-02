@@ -105,3 +105,14 @@ eco_005:                             # 2026-07-04: R-052 stale 恒久修正 — 
   r052_dogfood: "新形式の初実運用 — 本 ECO 自身が diff_audit{baseline: eco-005-input}で open 窓の監査を受け、verified 時に head: v0.5-eco-005-accepted で窓を閉じる(「除去せず閉じる」運用の初適用)"
   retro_note: "ECO-004 へは遡及宣言しない — v0.4..v0.5 タグ窓に ECO 外の CI コミット(.github/)が介在し、窓が実変更を表さないため(head アンカーは万能ではない: baseline は ECO の真の分岐点であることが前提。register 註に記録)"
   impact_prediction: { under_inclusion: 1, over_inclusion: 0, note: "packages/cli/tsconfig.tsbuildinfo(tsc -b は依存元パッケージの tsbuildinfo も更新する — ECO-004 の core 取りこぼしと同型・ビルドキャッシュ系 2 例目)。コミット前の dogfood 点検で捕捉し allowed_paths へ exact 追加" }
+
+eco_006:                             # 2026-08-02: M-BOM 写像被覆ギャップの解消(挙動不変・32-mbom 所有宣言。BomDD equip-03 測定ラウンド)
+  change: "32-mbom へ所有 unit 8 件(M-ORACLE-009〜M-PKGDEF-VIEWER-016)+depends_on 11 エッジ(意味論= 製造順序の前提・妥当性条件 (C) 非循環)を宣言 — unmapped 実変更 76 files → 0(実体変更なし・bomdd/ のみ)"
+  adjudication: "gate ①= maintainer 再裁定 2026-08-02(単独昇格 — 既存判断「単独 ECO は過剰」を測定価値+在庫ゼロで更新)/ verified 裁定+golden= maintainer 2026-08-02 承認"
+  manufacturing: "claude-opus-5[1m](self-reported・工場 subagent — 台帳初の担当設備明記)。影響分析(61)も工場起草。設計者= 起票・受入・記録。詳細= BomDD loops/equip-03/"
+  calibration: "変更前個体(eco-006-input= c6f9d2d)で unmapped_files=76・real_under_files=111 を凍結(受入 V1 が現状不成立の赤)"
+  acceptance: "凍結採点器(impact-retrospective・sha256 固定)unmapped 0 かつ real_under 111 不変・build 0・118/118 tests・self-hosting --eco error/warn 0(info 176)・ViewPrism2 workspace 回帰差分 0(変更前個体と対照・revision 固定)・diff= bomdd/ のみ(全 5 commit・追加のみ)"
+  independent_inspection: "Codex fresh 4 ラウンド(read-only)= 提起 8・8/8 CONFIRMED・誤検出 0・境界受理 1(tsbuildinfo 混載= 宣言済み残余)・差戻 3(残件 5→2→1→0 単調収束)。検査官の独立 DAG 解析= 16 unit/29 edge/循環 0。報告= BomDD loops/equip-03/independent-*.md"
+  cheats: "工場 10 件(F001〜F010・全て高粒度。F010= 33-control-plan test_vectors の非機械可読性= 設計者側債務候補)+設計者側記録欠陥 3 件(段階混在クラス — IA-05/NEW-01/NEW-IA03-01)"
+  r052_dogfood: "diff_audit{baseline: eco-006-input}で open 窓監査 → verified 時 head: v0.5-eco-006-accepted で窓閉鎖(ECO-005 運用)"
+  impact_prediction: { under_inclusion: 0, over_inclusion: 0, note: "工場の影響なし予測はほぼ全的中(唯一の外れ= multi_unit_ecos 5→4 を自己申告)。src/test/oracle/schemas/.github の実体 diff ゼロ・全回帰不変が成立" }

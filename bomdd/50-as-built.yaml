@@ -166,3 +166,20 @@ as_built:
       - { evidence_id: TE-ECO2-017, cp_ref: CP-DESIGN-SYSTEM-019, result: pass, evidence_path: oracle/README.md }
       - { evidence_id: TE-ECO2-018, cp_ref: CP-SARIF-020,         result: pass, evidence_path: oracle/expected/S-23-sarif.json, notes: 新設(ECO-002) }
       - { evidence_id: TE-ECO2-019, cp_ref: CP-GITDIFF-021,       result: pass, evidence_path: oracle/expected/S-22-diff-audit.json, notes: 新設(ECO-002) }
+
+  - id: AB-PLM-ECO-006
+    lifecycle_state: accepted        # 2026-08-02 maintainer verified 裁定+golden 承認
+    work_order_ref: bomdd/60-change-order-eco-006.md@eco-006-input
+    input_bom_tag: eco-006-input(c6f9d2d・input_tree_hash cc91fe5e で凍結・開始時 fail-closed 検査 PASS)
+    ai_model: claude-opus-5[1m](self-reported — 台帳初の担当設備明記。requested= Agent tool "opus")
+    harness: Claude Code Agent subagent(主観察者= claude-fable-5・BomDD equip-03 測定ラウンド)
+    isolation: workspace clone(全履歴+タグ・凍結採点器を複写供与・リポ外 3 パスのみ許可)
+    artifact_location: bomdd/(32-mbom 8 unit+depends_on 11 エッジ・61 影響分析・51 ずる 10 件 — 採用済み)
+    self_acceptance: "採点器 unmapped 0 かつ real_under 111 不変 / build 0 / 118/118 tests / lint error+warn 0 / diff= bomdd/ のみ(rev1〜rev4 各段で実測・全段 追加のみ)"
+    cheats: "工場 10(F001〜F010・高粒度 — 導出済み/ずるの区別・設計者側債務の指摘 2 件を含む)"
+    inspections:
+      independent: "Codex fresh 4 ラウンド(read-only)= 提起 8・8/8 CONFIRMED・誤検出 0・境界受理 1・差戻 3(残件 5→2→1→0)。検査官の独立 DAG 解析= 16 unit/29 edge/循環 0。報告= BomDD loops/equip-03/independent-*.md"
+      counters: "介入 0 / 差戻 3 / 範囲外 1(軽微・自己申告・即是正)。工場壁時計 44m47s・tokens 292,075(累積)"
+    epistemic_note: >
+      resolved model は self-reported(証明ではない)。セル値は検査体制込みの値であり
+      設備単体の能力値ではない(equip-01 拘束の継承)。

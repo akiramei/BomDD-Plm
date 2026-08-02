@@ -157,3 +157,13 @@
   残 open 所見 **0**(NEW-IA03-01 は本追記で条件充足)。
 - 残= maintainer 裁定(verified+golden)→ verified 時に head: 受入タグで窓閉鎖・52 記帳
   (eco_006 節+候補行解消マーカー)・as-built 追記。
+
+### accept(2026-08-02)
+
+- **maintainer 裁定: verified 承認+golden 確認**(「verified 裁定を承認します。golden も
+  確認しました。クローズしてください」)。
+- クローズ処置(本 commit): register status= verified・closed 記入・diff_audit へ
+  **head: v0.5-eco-006-accepted**(窓閉鎖 — 除去せず閉じる・ECO-005 運用)/52-metrics へ
+  eco_006 節+候補行(§台帳債務候補)の解消マーカー追記/50-as-built へ AB-PLM-ECO-006 追記。
+- 受入タグ v0.5-eco-006-accepted は本 commit に付与(fix5 d31b835 までの全証拠を含む)。
+  CI 実測は push 後に本欄へ追記(4 値判定)。
