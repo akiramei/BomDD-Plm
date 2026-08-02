@@ -116,3 +116,6 @@ changes:
       - M-BUILD-VIEWER-011
       - M-CI-012
       - M-SCHEMA-013
+      - M-SCHEMA-CONTRACT-014   # 差戻1是正(IA-02): 出力契約を供与スナップショットから分離
+      - M-PKGDEF-CORE-015       # 差戻1是正(IA-01): 著述パッケージ定義を鋳造 unit から分離
+      - M-PKGDEF-VIEWER-016     # 同上(viewer)

@@ -23,15 +23,40 @@ oracle/ 20・packages/core/(dist+tsbuildinfo)31・.github/ 2・schemas/ 1。
 
 ## 1. 裁定(work order §2 の委任事項)
 
+> **本節は rev2(差戻 1 回目の是正後)が現行の裁定である。** rev1 からの変更は各項に明記し、
+> 所見(IA-ECO006-01〜04)への処置対応表は §7 に置く。凍結済みの予測(§3・§4)と
+> rev1 個体の採点(§6)は記録として書き換えず、rev2 の実測は §7 に併記する。
+
 ### 裁定 1 — 生成物(dist/・tsbuildinfo)の帰属方式: **案 b(生成物専用 unit)**
 
 採用する一般規則(本 ECO で確立し、以後の package 追加に適用する):
 
-> **生成物は「その生成物を一意に生む製造手順を持つ最小の unit」に帰属する。**
+> **(A) unit は provenance(誰が作るか)で切る。混載しない。**(rev2 で明文化)
+> - **著述** = BOM から書かれる(src / test / oracle 治具 / package.json / tsconfig.json / CI 定義)
+> - **鋳造** = 道具が決定的に生成する(dist/ / tsconfig.tsbuildinfo)。人手編集禁止
+> - **供与** = 外部から版指定で持ち込む(schemas/ref-v0/ = K-REFV0 のスナップショット)
+>
+> **(B) 生成物は「その生成物を一意に生む製造手順を持つ最小の unit」に帰属する。**
 > - 1 package = 1 unit のとき → そのソース unit が生成物も所有する(実質 案 a)。
 > - 1 package = N unit のとき → 生成物は N unit の**共同出力**であり、どの単一 unit にも
 >   「独立に再製造・交換できる単位」として帰属させられない → **生成物専用 unit** を立て、
 >   由来を `depends_on`(機械検査対象エッジ・R-003)で明示する。
+
+**rev1 → rev2 の是正(IA-ECO006-01)**: rev1 は鋳造 unit の `artifact.path` を
+`packages/core/` `packages/viewer/`(package ルート)としていた。規則 (B) は満たすが
+規則 (A) を破る — 著述されたビルド入力(`package.json` / `tsconfig.json`)まで吸収し、
+同 unit の契約「決定的・**人手編集禁止**(著述物でなく鋳造物)」と**内容が矛盾**していた。
+加えて package ルートを取ることは以後その package に置かれる全てを黙って飲み込む catch-all 化で、
+本 ECO の主旨(写像を**明示**する)に反する。rev2 では鋳造 unit を `packages/<pkg>/dist/` に限定し、
+著述側を **M-PKGDEF-CORE-015 / M-PKGDEF-VIEWER-016** として分離した。
+
+**分離しきれない 1 件(パス機構の限界・正直記載)**: `tsconfig.tsbuildinfo` は鋳造物だが
+`dist/` の外にあり `packages/<pkg>/` を前置に持つため M-PKGDEF-* 側に同居する。
+前方一致写像(`f == p` または `f` が `p/` で始まる)+ 1 unit = 1 artifact.path の下では
+`packages/core/tsconfig` はパス区切りで一致せず、分離する手段がない。
+rev2 では **M-PKGDEF-* の `artifact.type` と `notes` に混載を明示**したため、
+「人手編集禁止と宣言した unit が著述物を抱える」rev1 の矛盾は解消している
+(混載そのものの解消には §5-3 の 3 案のいずれかが要る — 本 ECO のスコープ外)。
 
 根拠 3 点:
 
@@ -72,37 +97,71 @@ M-CLI-005 の `artifact.path: packages/cli/`(package ルート)に既に含ま�
   再製造手順を `notes` に書く」という様式。新 4 系統はいずれも E-BOM 品目を実現しない
   (要求→設計部品の系譜を持たない)ため、この様式をそのまま踏襲する。
 - **命名**: 既存は対象物基準(CORE / CLI / VIEWER / HARNESS)+ 通番。
-  よって `M-<対象物>-<通番>` を継ぎ、通番は既存 008 の続き **009〜013**(採番の連続性を保つ)。
+  よって `M-<対象物>-<通番>` を継ぎ、通番は既存 008 の続き **009〜016**(採番の連続性を保つ。
+  rev1 は 009〜013 の 5 件・rev2 で 014〜016 の 3 件を追加)。
   `M-HARNESS-*` への改名・既存 ID の変更はしない(60-change-register・34-routing からの
   参照が張られており、ID の再割当は R-002/R-003 の観点で不要なリスク)。
-- **`oracle/` を M-HARNESS-008(`test/`)に併合しない理由 — 供与境界が逆**:
-  34-routing の `factory_isolation` は「41/42・**oracle/ 配下**は工場へ非開示」と宣言する一方、
-  `test/`(M-HARNESS-008)は工場へ渡り工場が自己受入に使う。
-  **供与境界(誰に渡すか)が違うものは独立に交換できないので同一 unit にできない**。
-  したがって別 unit(M-ORACLE-009)とする。
+  rev2 でも **rev1 で採番済みの 009〜013 は改名・削除しない**(register 追随を加算のみに留めるため)。
+- **`oracle/` を M-HARNESS-008(`test/`)に併合しない理由 — 製造帰属が違う**
+  (**rev2 で論拠を訂正・IA-ECO006-04**):
+  - `test/` は**工場が製造して納品する成果物**である。40-work-order「製造対象」表に
+    `| M-HARNESS-008 | (治具) | test/ | 自己受入(下記) |` の行があり、
+    34-routing `ROUTE-DELIVER` の output にも `test/` が入る。
+  - `oracle/` は 34-routing `factory_isolation` が「製造パッケージ(20/30-35/40+ ref-v0
+    スナップショット+UI-CAD 一式)**のみ**供与。設計対話・41/42・**oracle/ 配下**・他工場成果は非開示」
+    と宣言する、**設計者が保持する受入判定器**である。工場は作りも見もしない。
+  - すなわち**工場が作るもの**と**工場に見せずに工場を採点するもの**であり、同一 unit に入れると
+    「工場が自分の採点器を作る」ことになって受入の独立性が壊れる。したがって別 unit とする。
+  - **rev1 の記述「`test/` は工場へ渡り工場が自己受入に使う」は誤り**だった。34-routing の
+    供与物リストに `test/` は無い。結論(別 unit)は変わらないが、根拠の事実記述を上記へ差し替える。
 - **粒度原則との整合(order CH-1 の要求事項)**: 各 unit を
   「独立に再製造・交換でき単独で自己受入できる単位(fresh factory に単体で渡せるか)」で検証した。
 
-| 新 unit | 再製造手順 | 自己受入 | 交換単位として成立するか |
-|---|---|---|---|
-| M-ORACLE-009 | 41-fixed-oracle の凍結ケースから fixtures/expected/harness を組む | `harness/selftest.mjs`(比較器の合成データ検証) | 成立(界面= `run-oracle.mjs --cli "<CLI 起動コマンド>"`。別実装の採点治具に差替可)。ただし**工場へは渡さない**単位 |
-| M-BUILD-CORE-010 | `tsc -b packages/core`(決定的・人手編集禁止) | build 0 エラー + 生成 dist 経由の L1 スモーク | 成立(「この src からビルド成果物を鋳造せよ」を単体で渡せる。tsc 版・ビルド構成の差替が交換) |
-| M-BUILD-VIEWER-011 | `tsc -b packages/viewer` | 同上 | 成立(同上) |
-| M-CI-012 | 34-routing の受入手順を CI 記述へ写す | ワークフロー実行が両 OS で緑 | 成立(別 CI プロバイダへの移植が交換) |
-| M-SCHEMA-013 | 参照層= K-REFV0 の版指定で method 側 draft から同期 / 出力契約= §2.9 正規形の版管理 | S-13(schema 差替)・CP-OUTPUT-010(出力の契約適合) | 成立(スキーマ版の差替が交換そのもの) |
+| 新 unit(rev2) | artifact.path | provenance | 再製造手順 | 自己受入 | 交換単位として成立するか |
+|---|---|---|---|---|---|
+| M-ORACLE-009 | `oracle/` | 著述(設計者) | 41-fixed-oracle の凍結ケースから fixtures/expected/harness を組む | `harness/selftest.mjs`(比較器の合成データ検証) | 成立(界面= `run-oracle.mjs --cli "<CLI 起動コマンド>"`)。ただし**工場が作る単位ではない** |
+| M-BUILD-CORE-010 | `packages/core/dist/` | 鋳造 | `tsc -b packages/core`(決定的・人手編集禁止) | build 0 エラー + 生成 dist 経由の L1 スモーク | 成立(「この src と構成から鋳造せよ」を単体で渡せる。tsc 版の差替が交換) |
+| M-BUILD-VIEWER-011 | `packages/viewer/dist/` | 鋳造 | `tsc -b packages/viewer` | 同上 | 成立(同上) |
+| M-CI-012 | `.github/` | 著述 | 34-routing の受入手順を CI 記述へ写す | ワークフロー実行が両 OS で緑 | 成立(別 CI プロバイダへの移植が交換) |
+| M-SCHEMA-013 | `schemas/ref-v0/` | **供与** | K-REFV0 の版指定で method 側 draft から同期(製品内で著述しない) | S-13(`--schema` 差替の固定オラクル) | 成立(スキーマ版の差替が交換そのもの) |
+| M-SCHEMA-CONTRACT-014 | `schemas/` | 著述 | §2.9 正規形の出力契約として版管理 | CP-OUTPUT-010(出力の契約適合) | 成立(契約版の差替が交換) |
+| M-PKGDEF-CORE-015 | `packages/core/` | 著述(+混載 1) | package.json / tsconfig.json を書く | `npm ci` が解決し `tsc -b` が起動する | 成立(パッケージ境界の定義そのものが交換単位) |
+| M-PKGDEF-VIEWER-016 | `packages/viewer/` | 著述(+混載 1) | 同上 | 同上 | 成立(同上) |
 
-- **M-SCHEMA-013 が `schemas/` 全体を持つことの限定**: `schemas/plm-*.schema.json`(出力契約)は
-  意味的には M-CORE-OUTPUT-004 の成果物(同 unit の `artifact.type` が既に `ts-module+json-schema`)だが、
-  **現行 M-BOM は 1 unit に複数 artifact path を宣言できない**(`artifact.path` は単一値)。
-  そこで「機械可読契約の版管理」という共通の保守手順で 1 unit にまとめ、
-  `depends_on: [M-CORE-OUTPUT-004]` で意味的な帰属を残す。
-  複数 path 宣言の可否は本 ECO の範囲外(§5 に記録)。
+- **M-SCHEMA-013 の分割(rev2・IA-ECO006-02)**: rev1 は `schemas/` 全体を 1 unit とし、
+  **供与入力**(`schemas/ref-v0/` = K-REFV0 のスナップショット。上流が正本で製品内では書かない)と
+  **製造出力**(`schemas/plm-*.schema.json` = M-CORE-OUTPUT-004 の成果物)を混載していた。
+  両者は provenance も再製造手順も交換の意味も違う(片方は「版を持ってくる」、もう片方は
+  「製品が公開する契約を書く」)ため、粒度原則に適合しない。rev2 で
+  `M-SCHEMA-013`(`schemas/ref-v0/`・供与)と `M-SCHEMA-CONTRACT-014`(`schemas/`・著述)へ分離した。
+  出力契約が M-CORE-OUTPUT-004 と別 unit になるのは **1 unit = 1 artifact.path の制約**によるもので、
+  `depends_on: [M-CORE-OUTPUT-004]` で意味的な帰属を残す(複数 path 宣言の可否は §5-3)。
+
+### 裁定 3 — `depends_on` の意味論(rev2 新設・IA-ECO006-03)
+
+ref-v0 は `mbom.manufacturing_units[].depends_on[]` を「family M の参照エッジ(severity: error)」と
+規定するだけで**意味論を規定していない**(rev1 の 51 CHEAT-ECO-006-F001 で「未裁定のまま用例を作った」と
+自己申告した箇所)。rev2 で本製品の用法を明示的に宣言する:
+
+> **`depends_on` = 「この unit を**再製造する前に成立していなければならない** unit」(製造順序の前提)。**
+> 実行時依存ではない(実行時の調達は `procurement` / K-BOM が持つ)。
+> 由来(鋳造元)はこの意味論の部分集合 — dist は src と構成が成立していなければ鋳造できない。
+
+この意味論で rev1 の宣言を検算し、**2 件の取りこぼしを是正**した:
+
+| unit | rev1 | rev2 | 是正の根拠(実ファイルの値) |
+|---|---|---|---|
+| M-BUILD-VIEWER-011 | viewer の 2 ソース unit のみ | + **M-BUILD-CORE-010** + M-PKGDEF-VIEWER-016 | `packages/viewer/tsconfig.json` の `references: [{ "path": "../core" }]` と `package.json` の `dependencies: { "@bomdd/core": "0.0.0" }` — viewer の鋳造は **core の鋳造出力(.d.ts)** の成立を前提とする |
+| M-CI-012 | HARNESS/ORACLE/CLI | + **鋳造 2 件** + **PKGDEF 2 件** | `ci.yml` の steps: `npm ci`(パッケージ定義)→ `npm run build`(鋳造)→ `node --test`(HARNESS)→ oracle 実行(ORACLE/CLI)→ self-hosting lint(CLI) |
+
+> スキーマ側への昇格(ref-v0 に `depends_on` の意味論を書く)は**設計者裁定**として残す
+> — 51 CHEAT-ECO-006-F005。本 ECO は製品 M-BOM の用法宣言までとする(order のスコープ内)。
 
 ## 2. 影響あり(トレース逆引き)
 
 | 段 | 影響 ID / 対象 | 何が変わるか |
 |---|---|---|
-| M-BOM | **M-ORACLE-009・M-BUILD-CORE-010・M-BUILD-VIEWER-011・M-CI-012・M-SCHEMA-013 新設** | `mbom.manufacturing_units` に 5 unit 追加。既存 8 unit の**全フィールドは不変**(1 文字も変えない) |
+| M-BOM | **rev2: M-ORACLE-009 / M-BUILD-CORE-010 / M-BUILD-VIEWER-011 / M-CI-012 / M-SCHEMA-013 / M-SCHEMA-CONTRACT-014 / M-PKGDEF-CORE-015 / M-PKGDEF-VIEWER-016 の 8 unit 新設** | `mbom.manufacturing_units` に 8 unit 追加(rev1 は 5)。既存 8 unit の**全フィールドは不変**(1 文字も変えない) |
 | 台帳 | 61-impact-analysis-eco-006.md 新設(本書) | 影響分析+裁定 2 点の設計根拠 |
 | 台帳 | 51-cheat-log.md | BOM/order から導けなかった判断の追記(§6 で確定) |
 | 仕様・E-BOM・K-BOM・CP・固定オラクル・routing | **変更なし** | 本 ECO は所有宣言のみ。要求も部品も検査も増えない |
@@ -154,6 +213,11 @@ ECO 別 `under` 件数の予測(= 変更前 under + 変更前 unmapped):
 `M-BUILD-CORE-010:43 / M-ORACLE-009:27 / M-CORE-INGEST-001:18 / M-HARNESS-008:15 / M-SCHEMA-013:3 / M-CI-012:3 / M-CLI-005:2`
 (既存 3 unit の値は不変)。
 
+> ※ 本節は **rev1 の凍結予測**であり書き換えない。rev2(差戻是正)で unit を分割したため
+> `hub_concentration` の配分だけが変わる(M-BUILD-CORE-010:43 → 39 + M-PKGDEF-CORE-015:4)。
+> **V1 の受入条件(unmapped 0 / real_under 111)と ECO 別 under(35/48/3/8/17)は rev2 でも不変。**
+> rev2 の予測と実測は §7。
+
 **M-BUILD-VIEWER-011 の予測は 0 件**である。viewer の生成物は ECO-001〜005 の実 diff に一度も現れていない。
 本 unit は測定された 76 の解消でなく、order §1 系統 2 の記述(`packages/*/dist/`)に対する
 **被覆の完全性**のために立てる(fail-closed: 次に viewer を再ビルドした ECO で unmapped を出さない)。
@@ -168,15 +232,30 @@ ECO 別 `under` 件数の予測(= 変更前 under + 変更前 unmapped):
    76 に含まれず、本 ECO の受入には影響しない。将来これらが変わる ECO では unmapped が再発する。
 2. **`examples/`(2 ファイル)は未写像のまま**。order §1 の 4 系統に含まれず、実 diff にも
    現れていない。上記 1 と同じく将来の再発点。
-3. **1 unit = 1 artifact path の制約**(裁定 2 の M-SCHEMA-013 の項)。
-   複数 path 宣言(または `artifact.paths[]`)の可否は ref-v0 スキーマ側の裁定事項。
+3. **1 unit = 1 artifact path の制約**(裁定 1 の tsbuildinfo 混載・裁定 2 の M-SCHEMA-CONTRACT-014 の項)。
+   **rev2 で残る唯一の provenance 混載**は `packages/<pkg>/tsconfig.tsbuildinfo`(鋳造物)が
+   M-PKGDEF-*(著述)に同居する 1 件。解消には次のいずれかが要り、いずれも本 ECO のスコープ外:
+   - (a) ref-v0 に `artifact.paths[]`(複数パス宣言)を入れる — スキーマ改訂。
+     出力契約スキーマを M-CORE-OUTPUT-004 に戻せる利点もある
+   - (b) 採点器に生成物パターン(除外/分離集計)を入れる — order §1 で明示的にスコープ外(別リポ裁定)
+   - (c) `tsconfig.tsbuildinfo` を版管理から外す — `.gitignore` は bomdd/ 外につき本 ECO では触れない。
+     ただし「ビルドキャッシュを版管理する必要があるか」は ECO-005 の under-inclusion の
+     根本原因でもあり、単独 ECO の候補として記録する
 4. **ViewPrism2 workspace 回帰(order §4 V3 の末項)は本 workspace で実施不能**
    (対象リポが同梱されていない)。設計者側で実施を要する。
 5. `--test-unit` 分離(採点規約 v1 #4)は本測定では未使用。M-HARNESS-008 / M-ORACLE-009 を
    test-only として分離するかは採点の見せ方の裁定であり、本 ECO では**変更しない**
    (V1 の 111 不変条件と直交させるため)。
+6. **既存 unit への `depends_on` 追記はしていない**(rev2)。裁定 3 の意味論に照らせば
+   M-CLI-005 は M-BUILD-CORE-010 / M-BUILD-VIEWER-011 に、M-CORE-GRAPH-002 は
+   M-SCHEMA-013(既定スキーマ)に依存する。しかし既存 8 unit の無改変は rev1 からの
+   宣言事項であり、rev2 の是正範囲(IA-01〜04)にも含まれないため触れない。
+   **既存 unit 側の depends_on 補完は後続 ECO の候補**として記録する。
 
-## 6. 採点(製造後記入 — 2026-08-02・工場自己受入の実測)
+## 6. 採点(rev1 個体・製造後記入 — 2026-08-02・工場自己受入の実測)
+
+> 本節は **rev1 個体**の採点記録であり、差戻後も書き換えない(測定の記録)。
+> rev2 個体の実測は §7。V1 の受入値(unmapped 0 / real_under 111)は rev1・rev2 とも同一。
 
 実測値(凍結採点器・変更後個体):
 
@@ -222,4 +301,57 @@ ECO 別 `under` 件数の予測(= 変更前 under + 変更前 unmapped):
   という**過去の記録の事実**であり、台帳の写像を直しても過去の宣言は変わらない。
   本 ECO が消したのは「未知の変更先があるのに under 0 に見える」という**見出しの嘘**(unmapped)である。
 - ずる報告: 4 件(51-cheat-log.md の CHEAT-ECO-006-F001〜F004)。実装は止めていない。
+
+## 7. rev2 — 差戻 1 回目(独立検査 IA-ECO006-01〜04)の是正
+
+> 別ベンダー独立検査(Codex fresh・read-only)が所見 5 件(high 0 / medium 4 / low 1)を提起し、
+> 設計者側の突合で全件 CONFIRMED。うち工場帰属の 4 件を本 rev2 で是正した
+> (IA-ECO006-05= 受入記録の revision 未固定は設計者側帰属・当方対象外)。
+
+### 7.1 所見ごとの処置
+
+| 所見 | 等級 | 指摘の要旨 | 処置 | 反映先 |
+|---|---|---|---|---|
+| **IA-ECO006-01** | medium | 鋳造 unit の path(`packages/core/` `packages/viewer/`)が過広。著述されたビルド入力まで吸収し「人手編集禁止」契約と矛盾・catch-all 化 | **受諾**。鋳造 unit を `packages/<pkg>/dist/` に限定し、著述側を M-PKGDEF-CORE-015 / M-PKGDEF-VIEWER-016 へ分離。provenance で切る規則 (A) を裁定 1 に明文化。残る混載 1 件(tsbuildinfo)はパス機構の限界として契約文に明示+§5-3 に解消 3 案 | 32-mbom(010/011 の path・015/016 新設)/ 61 §1 裁定 1 / §5-3 |
+| **IA-ECO006-02** | medium | M-SCHEMA-013 が供与入力(ref-v0 スナップショット)と製造出力(plm-*.schema.json)を混載 | **受諾**。M-SCHEMA-013 を `schemas/ref-v0/`(供与)に縮小し、出力契約を M-SCHEMA-CONTRACT-014(`schemas/`・著述)へ分離 | 32-mbom(013 の path/name・014 新設)/ 61 §1 裁定 2 |
+| **IA-ECO006-03** | medium | `depends_on` が不完全(viewer→core の実ビルド参照・CI→build unit)。かつ意味論が未裁定 | **受諾**。裁定 3 を新設し `depends_on` = 「再製造前に成立していなければならない unit」と宣言。実ファイル(`packages/viewer/tsconfig.json` の references / `package.json` の @bomdd/core / `ci.yml` の steps)で検算し 2 unit の宣言を補完 | 32-mbom(011/012 の depends_on・ヘッダ裁定 3)/ 61 §1 裁定 3 |
+| **IA-ECO006-04** | low | oracle/ 非併合の結論は妥当だが根拠の事実記述「test/ は工場へ渡る」が 34-routing・40-work-order と不一致 | **受諾**。`test/` は供与物ではなく**工場が製造して納品する成果物**(40-work-order「製造対象」表・ROUTE-DELIVER output)。論拠を「供与境界が逆」→「**製造帰属が違う**(工場が作るもの vs 工場に見せずに工場を採点するもの)」へ差し替え。結論は不変 | 32-mbom(009 の notes)/ 61 §1 裁定 2 |
+
+所見はいずれも**製造物の欠陥**であり、指摘は 4 件とも正確だった。反論・部分不受諾はない。
+
+### 7.2 rev2 の予測と実測(是正設計時に導出 → 実行)
+
+| 指標 | rev1 実測 | **rev2 予測** | **rev2 実測** | 判定 |
+|---|---|---|---|---|
+| `decomposition.unmapped_files` | 0 | 0(不変) | **0** | 的中 |
+| `real_under_files` | 111 | 111(不変) | **111** | 的中 |
+| ECO 別 under(001〜005) | 35/48/3/8/17 | 同一(unit の切り方は写像先を変えるだけ) | **35/48/3/8/17** | 的中 |
+| `hub_concentration` の変化 | BUILD-CORE 43 | BUILD-CORE **39** + PKGDEF-CORE **4**(= tsbuildinfo の 4 ECO 分が分離) | **39 / 4** | 的中 |
+| `over` 集合(全 ECO) | 不変 | 不変(新 unit は既存 ECO の pred に入らない) | **不変** | 的中 |
+| lint error / warn | 0 / 0 | 0 / 0 | **0 / 0** | 的中 |
+| lint info | 180 | **179**(孤立は M-CI-012 / M-SCHEMA-013 / M-SCHEMA-CONTRACT-014 の 3 件。010/011 は M-CI-012 の depends_on で、015/016 は 010/011 の depends_on で被参照になり孤立が解ける) | **179**(追加は上記 3 件のみ・既存 176 件は差分ゼロ) | 的中 |
+| `npm run build` / `node --test` | 0 / 118 pass | 不変 | **0 / 118 pass・0 fail** | 的中 |
+| `git status --porcelain` | bomdd/ のみ | bomdd/ のみ | **bomdd/ のみ**(32-mbom / 51 / 61) | 的中 |
+
+rev2 実測の全文: `hub_concentration` = `M-BUILD-CORE-010:39 / M-ORACLE-009:27 /
+M-CORE-INGEST-001:18 / M-HARNESS-008:15 / M-PKGDEF-CORE-015:4 / M-SCHEMA-013:3 /
+M-CI-012:3 / M-CLI-005:2`(合計 111)。`multi_unit_ecos` = 4(rev1 と同じ)。
+
+> **孤立(R-005 info)の減少は副作用であって目的ではない。** 追加した `depends_on` は
+> IA-03 の是正として**実ファイルの値から検算した真の前提**であり、
+> 検査を黙らせるために張った参照ではない(rev1 の 51 CHEAT-ECO-006-F004 で宣言した規律を維持)。
+> 残る 3 件の孤立は「台帳上の消費者を持たない葉」であり、消すには既存 unit の改変(§5-6)が要る。
+
+### 7.3 register(60-change-register.yaml)側で必要になる追随
+
+本 workspace の register は起票時のままだが、実リポでは ECO-006 の `affected_refs` に
+rev1 の新 unit 5 件が追記済みと聞いている。rev2 では **改名 0・削除 0・追加 3** なので、
+追随は**加算のみ**で足りる:
+
+| 項目 | 内容 |
+|---|---|
+| 追加が必要 | `M-SCHEMA-CONTRACT-014` / `M-PKGDEF-CORE-015` / `M-PKGDEF-VIEWER-016` |
+| 不要 | 既存 5 件(M-ORACLE-009 / M-BUILD-CORE-010 / M-BUILD-VIEWER-011 / M-CI-012 / M-SCHEMA-013)は **ID 不変**。`artifact.path` と `name` は変わったが ID は変えていない |
+| 採点への影響 | なし。ECO-006 のコミットは bomdd/ のみ = 採点器は `doc_only` として skip する(`actual` が空)。他 ECO の `pred` は各自の affected_refs から作られるため影響しない |
+| R-051 | 追記する 3 件は 32-mbom に定義済みにつき解決可(未追記でも R-051 は green — 追記漏れは検出されない。これは R-051 が「書いた ID が解決するか」だけを見て「書くべき ID を書いたか」を見ないため。観察として記録) |
 </content>

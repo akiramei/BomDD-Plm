@@ -87,3 +87,19 @@
 - register: affected_refs へ新 5 unit を追加(影響集合の実相化・R-005 孤立解消)。
 - 残: 独立検査(Codex fresh)→ maintainer 裁定(verified+golden)→ head タグで窓閉鎖・
   52 記帳(eco_006 節+候補行解消マーカー)。
+
+### §5 追記(2026-08-02・独立検査 IA-ECO006-05 の是正 — 記録の精密化)
+
+- **段階の区別**(上記本文は 2 段階の証拠が混在していた — 訂正): (i) 工場 workspace 段階=
+  変更 3 ファイル・lint info 180(新 unit の R-005 孤立 4 件を含む)。(ii) 最終 fix commit
+  8a874ea= 台帳 2 ファイルを加えた **5 ファイル**・register 影響集合更新により **info 176・
+  新 unit 由来所見 0**(独立検査官の書込みなし API 再測定でも 176 を確認)。
+- **ViewPrism2 workspace 回帰の再現条件(固定)**: コマンド=
+  `node packages/cli/dist/main.js examples/viewprism-workspace.yaml --out <リポ外>`(--eco なし)/
+  対象 revision= ViewPrism2 **6fe3706**(clean)・ViewPrismUI **204723b**。この条件で
+  error 0 / **warn 12** / info 502 を変更前個体・変更後・追試(21:43)の 3 回とも再現。
+  独立検査官の再測定値 warn 15 は実行条件差(--eco 等のオプション集合)由来とみられ、
+  revision・コマンド未記録だった本欄の欠陥(IA-05)が原因 — 本追記で固定。
+- 独立検査= REJECT・所見 5 件(medium 4/low 1)・当方突合で **5/5 CONFIRMED・誤検出 0**。
+  工場帰属 IA-01〜04 は差戻 1 回目で是正(是正後の受入は本 order 末尾へ追記)。
+  報告全文= BomDD loops/equip-03/independent-inspection-eco-006.md。

@@ -107,16 +107,31 @@ mbom:
       notes: "L1 スモーク= 同梱ミニ fixture に対し CLI 実行→ exit code/出力ファイル存在/plm-view.html 生成を1本通す(unit 緑のまま表面全滅の盲点対策・forward-01)。治具セルフテスト(比較器の合成データ検証)を含む"
 
     # ---- ECO-006(2026-08-02): 写像被覆ギャップの解消 — 治具・生成物・CI・スキーマの所有宣言 ----
+    #      rev2(2026-08-02・差戻 1 回目 IA-ECO006-01〜04 の是正。詳細= 61 §1・§7)
     # 由来: 上記 8 unit は「著述されるソース」だけを所有していたため、実 diff の 76 件(ECO-001〜005)が
     #   どの unit にも帰属できなかった(遡及採点の unmapped= fail-closed の under)。
-    # 帰属規則(ECO-006 裁定 1・61-impact-analysis-eco-006.md §1): 生成物は「その生成物を一意に生む
-    #   製造手順を持つ最小の unit」に帰属する。1 package = 1 unit なら当該ソース unit が所有し
-    #   (M-CLI-005 が packages/cli/ 全体を持つ既存宣言がこれに当たる)、1 package = N unit なら
-    #   生成物は共同出力で単一 unit に帰属できないため専用 unit を立て depends_on で由来を宣言する。
+    #
+    # 【裁定 1(rev2)】unit は **provenance(誰が作るか)** で切る。混載しない。
+    #   著述 = BOM から人が/工場が書く(src・test・oracle 治具・package.json・tsconfig.json・CI 定義)
+    #   鋳造 = 道具が決定的に生成する(dist/・tsconfig.tsbuildinfo)。人手編集禁止・版管理は再生成可能性で担保
+    #   供与 = 外部から版指定で持ち込む(schemas/ref-v0/ = K-REFV0 のスナップショット)
+    #   生成物の帰属先は「その生成物を一意に生む製造手順を持つ最小の unit」:
+    #     1 package = 1 unit → 当該ソース unit が所有(M-CLI-005 が packages/cli/ を持つ既存宣言)
+    #     1 package = N unit → 共同出力ゆえ単一ソース unit に帰属できない → 鋳造専用 unit + depends_on
+    #   rev1 からの是正(IA-01): 鋳造 unit の path を packages/<pkg>/dist/ に**限定**した。
+    #     rev1 は packages/<pkg>/ 全体を取り、著述物(package.json・tsconfig.json)まで吸収して
+    #     「人手編集禁止」の契約と矛盾していた。著述側は M-PKGDEF-* として分離した。
+    #
+    # 【裁定 3(rev2 新設)】depends_on の意味論 = 「この unit を**再製造する前に成立していなければ
+    #   ならない** unit」(製造順序の前提)。実行時依存ではない(実行時の調達は procurement/K-BOM)。
+    #   由来(鋳造元)はこの意味論の部分集合として表現される — dist は src が成立していないと鋳造できない。
+    #   ※ ref-v0 は depends_on を「family M の参照エッジ」としか規定しておらず意味論は未規定。
+    #      本製品の用法として上記を宣言する(スキーマ側への昇格は設計者裁定 — 51 CHEAT-ECO-006-F001/F005)。
+    #
     # 様式: M-HARNESS-008(治具= 製品と同格)の前例に整合 — E-BOM 品目を実現しない unit は
     #   ebom_refs: [] / acceptance_refs: [] を許し、再製造手順を notes に書く。
     - id: M-ORACLE-009
-      name: 固定オラクル治具(設計者側 — 工場非開示)
+      name: 固定オラクル治具(設計者保持 — 工場非開示の受入判定器)
       ebom_refs: []
       kbom_refs: [K-TS-DETERMINISM]
       depends_on: [M-CLI-005]
@@ -125,68 +140,129 @@ mbom:
         run: "node harness/run-oracle.mjs --cli \"<CLI 起動コマンド>\"  // 41-fixed-oracle の全採点行を実行し PASS/FAIL を返す"
       acceptance_refs: []
       notes: >-
-        再製造= 41-fixed-oracle.yaml の凍結ケース定義から fixtures/expected/harness を組む。
-        自己受入= harness/selftest.mjs(比較器を合成データで検証)。
-        M-HARNESS-008(test/)と分けるのは**供与境界が逆**だから — 34-routing の factory_isolation が
-        oracle/ 配下を工場へ非開示と宣言する一方、test/ は工場へ渡り工場が自己受入に使う。
-        供与先が違うものは独立に交換できないため同一 unit にしない(ECO-006 裁定 2)。
+        provenance= 著述(設計者側)。再製造= 41-fixed-oracle.yaml の凍結ケース定義から
+        fixtures/expected/harness を組む。自己受入= harness/selftest.mjs(比較器を合成データで検証)。
+        M-HARNESS-008(test/)と分けるのは **製造帰属が違う** から(rev2 で論拠訂正・IA-04)—
+        test/ は**工場が製造して納品する成果物**(40-work-order「製造対象」表に M-HARNESS-008 |
+        (治具) | test/ の行があり、34-routing ROUTE-DELIVER の output にも test/ が入る)。
+        一方 oracle/ は 34-routing factory_isolation が「41/42・oracle/ 配下は非開示」と宣言する
+        **設計者が保持する受入判定器**であり、工場は作りも見もしない。
+        両者を同一 unit にすると「工場が自分の採点器を作る」ことになり受入の独立性が壊れる。
+        (rev1 の論拠「test/ は工場へ渡る」は 34-routing の供与物リスト— 20/30-35/40+ref-v0+UI-CAD —
+        と不一致だった。test/ は供与物ではなく製造物である。)
     - id: M-BUILD-CORE-010
-      name: core パッケージの鋳造出力(dist/・ビルド構成)
+      name: core の鋳造出力(dist/)
       ebom_refs: []
       kbom_refs: [K-TS-DETERMINISM]
-      depends_on: [M-CORE-INGEST-001, M-CORE-GRAPH-002, M-CORE-RULES-003, M-CORE-OUTPUT-004]
-      artifact: { path: packages/core/, type: ビルド生成物(dist/・tsconfig.tsbuildinfo)+パッケージ構成 }
+      depends_on: [M-CORE-INGEST-001, M-CORE-GRAPH-002, M-CORE-RULES-003, M-CORE-OUTPUT-004, M-PKGDEF-CORE-015]
+      artifact: { path: packages/core/dist/, type: 鋳造出力(tsc の .js/.d.ts/.d.ts.map) }
       interface_contract:
-        build: "tsc -b packages/core  // 決定的。人手編集禁止(著述物でなく鋳造物)"
+        build: "tsc -b packages/core  // 決定的。**人手編集禁止**(著述物でなく鋳造物)"
       acceptance_refs: []
       notes: >-
-        所有範囲= packages/core/ のうち src/ を除く全て(src/ は最長前方一致により上記 4 ソース unit が所有)。
-        専用 unit にする理由= dist は 4 unit の**共同出力**であり、どの単一ソース unit にも
-        「独立に再製造・交換できる単位」として帰属させられないため(ECO-006 裁定 1)。
-        生成物は自 unit 以外の理由でも変化する(ECO-005: 依存先 d.ts 変更に伴う tsbuildinfo 更新)—
+        provenance= 鋳造のみ(rev2・IA-01 是正: rev1 は packages/core/ 全体を取り著述物を吸収していた)。
+        専用 unit にする理由= dist は 4 ソース unit の**共同出力**であり、どの単一ソース unit にも
+        「独立に再製造・交換できる単位」として帰属させられないため。
+        生成物は自 unit 以外の理由でも変化する(ECO-005: 依存先 d.ts 変更に伴うビルドキャッシュ更新)—
         depends_on が「由来 unit の変化に追従した鋳造」を機械可読に残す。
+        ビルド入力の著述物(package.json / tsconfig.json)は M-PKGDEF-CORE-015 が所有し、
+        本 unit はそれに depends_on する(鋳造には構成の成立が先立つ)。
     - id: M-BUILD-VIEWER-011
-      name: viewer パッケージの鋳造出力(dist/・ビルド構成)
+      name: viewer の鋳造出力(dist/)
       ebom_refs: []
       kbom_refs: [K-TS-DETERMINISM]
-      depends_on: [M-VIEWER-GEN-006, M-VIEWER-UI-007]
-      artifact: { path: packages/viewer/, type: ビルド生成物(dist/・tsconfig.tsbuildinfo)+パッケージ構成 }
+      depends_on: [M-VIEWER-GEN-006, M-VIEWER-UI-007, M-BUILD-CORE-010, M-PKGDEF-VIEWER-016]
+      artifact: { path: packages/viewer/dist/, type: 鋳造出力(tsc の .js/.d.ts/.d.ts.map) }
       interface_contract:
-        build: "tsc -b packages/viewer  // 決定的。人手編集禁止"
+        build: "tsc -b packages/viewer  // 決定的。**人手編集禁止**"
       acceptance_refs: []
       notes: >-
-        M-BUILD-CORE-010 と同じ帰属規則(1 package = N unit → 生成物専用 unit)。
+        M-BUILD-CORE-010 と同じ帰属規則・同じ provenance 限定。
+        depends_on に **M-BUILD-CORE-010 を含む**(rev2・IA-03 是正)— packages/viewer/tsconfig.json の
+        references: [{ path: ../core }] と package.json の dependencies: { "@bomdd/core": "0.0.0" } により、
+        viewer の鋳造は core の**鋳造出力(.d.ts)が成立していること**を前提とする。
+        rev1 は viewer の 2 ソース unit しか挙げておらず、実ビルドの前提を取りこぼしていた。
         ECO-001〜005 の実 diff には現れていない(是正でなく被覆の完全性のための宣言 — 次に viewer を
-        再ビルドする ECO で unmapped を出さない fail-closed 側の措置。61 §4 に明記)。
+        再ビルドする ECO で unmapped を出さない fail-closed 側の措置。61 §4)。
     - id: M-CI-012
       name: CI 定義(両 OS 回帰+ code scanning 連携)
       ebom_refs: []
       kbom_refs: [K-NODE-PORTABILITY]
-      depends_on: [M-HARNESS-008, M-ORACLE-009, M-CLI-005]
+      depends_on: [M-PKGDEF-CORE-015, M-PKGDEF-VIEWER-016, M-BUILD-CORE-010, M-BUILD-VIEWER-011, M-CLI-005, M-HARNESS-008, M-ORACLE-009]
       artifact: { path: .github/, type: GitHub Actions ワークフロー+変換スクリプト(.mjs) }
       interface_contract:
         ci: "push/PR で build → node --test → 固定オラクル全行 → self-hosting lint(--eco --fail-on error)を ubuntu/windows で実行"
       acceptance_refs: []
       notes: >-
-        再製造= 34-routing の受入手順(ROUTE-SELF-ACCEPT ほか)を CI 記述へ写す。
+        provenance= 著述。再製造= 34-routing の受入手順(ROUTE-SELF-ACCEPT ほか)を CI 記述へ写す。
         自己受入= ワークフロー実行が両 OS で緑。CI は測定器であり検査の正本ではない
         (正本は 33-control-plan と 41-fixed-oracle)。
+        depends_on は ci.yml の steps が実際に成立を要求する unit の全体(rev2・IA-03 是正)—
+        build ステップが **鋳造 unit 2 件**を、oracle ステップが M-ORACLE-009 と M-CLI-005 を、
+        unit tests が M-HARNESS-008 を、npm ci が **パッケージ定義 2 件**を前提とする。
+        rev1 は鋳造 unit とパッケージ定義を落としていた(CI が build を回すのに build 成果物の
+        unit を前提に挙げていない= 前提の取りこぼし)。
     - id: M-SCHEMA-013
-      name: スキーマ資産(参照層スナップショット+出力契約)
+      name: 参照層スキーマの供与スナップショット(ref-v0)
       ebom_refs: []
       kbom_refs: [K-REFV0]
-      depends_on: [M-CORE-OUTPUT-004]
-      artifact: { path: schemas/, type: json-schema+yaml(ref-v0 派生) }
+      depends_on: []   # 供与物 — 本製品内に先立つ製造前提を持たない(版は K-REFV0 が指定)
+      artifact: { path: schemas/ref-v0/, type: 供与スナップショット(yaml+json-schema) }
       interface_contract:
         refSchema: "schemas/ref-v0/(ref-edges.draft.yaml / id-grammar.draft.yaml / bomdd-ref.draft.schema.json)  // リンタの既定スキーマ。--schema で差替可"
-        outputContract: "schemas/plm-{diag,graph,ledger}-1.schema.json  // §2.9 正規形の出力契約"
       acceptance_refs: []   # ECO-006 スコープ外: 33-control-plan への acceptance 接続の新設(order §1)
       notes: >-
-        再製造= 参照層は K-REFV0 の版指定で method 側 draft から同期・出力契約は §2.9 正規形の版管理。
-        出力契約スキーマは意味的には M-CORE-OUTPUT-004 の成果物(同 unit の artifact.type が既に
-        ts-module+json-schema)だが、現行 M-BOM は 1 unit に複数 artifact path を宣言できないため
-        「機械可読契約の版管理」という共通の保守手順で 1 unit にまとめ、depends_on で帰属を残す
-        (複数 path 宣言の可否は ref-v0 側の裁定事項 — ECO-006 スコープ外・61 §5)。
+        provenance= **供与**(rev2・IA-02 是正: rev1 は供与入力と製造出力を単一 unit に混載していた)。
+        再製造= K-REFV0 の版指定で method 側 draft から同期する(製品内で著述しない — 上流が正本)。
+        交換= スキーマ版の差替そのもの(S-13 が --schema 差替を固定オラクルで担保)。
+        出力契約スキーマ(schemas/plm-*.schema.json)は provenance が違うため M-SCHEMA-CONTRACT-014 へ分離した。
+    - id: M-SCHEMA-CONTRACT-014
+      name: 出力契約スキーマ(schemas/ 直下)
+      ebom_refs: []
+      kbom_refs: []
+      depends_on: [M-CORE-OUTPUT-004]
+      artifact: { path: schemas/, type: json-schema(出力契約 3 種) }
+      interface_contract:
+        outputContract: "schemas/plm-{diag,graph,ledger}-1.schema.json  // §2.9 正規形の出力契約。M-CORE-OUTPUT-004 の serialize* が満たす"
+      acceptance_refs: []   # ECO-006 スコープ外(order §1)。意味的な受入は CP-OUTPUT-010
+      notes: >-
+        provenance= 著述(製品の公開契約)。意味的には M-CORE-OUTPUT-004 の成果物(同 unit の
+        artifact.type が既に ts-module+json-schema)だが、**現行 M-BOM は 1 unit に複数 artifact path を
+        宣言できない**ため別 unit とし depends_on で帰属を残す(複数 path 宣言の可否は ref-v0 側の裁定 — 61 §5)。
+        所有範囲= schemas/ 直下(ref-v0/ は最長前方一致で M-SCHEMA-013 が所有)。
+        schemas/ に新しいサブディレクトリを置く場合は provenance を確かめて unit を立てること
+        (本 unit を catch-all にしない運用註)。
+    - id: M-PKGDEF-CORE-015
+      name: core のパッケージ定義・ビルド構成
+      ebom_refs: []
+      kbom_refs: [K-NODE-PORTABILITY]
+      depends_on: []
+      artifact: { path: packages/core/, type: package.json+tsconfig.json(著述)+tsconfig.tsbuildinfo(tsc の増分状態) }
+      interface_contract:
+        package: "@bomdd/core — main/types が dist/ を指す。tsconfig は rootDir=./src outDir=./dist"
+      acceptance_refs: []
+      notes: >-
+        provenance= 著述(package.json / tsconfig.json)。所有範囲= packages/core/ のうち
+        src/(4 ソース unit)と dist/(M-BUILD-CORE-010)を除いた残り。
+        **既知の混載 1 件**: tsconfig.tsbuildinfo(鋳造物)が本 unit に同居する。
+        前方一致写像+1 unit = 1 artifact.path の下では dist/ 外の鋳造物を著述物から分離できない
+        (`packages/core/tsconfig` はパス区切りで一致しない)。分離には
+        (a) ref-v0 に artifact.paths[] を入れる (b) 採点器に生成物パターンを入れる
+        (c) tsbuildinfo を版管理から外す のいずれかが要る — 全て本 ECO のスコープ外(61 §5・§7)。
+        混載を**契約文で明示**することで「人手編集禁止 unit が著述物を抱える」rev1 の矛盾は解消した。
+    - id: M-PKGDEF-VIEWER-016
+      name: viewer のパッケージ定義・ビルド構成
+      ebom_refs: []
+      kbom_refs: [K-NODE-PORTABILITY]
+      depends_on: []
+      artifact: { path: packages/viewer/, type: package.json+tsconfig.json(著述)+tsconfig.tsbuildinfo(tsc の増分状態) }
+      interface_contract:
+        package: "@bomdd/viewer — dependencies に @bomdd/core。tsconfig の references: [../core]"
+      acceptance_refs: []
+      notes: >-
+        M-PKGDEF-CORE-015 と同型(既知の混載 1 件も同じ)。
+        packages/cli/ は 1 package = 1 unit のため M-CLI-005 が package 全体(構成・src・dist)を
+        所有しており、本系列の分離対象外(裁定 1 の 1 package = 1 unit 枝。V1 の 111 不変条件とも整合)。
 
   silence_sweep:   # 第2回掃討(全行3択。第1回の deferred-to-phase3 を解消)
     - { dimension: 表示要素集合・CAD パリティ, declaration: specified, ref: "30 display_contracts / CP-VISUAL-GAP-018" }
