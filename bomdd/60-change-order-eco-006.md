@@ -65,6 +65,25 @@
     head: で窓を閉じる(ECO-005 運用)。
 - diff_audit(起票時宣言): `{ baseline: eco-006-input, allowed_paths: [bomdd/] }`
 
-## 5. 記録(受入時に記入)
+## 5. 記録(2026-08-02 受入)
 
-(製造前 — 未実施)
+- 製造: claude-opus-5[1m](工場 subagent・自己申告)— 影響分析起草(61)+32-mbom 宣言 5 unit
+  (M-ORACLE-009/M-BUILD-CORE-010/M-BUILD-VIEWER-011/M-CI-012/M-SCHEMA-013)+51 ずる 4 件。
+  裁定 1= 案 b(生成物専用 unit — 帰属規則「生成物を一意に生む製造手順を持つ最小の unit」)/
+  裁定 2= M-HARNESS-008 様式整合・通番 009〜013(oracle/ を 008 へ併合しない根拠= 供与境界が逆)。
+  介入 0・自己受入 5/5。詳細= BomDD loops/equip-03/(equip-03 測定ラウンド)。
+- 設計者側 受入(実リポ・全再実測): V1= 凍結採点器 **unmapped_files 0**(較正の赤 76 → 0)かつ
+  **real_under_files 111 不変**(見出し付け替えでない証明)。V3= build 0 エラー・**118/118 tests**・
+  **オラクル 34/34**・self-hosting `--eco --fail-on error` **error/warn 0**(info 176→180:
+  増分は新 unit 4 件の R-005 孤立定義のみ= register 影響集合の更新で解消)・
+  **ViewPrism2 workspace 回帰差分 0**(変更前個体との対照実測で error 0/warn 12/info 502 が
+  完全同値 — warn 12 は ViewPrism2 側の既存状態であり本 ECO 非起因)。V4= R-051 green。
+  V5= diff が bomdd/ に閉じる(git status 3 ファイルすべて bomdd/)。
+- 影響なし予測の的中: src/test/oracle/schemas/.github 実体 diff ゼロ・全回帰不変。
+- 工場の正直記載: 影響なし予測の外れ 1 件(multi_unit_ecos 5 予測 → 実測 4)を 61 §6 に自己申告。
+- **F003(工場検出の order 欠陥)**: §3 の起草先「workspace の impact-analysis-eco-006.md」は
+  誤記 — 正= `bomdd/61-impact-analysis-eco-006.md`(既存 61-eco-001/002 様式・diff_audit
+  allowed_paths とも整合)。工場は実物が正で解決し本欄で訂正(§3 本文は歴史記録として非改竄)。
+- register: affected_refs へ新 5 unit を追加(影響集合の実相化・R-005 孤立解消)。
+- 残: 独立検査(Codex fresh)→ maintainer 裁定(verified+golden)→ head タグで窓閉鎖・
+  52 記帳(eco_006 節+候補行解消マーカー)。

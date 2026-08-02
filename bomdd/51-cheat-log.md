@@ -57,6 +57,50 @@
 - 代替した判断: K-SARIF パックを 31 に新設して参照(自己適用の R-004 warn をリンタが検出 — 設計者捕捉4例目)。
 - 重大度: minor
 
+## CHEAT-ECO-006-F001 [factory] 生成物 unit の「由来」を表す標準フィールドが M-BOM 慣行に無い
+- 手法が与えなかったもの: ECO-006 裁定 1 で生成物専用 unit を立てたが、
+  「この unit はどのソース unit の鋳造出力か」を書く欄が M-BOM の既存 8 unit の慣行に無かった
+  (既存 unit は誰も `depends_on` を使っていない)。ref-v0 のエッジ台帳には
+  `mbom.manufacturing_units[].depends_on[]`(family M・severity error)が定義されているのに、
+  本製品の M-BOM は一度も使っていない=「使ってよいか」の前例が無い状態。
+- 代替した判断: `depends_on` を由来欄として使う(自由キーの新設をしない)。理由=
+  スキーマ既定のエッジなら R-003 が参照解決を機械検査するため、由来宣言が腐らない。
+  自由キーだと宣言が壊れても誰も気づかない(silence)。
+- 重大度: minor(挙動不変。ただし `depends_on` の意味論が「実行時依存」か「由来・鋳造元」かは
+  ref-v0 に規定が無く、本 ECO で後者の用例を作った — 意味論の初回定着は設計者裁定を要する)
+
+## CHEAT-ECO-006-F002 [factory] `artifact.type` の語彙が未規定
+- 手法が与えなかったもの: `artifact.type` は閉集合でなく自由記述(既存値= `ts-module` /
+  `ts-cli(bin=bomdd-lint)` / `node:test スイート` / `埋込 JS/CSS(生成 HTML に内包)` 等)。
+  新 5 unit に何と書くかの語彙が無い。
+- 代替した判断: 既存の書き癖(「何で出来ているか」の平文)に倣って
+  `fixtures+expected+node 治具(.mjs)` / `ビルド生成物(dist/・tsconfig.tsbuildinfo)+パッケージ構成` /
+  `GitHub Actions ワークフロー+変換スクリプト(.mjs)` / `json-schema+yaml(ref-v0 派生)` と記述。
+- 重大度: minor(機械検査の対象外フィールド。ただし「生成物である/著述物である」の区別は
+  台帳として意味があるので、`type` でなく専用の真偽値にする方が良い可能性 — 設計者裁定候補)
+
+## CHEAT-ECO-006-F003 [factory] 影響分析の設置場所が order §3 と製造指示で食い違う
+- 手法が与えなかったもの: order §3 は「起草物は workspace の `impact-analysis-eco-006.md`」
+  (リポ外・番号なし)と書き、製造指示は `bomdd/61-impact-analysis-eco-006.md`(リポ内・61 番)と指定した。
+  同一成果物の設置場所が 2 通り指示された。
+- 代替した判断: **リポ内 `bomdd/61-impact-analysis-eco-006.md`** に置いた。根拠 3 つ —
+  (a) 既存 ECO-001/002 の影響分析が `bomdd/61-impact-analysis-eco-NNN.md` として台帳に在る(実物が正)、
+  (b) 影響分析は受入証拠であり台帳に残らないと後続 ECO から参照できない、
+  (c) diff_audit の allowed_paths が `bomdd/` であり、リポ内設置が宣言と整合する。
+- 重大度: friction(成果物は 1 箇所にしか無いので、order の字面を追う検査官は不在と誤認しうる。
+  order §3 の文言是正が要る — 受入時に設計者裁定)
+
+## CHEAT-ECO-006-F004 [factory] 新 unit が R-005 孤立定義(info)を 4 件増やすことの許容基準が無い
+- 手法が与えなかったもの: 受入条件(order §4 V3)は「error/warn 0」であり info の増減は不問。
+  一方 R-005 の是正先メッセージは「参照を張るか、不要なら retire を検討する」と書く。
+  新設した生成物・CI・スキーマ unit は台帳上の被参照を持たない(誰も consume しない葉)ため、
+  info を残すか 34-routing に参照を張って消すかの基準が無い。
+- 代替した判断: **info を残す**(34-routing は変更しない)。理由= (a) order §1 スコープ外が
+  「既存 unit と同水準の宣言まで」と限定している、(b) 被参照を作るためだけに工程宣言へ
+  参照を足すのは、検査を黙らせるために台帳を歪める操作(silence の作り込み)になる。
+  M-ORACLE-009 のみ M-CI-012 の `depends_on` から自然に参照されるため info が出ない(作為ではない)。
+- 重大度: minor(受入に影響なし。「葉である unit は R-005 の対象外にすべきか」は規則側の裁定候補)
+
 ## ECO-002 工場ずる報告の取込み(受入確定 2026-07-03)
 - 採用個体(F02/sonnet)4件: F02-001[friction] SARIF top-level キー= version 採用(仕様字句 schemaVersion は
   標準不整合 — 受入時に仕様側を補正)/ F02-002[friction] informationUri 不在→RFC 2606 プレースホルダ

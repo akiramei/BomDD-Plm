@@ -106,6 +106,88 @@ mbom:
       acceptance_refs: []
       notes: "L1 スモーク= 同梱ミニ fixture に対し CLI 実行→ exit code/出力ファイル存在/plm-view.html 生成を1本通す(unit 緑のまま表面全滅の盲点対策・forward-01)。治具セルフテスト(比較器の合成データ検証)を含む"
 
+    # ---- ECO-006(2026-08-02): 写像被覆ギャップの解消 — 治具・生成物・CI・スキーマの所有宣言 ----
+    # 由来: 上記 8 unit は「著述されるソース」だけを所有していたため、実 diff の 76 件(ECO-001〜005)が
+    #   どの unit にも帰属できなかった(遡及採点の unmapped= fail-closed の under)。
+    # 帰属規則(ECO-006 裁定 1・61-impact-analysis-eco-006.md §1): 生成物は「その生成物を一意に生む
+    #   製造手順を持つ最小の unit」に帰属する。1 package = 1 unit なら当該ソース unit が所有し
+    #   (M-CLI-005 が packages/cli/ 全体を持つ既存宣言がこれに当たる)、1 package = N unit なら
+    #   生成物は共同出力で単一 unit に帰属できないため専用 unit を立て depends_on で由来を宣言する。
+    # 様式: M-HARNESS-008(治具= 製品と同格)の前例に整合 — E-BOM 品目を実現しない unit は
+    #   ebom_refs: [] / acceptance_refs: [] を許し、再製造手順を notes に書く。
+    - id: M-ORACLE-009
+      name: 固定オラクル治具(設計者側 — 工場非開示)
+      ebom_refs: []
+      kbom_refs: [K-TS-DETERMINISM]
+      depends_on: [M-CLI-005]
+      artifact: { path: oracle/, type: fixtures+expected+node 治具(.mjs) }
+      interface_contract:
+        run: "node harness/run-oracle.mjs --cli \"<CLI 起動コマンド>\"  // 41-fixed-oracle の全採点行を実行し PASS/FAIL を返す"
+      acceptance_refs: []
+      notes: >-
+        再製造= 41-fixed-oracle.yaml の凍結ケース定義から fixtures/expected/harness を組む。
+        自己受入= harness/selftest.mjs(比較器を合成データで検証)。
+        M-HARNESS-008(test/)と分けるのは**供与境界が逆**だから — 34-routing の factory_isolation が
+        oracle/ 配下を工場へ非開示と宣言する一方、test/ は工場へ渡り工場が自己受入に使う。
+        供与先が違うものは独立に交換できないため同一 unit にしない(ECO-006 裁定 2)。
+    - id: M-BUILD-CORE-010
+      name: core パッケージの鋳造出力(dist/・ビルド構成)
+      ebom_refs: []
+      kbom_refs: [K-TS-DETERMINISM]
+      depends_on: [M-CORE-INGEST-001, M-CORE-GRAPH-002, M-CORE-RULES-003, M-CORE-OUTPUT-004]
+      artifact: { path: packages/core/, type: ビルド生成物(dist/・tsconfig.tsbuildinfo)+パッケージ構成 }
+      interface_contract:
+        build: "tsc -b packages/core  // 決定的。人手編集禁止(著述物でなく鋳造物)"
+      acceptance_refs: []
+      notes: >-
+        所有範囲= packages/core/ のうち src/ を除く全て(src/ は最長前方一致により上記 4 ソース unit が所有)。
+        専用 unit にする理由= dist は 4 unit の**共同出力**であり、どの単一ソース unit にも
+        「独立に再製造・交換できる単位」として帰属させられないため(ECO-006 裁定 1)。
+        生成物は自 unit 以外の理由でも変化する(ECO-005: 依存先 d.ts 変更に伴う tsbuildinfo 更新)—
+        depends_on が「由来 unit の変化に追従した鋳造」を機械可読に残す。
+    - id: M-BUILD-VIEWER-011
+      name: viewer パッケージの鋳造出力(dist/・ビルド構成)
+      ebom_refs: []
+      kbom_refs: [K-TS-DETERMINISM]
+      depends_on: [M-VIEWER-GEN-006, M-VIEWER-UI-007]
+      artifact: { path: packages/viewer/, type: ビルド生成物(dist/・tsconfig.tsbuildinfo)+パッケージ構成 }
+      interface_contract:
+        build: "tsc -b packages/viewer  // 決定的。人手編集禁止"
+      acceptance_refs: []
+      notes: >-
+        M-BUILD-CORE-010 と同じ帰属規則(1 package = N unit → 生成物専用 unit)。
+        ECO-001〜005 の実 diff には現れていない(是正でなく被覆の完全性のための宣言 — 次に viewer を
+        再ビルドする ECO で unmapped を出さない fail-closed 側の措置。61 §4 に明記)。
+    - id: M-CI-012
+      name: CI 定義(両 OS 回帰+ code scanning 連携)
+      ebom_refs: []
+      kbom_refs: [K-NODE-PORTABILITY]
+      depends_on: [M-HARNESS-008, M-ORACLE-009, M-CLI-005]
+      artifact: { path: .github/, type: GitHub Actions ワークフロー+変換スクリプト(.mjs) }
+      interface_contract:
+        ci: "push/PR で build → node --test → 固定オラクル全行 → self-hosting lint(--eco --fail-on error)を ubuntu/windows で実行"
+      acceptance_refs: []
+      notes: >-
+        再製造= 34-routing の受入手順(ROUTE-SELF-ACCEPT ほか)を CI 記述へ写す。
+        自己受入= ワークフロー実行が両 OS で緑。CI は測定器であり検査の正本ではない
+        (正本は 33-control-plan と 41-fixed-oracle)。
+    - id: M-SCHEMA-013
+      name: スキーマ資産(参照層スナップショット+出力契約)
+      ebom_refs: []
+      kbom_refs: [K-REFV0]
+      depends_on: [M-CORE-OUTPUT-004]
+      artifact: { path: schemas/, type: json-schema+yaml(ref-v0 派生) }
+      interface_contract:
+        refSchema: "schemas/ref-v0/(ref-edges.draft.yaml / id-grammar.draft.yaml / bomdd-ref.draft.schema.json)  // リンタの既定スキーマ。--schema で差替可"
+        outputContract: "schemas/plm-{diag,graph,ledger}-1.schema.json  // §2.9 正規形の出力契約"
+      acceptance_refs: []   # ECO-006 スコープ外: 33-control-plan への acceptance 接続の新設(order §1)
+      notes: >-
+        再製造= 参照層は K-REFV0 の版指定で method 側 draft から同期・出力契約は §2.9 正規形の版管理。
+        出力契約スキーマは意味的には M-CORE-OUTPUT-004 の成果物(同 unit の artifact.type が既に
+        ts-module+json-schema)だが、現行 M-BOM は 1 unit に複数 artifact path を宣言できないため
+        「機械可読契約の版管理」という共通の保守手順で 1 unit にまとめ、depends_on で帰属を残す
+        (複数 path 宣言の可否は ref-v0 側の裁定事項 — ECO-006 スコープ外・61 §5)。
+
   silence_sweep:   # 第2回掃討(全行3択。第1回の deferred-to-phase3 を解消)
     - { dimension: 表示要素集合・CAD パリティ, declaration: specified, ref: "30 display_contracts / CP-VISUAL-GAP-018" }
     - { dimension: エラー語彙, declaration: specified, ref: "R-*+X-* 7種(閉集合)" }

@@ -1,0 +1,225 @@
+# Impact Analysis — ECO-006 影響分析(M-BOM 写像被覆ギャップの解消)
+
+> [60-change-order-eco-006.md](60-change-order-eco-006.md) §1〜§2 の詳細版。
+> 規律: 影響なし予測を**反証可能な形で製造前に凍結**(本書 §3・§4)。回帰結果が予測の採点になる。
+> 粒度: 本 ECO は**宣言のみの挙動不変 ECO**。実体変更は 0 を予測するため、統制の主軸は
+> 「変更が bomdd/ に閉じること」(V5)と「採点指標が予測どおり内訳だけ動くこと」(V1)。
+> 起草者: claude-opus-5(工場 subagent。order §3 の委任 — 測定次元 1 の直接測定)。
+
+## 0. 変更前個体の較正(赤の凍結・工場再実測 2026-08-02)
+
+| 指標 | 実測値 | 出典 |
+|---|---|---|
+| `summary.decomposition.unmapped_files` | **76** | 凍結採点器 `impact-retrospective.py --repo .` |
+| `summary.real_under_files` | **111**(= mapped_under 35 + unmapped 76) | 同上 |
+| `summary.hub_concentration` | M-CORE-INGEST-001:18 / M-HARNESS-008:15 / M-CLI-005:2 | 同上 |
+| self-hosting lint(`--eco`) | error 0 / warn 0 / info 176(全て R-005) | `packages/cli/dist/main.js . --eco` |
+| `npm run build` / `node --test` | 0 エラー / 118 pass | — |
+
+order §4 の較正値(unmapped 76)と一致。**受入条件が変更前個体で不成立**であることを確認した。
+
+未写像 76 は**実体 54 ファイル**(複数 ECO で重複計上)。系統別内訳(実体数):
+oracle/ 20・packages/core/(dist+tsbuildinfo)31・.github/ 2・schemas/ 1。
+
+## 1. 裁定(work order §2 の委任事項)
+
+### 裁定 1 — 生成物(dist/・tsbuildinfo)の帰属方式: **案 b(生成物専用 unit)**
+
+採用する一般規則(本 ECO で確立し、以後の package 追加に適用する):
+
+> **生成物は「その生成物を一意に生む製造手順を持つ最小の unit」に帰属する。**
+> - 1 package = 1 unit のとき → そのソース unit が生成物も所有する(実質 案 a)。
+> - 1 package = N unit のとき → 生成物は N unit の**共同出力**であり、どの単一 unit にも
+>   「独立に再製造・交換できる単位」として帰属させられない → **生成物専用 unit** を立て、
+>   由来を `depends_on`(機械検査対象エッジ・R-003)で明示する。
+
+根拠 3 点:
+
+1. **共同出力の帰属不能(決定的理由)**。`packages/core/dist` は `tsc -b packages/core` が
+   `packages/core/src` 全体から鋳造する単一の出力である。ところが core の src は
+   M-CORE-INGEST-001 / GRAPH-002 / RULES-003 / OUTPUT-004 の **4 unit が共有**しており
+   (4 unit とも `artifact.path: packages/core/src`)、dist を 1 unit に帰属させると
+   その unit が他 3 unit の出力を所有することになる。M-BOM 冒頭の粒度原則
+   「独立に再製造・交換でき単独で自己受入できる単位」に正面から反する。
+   viewer も同様(GEN-006 / UI-007 の 2 unit が `packages/viewer/src` を共有)。
+2. **生成物は自 unit 以外の理由で変化する**。ECO-005 の受入で
+   `packages/cli/tsconfig.tsbuildinfo` が「**依存先 core の d.ts 変更に伴う**ビルドキャッシュ」
+   として under-inclusion 1 件になった実績がある(register の allowed_paths 註)。
+   生成物をソース unit に畳み込むと、この変化が「そのソース unit が変わった」という
+   偽の信号として台帳に出る。専用 unit + `depends_on` なら「由来 unit の変化に追従した鋳造」
+   と読める。**由来関係を潰さずに残すことが台帳の情報量**である。
+3. **再製造手順が違う**。ソース unit は BOM から**著述**される(fresh factory が書く)。
+   生成物 unit は `npm run build` で**鋳造**される(決定的・人手編集禁止)。
+   工程(34-routing)上も別ステップであり、手順が違うものを同一 unit に入れない。
+
+**案 a を採らなかったことの副次的確認(採点上の帰結)**: core で案 a を採るには既存 unit の
+`artifact.path` を `packages/core` へ広げる必要があるが、(i) 最長前方一致により src は依然
+他 3 unit 側に残るため「宣言は package 全体・機械解釈は dist だけ」という乖離が生じ、
+(ii) 広げる先が既存 ECO の宣言影響集合に含まれる unit(RULES-003 等)である場合、
+76 ファイルが「予測済み」として吸収され `real_under_files` が 111 を下回る。
+これは order §4 V1 の主旨(**見出しの付け替えでない証明**)を破る。設計根拠は 1〜3 が本体で、
+これは独立な確認である。
+
+**既存の非対称の扱い**: `packages/cli/dist` と `packages/cli/tsconfig.tsbuildinfo` は
+M-CLI-005 の `artifact.path: packages/cli/`(package ルート)に既に含まれ、写像ギャップではない。
+これは上記一般規則の「1 package = 1 unit」枝に**既に適合している**(偶然でなく規則の帰結)ため、
+本 ECO では変更しない。order §1 スコープ外「既存 unit と同水準の宣言まで」にも合致する。
+
+### 裁定 2 — 新 unit の粒度と命名: **M-HARNESS-008 の前例に整合させる(名称は対象物基準)**
+
+- **前例の何を継ぐか**: M-HARNESS-008 が確立したのは「治具・非製品成果物も製品と同格の
+  manufacturing unit として立て、`ebom_refs: []` / `acceptance_refs: []` を許し、
+  再製造手順を `notes` に書く」という様式。新 4 系統はいずれも E-BOM 品目を実現しない
+  (要求→設計部品の系譜を持たない)ため、この様式をそのまま踏襲する。
+- **命名**: 既存は対象物基準(CORE / CLI / VIEWER / HARNESS)+ 通番。
+  よって `M-<対象物>-<通番>` を継ぎ、通番は既存 008 の続き **009〜013**(採番の連続性を保つ)。
+  `M-HARNESS-*` への改名・既存 ID の変更はしない(60-change-register・34-routing からの
+  参照が張られており、ID の再割当は R-002/R-003 の観点で不要なリスク)。
+- **`oracle/` を M-HARNESS-008(`test/`)に併合しない理由 — 供与境界が逆**:
+  34-routing の `factory_isolation` は「41/42・**oracle/ 配下**は工場へ非開示」と宣言する一方、
+  `test/`(M-HARNESS-008)は工場へ渡り工場が自己受入に使う。
+  **供与境界(誰に渡すか)が違うものは独立に交換できないので同一 unit にできない**。
+  したがって別 unit(M-ORACLE-009)とする。
+- **粒度原則との整合(order CH-1 の要求事項)**: 各 unit を
+  「独立に再製造・交換でき単独で自己受入できる単位(fresh factory に単体で渡せるか)」で検証した。
+
+| 新 unit | 再製造手順 | 自己受入 | 交換単位として成立するか |
+|---|---|---|---|
+| M-ORACLE-009 | 41-fixed-oracle の凍結ケースから fixtures/expected/harness を組む | `harness/selftest.mjs`(比較器の合成データ検証) | 成立(界面= `run-oracle.mjs --cli "<CLI 起動コマンド>"`。別実装の採点治具に差替可)。ただし**工場へは渡さない**単位 |
+| M-BUILD-CORE-010 | `tsc -b packages/core`(決定的・人手編集禁止) | build 0 エラー + 生成 dist 経由の L1 スモーク | 成立(「この src からビルド成果物を鋳造せよ」を単体で渡せる。tsc 版・ビルド構成の差替が交換) |
+| M-BUILD-VIEWER-011 | `tsc -b packages/viewer` | 同上 | 成立(同上) |
+| M-CI-012 | 34-routing の受入手順を CI 記述へ写す | ワークフロー実行が両 OS で緑 | 成立(別 CI プロバイダへの移植が交換) |
+| M-SCHEMA-013 | 参照層= K-REFV0 の版指定で method 側 draft から同期 / 出力契約= §2.9 正規形の版管理 | S-13(schema 差替)・CP-OUTPUT-010(出力の契約適合) | 成立(スキーマ版の差替が交換そのもの) |
+
+- **M-SCHEMA-013 が `schemas/` 全体を持つことの限定**: `schemas/plm-*.schema.json`(出力契約)は
+  意味的には M-CORE-OUTPUT-004 の成果物(同 unit の `artifact.type` が既に `ts-module+json-schema`)だが、
+  **現行 M-BOM は 1 unit に複数 artifact path を宣言できない**(`artifact.path` は単一値)。
+  そこで「機械可読契約の版管理」という共通の保守手順で 1 unit にまとめ、
+  `depends_on: [M-CORE-OUTPUT-004]` で意味的な帰属を残す。
+  複数 path 宣言の可否は本 ECO の範囲外(§5 に記録)。
+
+## 2. 影響あり(トレース逆引き)
+
+| 段 | 影響 ID / 対象 | 何が変わるか |
+|---|---|---|
+| M-BOM | **M-ORACLE-009・M-BUILD-CORE-010・M-BUILD-VIEWER-011・M-CI-012・M-SCHEMA-013 新設** | `mbom.manufacturing_units` に 5 unit 追加。既存 8 unit の**全フィールドは不変**(1 文字も変えない) |
+| 台帳 | 61-impact-analysis-eco-006.md 新設(本書) | 影響分析+裁定 2 点の設計根拠 |
+| 台帳 | 51-cheat-log.md | BOM/order から導けなかった判断の追記(§6 で確定) |
+| 仕様・E-BOM・K-BOM・CP・固定オラクル・routing | **変更なし** | 本 ECO は所有宣言のみ。要求も部品も検査も増えない |
+| src / test / oracle / schemas / .github の**実体** | **変更なし** | order §1 スコープ外の明示どおり |
+
+## 3. 影響なし予測(反証可能 — 製造前に凍結)
+
+> 検証方法: 変更は「YAML の list へ 5 要素を追記する」だけであり、既存要素の再配置・改名・
+> path 変更を一切伴わない。以下は「その追記が何に触れないか」の値レベルの根拠。
+
+| 対象 | 予測 | 根拠 |
+|---|---|---|
+| `npm run build` | 不変(0 エラー) | ビルド入力は `packages/*/src` と tsconfig。bomdd/ は tsc の入力でない |
+| `node --test`(118 件) | 全通過・**件数も 118 のまま** | test/ は同梱ミニ fixture と合成データで動く。自リポ bomdd/ を読むテストは無い(自リポ lint は CI 側の別ステップ) |
+| 固定オラクル 34 ケース | 不変 | oracle/fixtures は合成リポ。自リポ 32-mbom を読むケースは無い |
+| self-hosting lint の **error / warn** | **0 のまま** | 追加する参照エッジは (a) `artifact.path`(kind: path・warn)= 5 パスとも実在ディレクトリ、(b) `depends_on[]`(family M・error)= 参照先は既存 unit ID と本追記内の ID のみ、(c) `kbom_refs[]`(family K・error)= K-REFV0(実在)。R-001 は M family の tail 文法 `[A-Za-z0-9._-]+` に適合 |
+| self-hosting lint の **info** | **176 → 180**(+4) | R-005(孤立定義・info)が新 unit のうち**どこからも参照されない 4 件**に出る: M-BUILD-CORE-010 / M-BUILD-VIEWER-011 / M-CI-012 / M-SCHEMA-013。**M-ORACLE-009 は出ない**(M-CI-012 の `depends_on` から参照されるため)。既存 176 件は不変 |
+| R-051(register affected_refs 解決) | green | ECO-006 の affected_refs = `M-HARNESS-008`(既存・解決可)。本 ECO では register を変更しない |
+| R-052 / diff_audit | 所見 0 | 宣言 `{ baseline: eco-006-input, allowed_paths: [bomdd/] }`。実 diff は bomdd/ 3 ファイルのみ(常時許容の内側) |
+| ViewPrism2 workspace 回帰 | 対象外(未実施) | 本 workspace に ViewPrism2 リポが同梱されていない。§5 に未実施として記録 |
+| 既存 8 unit の採点上の帰属 | 不変 | 新 path はいずれも既存 path の**より短い前置**または非交差。最長前方一致により `packages/core/src` / `packages/viewer/src` / `packages/cli/` / `test/` の帰属は動かない |
+| `over`(過剰宣言)集合 | 全 ECO で不変 | `over` は「宣言 unit のうち実変更に現れなかったもの」。新 unit は 5 件とも既存 ECO の affected_refs に現れないため pred に入らない |
+
+## 4. 受入指標の予測(V1 の内訳を製造前に凍結)
+
+> V1 の本質は「76 が mapped へ**移るだけ**」。合計だけでなく**移動先の内訳**を凍結して反証可能にする。
+
+| 指標 | 変更前 | **予測(変更後)** |
+|---|---|---|
+| `decomposition.unmapped_files` | 76 | **0** |
+| `decomposition.mapped_under_files` | 35 | **111** |
+| `real_under_files`(見出し) | 111 | **111(不変)** |
+| `ecos_with_real_under` | 5 | 5 |
+| `code_ecos` / `multi_unit_ecos` | 5 / 3 | 5 / **5**(全 ECO が 2 unit 以上に触れることが可視化される) |
+
+> ※ `multi_unit_ecos` の予測 5 は**外れた**(実測 4)。採点後の訂正は §6 に記載する — 予測値は凍結のため書き換えない。
+
+ECO 別 `under` 件数の予測(= 変更前 under + 変更前 unmapped):
+
+| ECO | 変更前 under | **予測 under** | 内訳(新 unit への配分) |
+|---|---|---|---|
+| ECO-001 | 13 | **35** | M-ORACLE-009:11 / M-BUILD-CORE-010:10 / M-SCHEMA-013:1 |
+| ECO-002 | 14 | **48** | M-BUILD-CORE-010:22 / M-ORACLE-009:9 / M-CI-012:2 / M-SCHEMA-013:1 |
+| ECO-003 | 0 | **3** | M-ORACLE-009:3 |
+| ECO-004 | 3 | **8** | M-BUILD-CORE-010:4 / M-ORACLE-009:1 |
+| ECO-005 | 5 | **17** | M-BUILD-CORE-010:7 / M-ORACLE-009:3 / M-CI-012:1 / M-SCHEMA-013:1 |
+
+`hub_concentration` の予測:
+`M-BUILD-CORE-010:43 / M-ORACLE-009:27 / M-CORE-INGEST-001:18 / M-HARNESS-008:15 / M-SCHEMA-013:3 / M-CI-012:3 / M-CLI-005:2`
+(既存 3 unit の値は不変)。
+
+**M-BUILD-VIEWER-011 の予測は 0 件**である。viewer の生成物は ECO-001〜005 の実 diff に一度も現れていない。
+本 unit は測定された 76 の解消でなく、order §1 系統 2 の記述(`packages/*/dist/`)に対する
+**被覆の完全性**のために立てる(fail-closed: 次に viewer を再ビルドした ECO で unmapped を出さない)。
+この 1 unit だけは「実測された赤に対する是正」ではないことを明示しておく。
+
+## 5. 残余ギャップと観察(本 ECO のスコープ外・記録のみ)
+
+1. **採点器が構造的に写像できない領域**: `attribute()` は unit の `artifact.path` の
+   最長前方一致で帰属するため、**リポ直下のファイル**(`package.json` / `package-lock.json` /
+   `tsconfig.base.json` / `.gitignore` / `.gitattributes`)は、どの unit を立てても帰属できない
+   (空パスの unit は採点器が無視する)。本個体では ECO-001〜005 の実 diff に現れなかったため
+   76 に含まれず、本 ECO の受入には影響しない。将来これらが変わる ECO では unmapped が再発する。
+2. **`examples/`(2 ファイル)は未写像のまま**。order §1 の 4 系統に含まれず、実 diff にも
+   現れていない。上記 1 と同じく将来の再発点。
+3. **1 unit = 1 artifact path の制約**(裁定 2 の M-SCHEMA-013 の項)。
+   複数 path 宣言(または `artifact.paths[]`)の可否は ref-v0 スキーマ側の裁定事項。
+4. **ViewPrism2 workspace 回帰(order §4 V3 の末項)は本 workspace で実施不能**
+   (対象リポが同梱されていない)。設計者側で実施を要する。
+5. `--test-unit` 分離(採点規約 v1 #4)は本測定では未使用。M-HARNESS-008 / M-ORACLE-009 を
+   test-only として分離するかは採点の見せ方の裁定であり、本 ECO では**変更しない**
+   (V1 の 111 不変条件と直交させるため)。
+
+## 6. 採点(製造後記入 — 2026-08-02・工場自己受入の実測)
+
+実測値(凍結採点器・変更後個体):
+
+| 指標 | 予測(§4) | **実測** | 判定 |
+|---|---|---|---|
+| `decomposition.unmapped_files` | 0 | **0** | 的中 |
+| `decomposition.mapped_under_files` | 111 | **111** | 的中 |
+| `real_under_files` | 111(不変) | **111** | 的中 |
+| `ecos_with_real_under` | 5 | **5** | 的中 |
+| ECO 別 under(001/002/003/004/005) | 35/48/3/8/17 | **35/48/3/8/17** | 的中 |
+| `hub_concentration` | BUILD-CORE 43 / ORACLE 27 / INGEST 18 / HARNESS 15 / SCHEMA 3 / CI 3 / CLI 2 | **同一** | 的中 |
+| `over` 集合(全 ECO) | 不変 | **不変** | 的中 |
+| `multi_unit_ecos` | 5 | **4** | **外れ** |
+| lint(`--eco`)error / warn | 0 / 0 | **0 / 0** | 的中 |
+| lint info | 180(+4) | **180**(追加は R-005 × M-BUILD-CORE-010 / M-BUILD-VIEWER-011 / M-CI-012 / M-SCHEMA-013 の 4 件のみ・既存 176 件は差分ゼロ) | 的中 |
+| M-ORACLE-009 の R-005 孤立所見 | 出ない | **出ない**(M-CI-012 の depends_on が被参照を作る) | 的中 |
+| `npm run build` | 0 エラー | **0 エラー** | 的中 |
+| `node --test` | 118 pass(件数も不変) | **118 pass / 0 fail** | 的中 |
+| `git status --porcelain` | bomdd/ のみ | **bomdd/ のみ**(32-mbom 変更・61 新設・51 追記) | 的中 |
+
+- **under-inclusion: 0** — §2 で挙げなかった対象で変わったものは無い。
+- **over-inclusion: 0** — §2 で「影響あり」に挙げた 3 ファイル(32-mbom / 61 新設 / 51 追記)が
+  実際に変わった全てであり、挙げて変わらなかったものは無い。
+- **影響なし予測の外れ 1 件(正直記載)**: `multi_unit_ecos` を **5 と予測したが実測 4**。
+  原因は起草時の推論の誤り — ECO-003 の実変更 3 ファイルは**全て `oracle/`** であり、
+  写像が付いた結果 `actual_units` は M-ORACLE-009 **1 件**にしかならない
+  (「未写像が解消されれば必ず 2 unit 以上になる」と短絡した)。unmapped の解消は
+  「unit 数を増やす」のではなく「unit を与える」操作であり、元から 0 unit だった ECO は 1 unit になる。
+  受入条件(V1)には無関係な観察指標だが、予測を外した事実として記録する。
+- **粒度の観察**: M unit は 8 → 13。`multi_unit_ecos` は 3 → 4 で、増分は **ECO-004**
+  (従来は写像可能な 3 ファイルが全て 1 unit に寄っていたが、生成物 4 ファイルが
+  M-BUILD-CORE-010 に付いて 2 unit になった)。従来「unit を跨がない ECO」に見えていたものは、
+  実際には生成物・治具に触れていたのに写像不能だったために単一 unit に見えていた。
+  影響分析の粒度統制(ハブ台帳)を使う前提として、**写像被覆が先に立つ**ことの実測。
+- **ハブの入替わり**: 是正後の under 集中先 1 位は M-BUILD-CORE-010(43)・2 位 M-ORACLE-009(27)で、
+  従来 1 位の M-CORE-INGEST-001(18)を上回る。ただしこれは「影響分析が生成物・治具を
+  宣言に書いてこなかった」ことの写像であり、ソース unit のハブ性(写像の集中先)とは**別種**の指標である。
+  生成物 unit・治具 unit を hub_concentration に混ぜたまま読むと「ハブ= core の入口」という
+  従来の読みが機械的に上書きされ、誤読しうる。採点器側で生成物クラスを分離集計するか
+  (`--test-unit` と同型の `--derived-unit`)は**別リポの裁定事項**(order §1 スコープ外)。
+- **是正後に残る赤**: `real_under_files` は 111 のまま(本 ECO は 0 にしない)。
+  これは正しい — 111 は「過去 5 ECO の影響分析が生成物・治具・CI・スキーマを宣言に書かなかった」
+  という**過去の記録の事実**であり、台帳の写像を直しても過去の宣言は変わらない。
+  本 ECO が消したのは「未知の変更先があるのに under 0 に見える」という**見出しの嘘**(unmapped)である。
+- ずる報告: 4 件(51-cheat-log.md の CHEAT-ECO-006-F001〜F004)。実装は止めていない。
+</content>

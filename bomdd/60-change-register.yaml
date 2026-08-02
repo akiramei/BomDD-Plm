@@ -103,7 +103,7 @@ changes:
 
   - id: ECO-006
     title: "M-BOM 写像被覆ギャップの解消 — 治具・生成物・CI・スキーマ派生の所有 unit 宣言(挙動不変・32-mbom 改訂)"
-    status: open   # 2026-08-02 起票(gate ①= maintainer 再裁定・BomDD equip-03 題材の単独昇格)。較正の赤= unmapped 76 実測済み
+    status: open   # 2026-08-02 起票(gate ①= maintainer 再裁定・BomDD equip-03 題材の単独昇格)。fix= 工場 claude-opus-5 製造・設計者受入 V1〜V5 全 PASS(order §5)。残= 独立検査+maintainer 裁定
     opened: 2026-08-02
     order_ref: bomdd/60-change-order-eco-006.md
     diff_audit:
@@ -111,3 +111,8 @@ changes:
       allowed_paths: [bomdd/]
     affected_refs:
       - M-HARNESS-008
+      - M-ORACLE-009
+      - M-BUILD-CORE-010
+      - M-BUILD-VIEWER-011
+      - M-CI-012
+      - M-SCHEMA-013
