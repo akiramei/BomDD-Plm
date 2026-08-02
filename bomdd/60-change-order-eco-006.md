@@ -103,3 +103,26 @@
 - 独立検査= REJECT・所見 5 件(medium 4/low 1)・当方突合で **5/5 CONFIRMED・誤検出 0**。
   工場帰属 IA-01〜04 は差戻 1 回目で是正(是正後の受入は本 order 末尾へ追記)。
   報告全文= BomDD loops/equip-03/independent-inspection-eco-006.md。
+
+### §5 追記 2(2026-08-02・差戻 1/2 の是正後受入 — NEW-ECO006-01 の是正を兼ねる最終記録)
+
+- **差戻 1(fix2= e876e81)**: IA-01= provenance 分離(鋳造 unit を packages/*/dist/ へ限定+
+  M-PKGDEF-CORE-015/M-PKGDEF-VIEWER-016 新設・裁定 1 へ規則 (A)「unit は provenance で切る」)/
+  IA-02= M-SCHEMA-013 を schemas/ref-v0/ へ縮小+M-SCHEMA-CONTRACT-014 分離/IA-03= 部分
+  (viewer→core・CI→build/pkgdef 補完+意味論裁定 3「再製造前に成立していなければならない unit」)/
+  IA-04= 論拠を「製造帰属が違う」へ差し替え。残余 1(tsbuildinfo の混載= パス機構の限界)を
+  契約文へ明示(宣言済み境界)。是正確認の再検査(Codex fresh・対象 e876e81)= IA-01/02/04/05
+  CLOSED・**境界受理 1**(tsbuildinfo — 現物一致で受理)・IA-03 PARTIAL・NEW-ECO006-01(本欄の
+  未追記= 設計者帰属)→ REJECT。報告= BomDD loops/equip-03/independent-reinspection-eco-006.md。
+- **差戻 2(fix3= 本 commit)**: IA-03 完全化 — 裁定 3 の基準を既存 8 unit へ一貫適用し
+  **9 エッジ追加**(証拠等級 A= 直接参照 6/B= 受入 vector 経由 3 — B の理由= INV-007「パスを
+  コードへ焼かない」により根拠 A が原理的に取得不能)。**張らない側 5 クラスも検算根拠つきで
+  61 §8.3 に記録**(推移閉包を取らない・循環回避を含む)。既存 unit の変更は depends_on 追加行のみ
+  (numstat 削除 0 の機械証明)。ずる追記 2(F008 証拠等級 B の構造的弱点/F009 不在宣言の
+  再検証不能性)= 累計 9。
+- **最終受入(fix3 個体・実リポ全再実測)**: 採点器 **unmapped 0・real_under 111 不変**・
+  build 0 エラー・**118/118 tests**・self-hosting `--eco --fail-on error` **error 0/warn 0・
+  info 176**(M-SCHEMA-013 の孤立解消 −1・register は rev2 追随 3 unit のまま変更なし)・
+  diff= bomdd/ 5 ファイルのみ・**追加のみ(全段通算で既存記録の削除 0)**。
+  61 末尾の `</content>` 混入(fix2 起源・検査官指摘)は衛生除去(設計者・宣言つき)。
+- CI 実測は push 後に本欄へ追記(4 値判定)。

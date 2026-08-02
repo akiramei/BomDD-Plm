@@ -22,6 +22,7 @@ mbom:
       name: 発見+頑健パース
       ebom_refs: [E-CORE-READONLY-001, E-CORE-DISCOVER-002, E-CORE-PARSE-003]
       kbom_refs: [K-REFV0, K-TS-DETERMINISM, K-YAML-AUTHORING, K-NODE-PORTABILITY]
+      depends_on: [M-SCHEMA-013]   # ECO-006 rev3(裁定 3 の既存 unit 適用・根拠 B): 受入 CP-DISCOVER-002 の vector = test/discover.test.js:9 が schemas/ref-v0 を読む
       artifact: { path: packages/core/src, type: ts-module }
       interface_contract:
         discover: "discover(ws: Workspace, schema: RefSchema): Artifact[]  // Artifact={repo, canonicalPath, type}。ソート済み"
@@ -34,6 +35,7 @@ mbom:
       ebom_refs: [E-CORE-SCHEMA-004, E-CORE-RESOLVE-005, E-CORE-WORKSPACE-006]
       rev_note: "ECO-002: repo: 形の repo 不在= X-XREPO skip(§2.4 rev3)+schema/load が diff_audit を読む"
       kbom_refs: [K-REFV0, K-TS-DETERMINISM, K-NODE-PORTABILITY]
+      depends_on: [M-SCHEMA-013]   # ECO-006 rev3(裁定 3・根拠 B): 受入 CP-SCHEMA-004/CP-RESOLVE-005 の vector = test/schema-load.test.js:11・test/resolve.test.js:9 が schemas/ref-v0 を読む(INV-007 によりパスは実装に焼かない=根拠 A は原理的に取れない)
       artifact: { path: packages/core/src, type: ts-module }
       interface_contract:
         loadSchema: "loadSchema(dir: string): RefSchema | ExitError(2)  // 未対応記法= X-SCHEMA 所見"
@@ -46,6 +48,7 @@ mbom:
       ebom_refs: [E-CORE-LINT-007, E-CORE-GATE-008, E-CORE-SUPPRESS-009, E-CORE-GITDIFF-030]
       rev_note: "ECO-002: R-052 eco-diff-within-impact(§2.17)+E-CORE-GITDIFF-030(git 読み取りアダプタ)を編入"
       kbom_refs: [K-REFV0]
+      depends_on: [M-SCHEMA-013]   # ECO-006 rev3(裁定 3・根拠 B): 受入 CP-GATE-008 の vector = test/gate.test.js:10 が schemas/ref-v0 を読む
       artifact: { path: packages/core/src, type: ts-module }
       interface_contract:
         evaluate: "evaluate(model, schema): Finding[]  // R-* 全評価+gate 付与"
@@ -69,6 +72,13 @@ mbom:
       ebom_refs: [E-CLI-011]
       rev_note: "ECO-002: --sarif フラグ追加(§2.10 rev3。他フラグの挙動不変)"
       kbom_refs: [K-NODE-CLI, K-NODE-PORTABILITY]
+      # ECO-006 rev3(裁定 3 の既存 unit 適用・根拠 A= 自 artifact 内の実参照):
+      #   M-BUILD-CORE-010   ← packages/cli/tsconfig.json references[0] {path: ../core} / package.json dependencies["@bomdd/core"]
+      #                         / src/main.ts:16-17・src/text.ts:4-6 の import(@bomdd/core の main= ./dist/index.js)
+      #   M-BUILD-VIEWER-011 ← packages/cli/tsconfig.json references[1] {path: ../viewer} / package.json dependencies["@bomdd/viewer"]
+      #                         / src/main.ts:18 import { generateView } from "@bomdd/viewer"
+      #   M-SCHEMA-013       ← src/main.ts:22-27 defaultSchemaDir() = <repo-root>/schemas/ref-v0(--help の「既定: 同梱」= main.ts:51)
+      depends_on: [M-BUILD-CORE-010, M-BUILD-VIEWER-011, M-SCHEMA-013]
       artifact: { path: packages/cli/, type: ts-cli(bin=bomdd-lint) }
       interface_contract:
         main: "main(argv): exitCode 0|1|2  // §2.10 マトリクス。stdout=データ/stderr=ログ"
@@ -100,6 +110,14 @@ mbom:
       name: 自己受入ハーネス(治具 — 製品と同格管理)
       ebom_refs: []
       kbom_refs: [K-TS-DETERMINISM]
+      # ECO-006 rev3(裁定 3 の既存 unit 適用・根拠 A= 自 artifact 内の実参照):
+      #   M-CLI-005        ← test/helpers/run-cli.js:10 CLI_MAIN = <repo-root>/packages/cli/dist/main.js(23 テストが本 helper 経由)
+      #   M-BUILD-CORE-010 ← test/{discover,gate,messages,resolve,schema-load}.test.js の import ... from "@bomdd/core"
+      #                       (@bomdd/core の main= ./dist/index.js = 鋳造出力を読む)
+      #   M-SCHEMA-013     ← test/{discover:9, gate:10, resolve:9, schema-load:11}.test.js の <repo-root>/schemas/ref-v0
+      #   ※ M-BUILD-VIEWER-011 は入れない — test/ に @bomdd/viewer も viewer/dist の参照も無く(全数 grep 済み)、
+      #      viewer には CLI 経由でしか到達しない。depends_on は推移閉包を取らない(裁定 3)。
+      depends_on: [M-CLI-005, M-BUILD-CORE-010, M-SCHEMA-013]
       artifact: { path: test/, type: node:test スイート }
       interface_contract:
         run: "node --test  // CP の unit/L2 行 test_vectors 全被覆+L1 スモーク(下記)"

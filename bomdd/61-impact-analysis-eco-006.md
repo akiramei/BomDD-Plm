@@ -246,11 +246,10 @@ ECO 別 `under` 件数の予測(= 変更前 under + 変更前 unmapped):
 5. `--test-unit` 分離(採点規約 v1 #4)は本測定では未使用。M-HARNESS-008 / M-ORACLE-009 を
    test-only として分離するかは採点の見せ方の裁定であり、本 ECO では**変更しない**
    (V1 の 111 不変条件と直交させるため)。
-6. **既存 unit への `depends_on` 追記はしていない**(rev2)。裁定 3 の意味論に照らせば
-   M-CLI-005 は M-BUILD-CORE-010 / M-BUILD-VIEWER-011 に、M-CORE-GRAPH-002 は
-   M-SCHEMA-013(既定スキーマ)に依存する。しかし既存 8 unit の無改変は rev1 からの
-   宣言事項であり、rev2 の是正範囲(IA-01〜04)にも含まれないため触れない。
-   **既存 unit 側の depends_on 補完は後続 ECO の候補**として記録する。
+6. ~~**既存 unit への `depends_on` 追記はしていない**(rev2)~~ → **rev3 で解消(§8)**。
+   差戻 2 回目(IA-03 = PARTIAL)で「既存 unit への変更を `depends_on` の追加行のみに限定して許可」
+   の裁定が出たため、裁定 3 の基準を既存 8 unit へ**一貫適用**し 5 unit・9 エッジを追記した。
+   検算根拠と、基準を満たさず**張らなかった**エッジの一覧は §8。
 
 ## 6. 採点(rev1 個体・製造後記入 — 2026-08-02・工場自己受入の実測)
 
@@ -354,4 +353,76 @@ rev1 の新 unit 5 件が追記済みと聞いている。rev2 では **改名 0
 | 不要 | 既存 5 件(M-ORACLE-009 / M-BUILD-CORE-010 / M-BUILD-VIEWER-011 / M-CI-012 / M-SCHEMA-013)は **ID 不変**。`artifact.path` と `name` は変わったが ID は変えていない |
 | 採点への影響 | なし。ECO-006 のコミットは bomdd/ のみ = 採点器は `doc_only` として skip する(`actual` が空)。他 ECO の `pred` は各自の affected_refs から作られるため影響しない |
 | R-051 | 追記する 3 件は 32-mbom に定義済みにつき解決可(未追記でも R-051 は green — 追記漏れは検出されない。これは R-051 が「書いた ID が解決するか」だけを見て「書くべき ID を書いたか」を見ないため。観察として記録) |
-</content>
+
+> **rev3 での更新なし** — rev3 は既存 unit への `depends_on` 追記のみで unit の増減・改名が無いため、
+> register 追随は §7.3 の 3 件(rev2 由来)から**変わらない**。
+
+## 8. rev3 — 差戻 2 回目(IA-ECO006-03 = PARTIAL)の是正: 裁定 3 の既存 unit への一貫適用
+
+> 再検査(Codex fresh・対象 e876e81)で IA-01/02/04/05 は CLOSED、宣言済み残余(tsbuildinfo)は
+> 現物一致で受理。**IA-03 のみ PARTIAL** — 裁定 3 の意味論を既存 unit へ適用した場合に必要な
+> エッジが未追記だったため(rev2 の §5-6 で工場自身が「後続 ECO の候補」として先送りしていた箇所)。
+> 差戻 2 回目で「既存 unit への変更を `depends_on` の**追加行のみ**に限定して許可」の裁定が出たので、
+> 基準を一貫適用して補完した。**他のフィールド・文言は 1 文字も変えていない**
+> (`git diff --numstat` = `176 0` — **削除 0** が機械証明)。
+
+### 8.1 適用した基準(裁定 3 の運用形)
+
+> `depends_on` = 「この unit を**再製造する前に成立していなければならない** unit」。
+> **推移閉包は取らない**(A→B→C のとき A→C は書かない)。
+> 張ってよいのは**検算できるものだけ**。証拠は 2 等級に分けて明示する:
+>
+> - **根拠 A(直接)**: その unit **自身の artifact 配下のファイル**が、相手 unit の artifact を
+>   実参照している(import / tsconfig references / package.json dependencies / パス解決)。
+> - **根拠 B(受入経由)**: その unit の宣言済み `acceptance_refs`(CP)の test vector が、
+>   相手 unit の artifact を読む。**A が原理的に取れない場合の代替**であり、A があるなら A を使う。
+
+### 8.2 追記した depends_on 全 9 エッジ(検算根拠つき)
+
+| # | from(既存 unit) | to | 等級 | 検算根拠(ファイル:行) |
+|---|---|---|---|---|
+| 1 | **M-CLI-005** | M-BUILD-CORE-010 | A | `packages/cli/tsconfig.json` の `references: [{ "path": "../core" }, …]` / `packages/cli/package.json` の `dependencies: { "@bomdd/core": "0.0.0" }` / `packages/cli/src/main.ts:16-17`・`src/text.ts:4-6` の `import … from "@bomdd/core"`。`packages/core/package.json` の `"main": "./dist/index.js"` により、この import が解決する実体は**鋳造出力**である |
+| 2 | **M-CLI-005** | M-BUILD-VIEWER-011 | A | `packages/cli/tsconfig.json` の `references: [… , { "path": "../viewer" }]` / `package.json` の `dependencies: { "@bomdd/viewer": "0.0.0" }` / `src/main.ts:18` `import { generateView } from "@bomdd/viewer"`。`packages/viewer/package.json` も `"main": "./dist/index.js"` |
+| 3 | **M-CLI-005** | M-SCHEMA-013 | A | `packages/cli/src/main.ts:22-27` `defaultSchemaDir()` が `<repo-root>/schemas/ref-v0` を解決(`join(here, "..","..","..","schemas","ref-v0")`)。`main.ts:51` の --help に「`--schema <DIR>` ref-v0 スキーマの場所 (既定: 同梱)」 |
+| 4 | **M-HARNESS-008** | M-CLI-005 | A | `test/helpers/run-cli.js:10` `CLI_MAIN = join(REPO_ROOT,"packages","cli","dist","main.js")`。この helper は 23 テストが `from "./helpers/run-cli.js"` で参照する(test/ 内の import 集計) |
+| 5 | **M-HARNESS-008** | M-BUILD-CORE-010 | A | `test/discover.test.js:5` / `gate.test.js:5` / `messages.test.js:6` / `resolve.test.js:5` / `schema-load.test.js:6` の `import … from "@bomdd/core"`(= `packages/core/dist/index.js`) |
+| 6 | **M-HARNESS-008** | M-SCHEMA-013 | A | `test/discover.test.js:9` / `gate.test.js:10` / `resolve.test.js:9` の `SCHEMA_DIR = join(REPO_ROOT,"schemas","ref-v0")`・`schema-load.test.js:11` の `loadSchema(join(REPO_ROOT,"schemas","ref-v0"))` |
+| 7 | **M-CORE-INGEST-001** | M-SCHEMA-013 | B | 受入 `CP-DISCOVER-002` の test vector = `test/discover.test.js:9` が `schemas/ref-v0` を読む |
+| 8 | **M-CORE-GRAPH-002** | M-SCHEMA-013 | B | 受入 `CP-SCHEMA-004` / `CP-RESOLVE-005` の vector = `test/schema-load.test.js:11`・`test/resolve.test.js:9` が `schemas/ref-v0` を読む |
+| 9 | **M-CORE-RULES-003** | M-SCHEMA-013 | B | 受入 `CP-GATE-008` の vector = `test/gate.test.js:10` が `schemas/ref-v0` を読む |
+
+**#7〜#9 が根拠 B になる理由(重要)**: core の実装は `schemas/ref-v0` への**パスを持たない**。
+`packages/core/src/schema/types.ts:1` が「Parsed ref-v0 schema shapes (§2.3). **Loaded at runtime;
+never baked into code (INV-007)**」と宣言するとおり、パスを焼き込まないことが不変条件だからである
+(実装が読むのは ref-v0 が定めた**キー名** — `schema/load.ts:229-230` の `grammar_version` /
+`edges_version`、`load.ts:138` の `uniqueness_scope`)。
+したがって根拠 A は**原理的に取得できず**、「その unit が自己受入を通るために ref-v0 スナップショットの
+実在を要する」という受入経由の根拠で張る。この等級差を隠さず宣言することが本節の主旨である。
+
+### 8.3 基準を満たさず**張らなかった**エッジ(一貫適用の反証側)
+
+| 張らなかったエッジ | 理由(検算結果) |
+|---|---|
+| M-CORE-OUTPUT-004 → M-SCHEMA-013 | 同 unit の受入 `CP-OUTPUT-010` の vector に `schemas/ref-v0` を読むものが無い(`schemas/ref-v0` を参照する test は 4 ファイルのみ・全数 grep 済み)。**根拠 B も取れない** |
+| M-CORE-OUTPUT-004 → M-SCHEMA-CONTRACT-014 | `packages/core/src` は `schemas/plm-*.schema.json` を読まない(`output/build.ts:79/134/153` は `schemaVersion` 文字列リテラルを**書く**だけ)。加えて rev2 で M-SCHEMA-CONTRACT-014 → M-CORE-OUTPUT-004 を宣言済みであり、逆向きを足すと 2 循環になる |
+| M-VIEWER-GEN-006 / M-VIEWER-UI-007 → M-BUILD-CORE-010 | `packages/viewer/src` に `@bomdd/` の import が**無い**(`index.ts:1` のコメント 1 行のみ・全数 grep 済み)。core を要求するのは `packages/viewer/tsconfig.json` の `references` と `package.json` であり、これらは M-PKGDEF-VIEWER-016 / M-BUILD-VIEWER-011 の artifact に属する(そちらで宣言済み) |
+| M-HARNESS-008 → M-BUILD-VIEWER-011 | `test/` に `@bomdd/viewer` も `viewer/dist` の参照も無い(全数 grep 済み)。viewer には CLI 経由でしか到達しない = **推移閉包は取らない**の適用 |
+| M-CORE-* → M-PKGDEF-CORE-015 | ソース unit の再製造手順は「.ts を著述する」であり、`package.json` / `tsconfig.json` を要求するのは**鋳造手順**。それは M-BUILD-CORE-010 の前提として宣言済み(推移閉包を取らない) |
+
+### 8.4 rev3 の実測(自己受入)
+
+| 指標 | rev2 | **rev3 予測** | **rev3 実測** | 判定 |
+|---|---|---|---|---|
+| `decomposition.unmapped_files` | 0 | 0(`depends_on` は写像に無関係) | **0** | 的中 |
+| `real_under_files` | 111 | 111 | **111** | 的中 |
+| `hub_concentration` | 8 unit・合計 111 | 完全不変 | **完全不変**(BUILD-CORE 39 / ORACLE 27 / INGEST 18 / HARNESS 15 / PKGDEF-CORE 4 / SCHEMA-013 3 / CI 3 / CLI 2) | 的中 |
+| lint error / warn | 0 / 0 | 0 / 0(追加先 9 件は全て定義済み ID) | **0 / 0** | 的中 |
+| lint info | 179 | **178**(M-SCHEMA-013 が 4 unit から被参照になり孤立が解ける。M-CI-012 / M-SCHEMA-CONTRACT-014 は孤立のまま) | **178**(M-* 孤立は `M-CI-012` / `M-SCHEMA-CONTRACT-014` の 2 件) | 的中 |
+| build / test | 0 / 118 pass | 不変 | **0 / 118 pass・0 fail** | 的中 |
+| `git diff --numstat`(32-mbom) | 158 追加 / **0 削除** | 追加のみ | **176 追加 / 0 削除** | 的中 |
+
+`git status --porcelain` は `M bomdd/32-mbom.yaml` / `M bomdd/51-cheat-log.md` /
+`?? bomdd/61-impact-analysis-eco-006.md` の 3 行(bomdd/ のみ)。
+
+> **削除 0** は「既存 unit の他フィールド・文言を 1 文字も変えていない」ことの機械証明である
+> (追記は既存行の間への挿入のみで、既存行の書き換えを含まない)。
