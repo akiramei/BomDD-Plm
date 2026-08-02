@@ -376,8 +376,29 @@ rev1 の新 unit 5 件が追記済みと聞いている。rev2 では **改名 0
 >   実参照している(import / tsconfig references / package.json dependencies / パス解決)。
 > - **根拠 B(受入経由)**: その unit の宣言済み `acceptance_refs`(CP)の test vector が、
 >   相手 unit の artifact を読む。**A が原理的に取れない場合の代替**であり、A があるなら A を使う。
+> - **(C) 妥当性条件 — 非循環(rev4 で追加)**: `depends_on` は製造順序の前提であるから、
+>   グラフは**非循環**でなければならない(循環があれば「先に成立しているべき順序」自体が
+>   定義できず、宣言が意味を失う)。**A/B のいずれで候補が立っても、相手 unit から自 unit への
+>   既存経路がある場合は張らない。** 自己ループ(U→U)も同様。
+>   等級 A/B は**証拠の強さの表示**であって、エッジの採否は (C) が決める。
 
-### 8.2 追記した depends_on 全 9 エッジ(検算根拠つき)
+**(C) の根拠(なぜ棄却が正当か)**: 受入 vector が「自 unit の成果物を焼いたもの」やその下流
+(鋳造物 → CLI → 治具)を読むのは、**自己受入の構造**そのものである — 自分を焼き、焼いたもので
+自分を検査する。これは「再製造の前に**別の unit** が成立していること」ではなく、同じ unit の
+製造・検査サイクルの内側の話であり、製造順序の前提ではない。実際 M-BUILD-CORE-010 は
+rev2 から M-CORE-INGEST-001/GRAPH-002/RULES-003/OUTPUT-004 に `depends_on` しており、
+逆向きを足せば 2-循環になって「どちらを先に作るか」が決まらなくなる。
+(C) を置くことで基準は**閉じる** — 検算は §8.4。
+
+### 8.2 追記した depends_on 全 11 エッジ(検算根拠つき)
+
+> rev4(第 3 回検査の指摘 1)で **#10・#11 を追加**した。指摘は正確である —
+> §8.1 の根拠 A の定義(自 artifact から相手 artifact への実参照)に照らすと、
+> `packages/cli/tsconfig.json` の `references` が指すのは参照先の **tsconfig.json 実体**であり、
+> `package.json` の `dependencies` が要求する name+version を宣言しているのは参照先の
+> **package.json 実体**である。いずれも M-PKGDEF-* の所有物であって、鋳造物(dist)ではない。
+> 「推移閉包を取らない」では棄却できない(**同一の直接参照が 2 unit の artifact に跨っている**だけで、
+> 経路の圧縮ではないため)。M-CI-012 が BUILD と PKGDEF の両方を直接宣言している前例とも整合する。
 
 | # | from(既存 unit) | to | 等級 | 検算根拠(ファイル:行) |
 |---|---|---|---|---|
@@ -390,6 +411,8 @@ rev1 の新 unit 5 件が追記済みと聞いている。rev2 では **改名 0
 | 7 | **M-CORE-INGEST-001** | M-SCHEMA-013 | B | 受入 `CP-DISCOVER-002` の test vector = `test/discover.test.js:9` が `schemas/ref-v0` を読む |
 | 8 | **M-CORE-GRAPH-002** | M-SCHEMA-013 | B | 受入 `CP-SCHEMA-004` / `CP-RESOLVE-005` の vector = `test/schema-load.test.js:11`・`test/resolve.test.js:9` が `schemas/ref-v0` を読む |
 | 9 | **M-CORE-RULES-003** | M-SCHEMA-013 | B | 受入 `CP-GATE-008` の vector = `test/gate.test.js:10` が `schemas/ref-v0` を読む |
+| **10** | **M-CLI-005** | **M-PKGDEF-CORE-015** | A | `packages/cli/tsconfig.json` の `references[0] = { "path": "../core" }` — TS プロジェクト参照はディレクトリ指定時に参照先の **`tsconfig.json`** を解決する(= `packages/core/tsconfig.json`)。加えて `packages/cli/package.json` の `dependencies["@bomdd/core"] = "0.0.0"` が要求する **name と version を宣言している実体**は `packages/core/package.json`。いずれも M-PKGDEF-CORE-015 の artifact(`packages/core/` のうち src/・dist/ を除く部分) |
+| **11** | **M-CLI-005** | **M-PKGDEF-VIEWER-016** | A | 同型 — `packages/cli/tsconfig.json` の `references[1] = { "path": "../viewer" }` → `packages/viewer/tsconfig.json` / `dependencies["@bomdd/viewer"] = "0.0.0"` → `packages/viewer/package.json` |
 
 **#7〜#9 が根拠 B になる理由(重要)**: core の実装は `schemas/ref-v0` への**パスを持たない**。
 `packages/core/src/schema/types.ts:1` が「Parsed ref-v0 schema shapes (§2.3). **Loaded at runtime;
@@ -401,15 +424,54 @@ never baked into code (INV-007)**」と宣言するとおり、パスを焼き�
 
 ### 8.3 基準を満たさず**張らなかった**エッジ(一貫適用の反証側)
 
+**(i) 証拠が取れないので張らない**(A も B も成立しない)
+
 | 張らなかったエッジ | 理由(検算結果) |
 |---|---|
-| M-CORE-OUTPUT-004 → M-SCHEMA-013 | 同 unit の受入 `CP-OUTPUT-010` の vector に `schemas/ref-v0` を読むものが無い(`schemas/ref-v0` を参照する test は 4 ファイルのみ・全数 grep 済み)。**根拠 B も取れない** |
-| M-CORE-OUTPUT-004 → M-SCHEMA-CONTRACT-014 | `packages/core/src` は `schemas/plm-*.schema.json` を読まない(`output/build.ts:79/134/153` は `schemaVersion` 文字列リテラルを**書く**だけ)。加えて rev2 で M-SCHEMA-CONTRACT-014 → M-CORE-OUTPUT-004 を宣言済みであり、逆向きを足すと 2 循環になる |
-| M-VIEWER-GEN-006 / M-VIEWER-UI-007 → M-BUILD-CORE-010 | `packages/viewer/src` に `@bomdd/` の import が**無い**(`index.ts:1` のコメント 1 行のみ・全数 grep 済み)。core を要求するのは `packages/viewer/tsconfig.json` の `references` と `package.json` であり、これらは M-PKGDEF-VIEWER-016 / M-BUILD-VIEWER-011 の artifact に属する(そちらで宣言済み) |
-| M-HARNESS-008 → M-BUILD-VIEWER-011 | `test/` に `@bomdd/viewer` も `viewer/dist` の参照も無い(全数 grep 済み)。viewer には CLI 経由でしか到達しない = **推移閉包は取らない**の適用 |
-| M-CORE-* → M-PKGDEF-CORE-015 | ソース unit の再製造手順は「.ts を著述する」であり、`package.json` / `tsconfig.json` を要求するのは**鋳造手順**。それは M-BUILD-CORE-010 の前提として宣言済み(推移閉包を取らない) |
+| M-CORE-OUTPUT-004 → M-SCHEMA-013 | 受入 `CP-OUTPUT-010` の vector(`output-determinism` / `ledger` / `sarif`)に `schemas/ref-v0` を読むものが無い(参照 test は 4 ファイルのみ・全数 grep) |
+| M-CORE-OUTPUT-004 → M-SCHEMA-CONTRACT-014 | `packages/core/src` は `schemas/plm-*.schema.json` を読まない(`output/build.ts:79/134/153` は `schemaVersion` 文字列リテラルを**書く**だけ)。※ 仮に候補が立っても rev2 の逆向き宣言により (C) で棄却される |
+| M-VIEWER-GEN-006 / M-VIEWER-UI-007 → M-BUILD-CORE-010 | `packages/viewer/src` に `@bomdd/` の import が**無い**(`index.ts:1` のコメント 1 行のみ)。受入 vector(`viewer` / `l1-smoke` / `trace-datasource`)も `@bomdd/core` を import しない = **A も B も不成立**(この 2 エッジは (C) では棄却できないので、証拠不在で落ちることが効いている) |
+| M-HARNESS-008 → M-BUILD-VIEWER-011 | `test/` に `@bomdd/viewer` も `viewer/dist` の参照も無い(全数 grep)。viewer には CLI 経由でしか到達しない |
+| M-CORE-* → M-PKGDEF-CORE-015 | ソース unit の artifact(`packages/core/src`)は `package.json` / `tsconfig.json` を参照しない。構成を要求するのは**鋳造手順**であり M-BUILD-CORE-010 の前提として宣言済み |
 
-### 8.4 rev3 の実測(自己受入)
+**(ii) 証拠は立つが (C) 非循環条件で棄却**(rev4 で明文化。§8.4 の機械検査で全数確認)
+
+| 張らなかったエッジ | 既存の逆経路 |
+|---|---|
+| M-CORE-INGEST-001 / GRAPH-002 / RULES-003 → M-BUILD-CORE-010 | `M-BUILD-CORE-010 → M-CORE-*`(rev2 で宣言済み) |
+| M-CORE-INGEST-001 / GRAPH-002 / RULES-003 / OUTPUT-004 → M-CLI-005 | `M-CLI-005 → M-BUILD-CORE-010 → M-CORE-*` |
+| M-VIEWER-GEN-006 / M-VIEWER-UI-007 → M-CLI-005 | `M-CLI-005 → M-BUILD-VIEWER-011 → M-VIEWER-*` |
+| M-CLI-005 → M-CLI-005 | 自己ループ |
+
+> これらはいずれも「受入 vector が `@bomdd/core`(= 自分たちを焼いた dist)や CLI・治具を読む」形であり、
+> **自己受入の構造**であって製造の前提ではない(§8.1 (C) の根拠)。
+
+### 8.4 基準が閉じていることの機械検査(rev4)
+
+第 3 回検査の指摘 2「**基準が自分の規則の下で閉じていること**が受理条件」に対する検算。
+作業用治具 `<workspace>/out/closure-check.py`(**リポ外・納品物ではない**)で 2 点を機械検査した:
+
+1. **DAG 検査** — 32-mbom の `depends_on` グラフに循環が無いこと(深さ優先の灰色検出)。
+   → **PASS(循環なし)**。(C) が満たされている = 製造順序が定義できる。
+2. **根拠 B 候補の全数処理** — `acceptance_refs` を持つ 7 unit について、受入 vector ファイル
+   (unit ごとに名前で明示割当)の中身を実測して相手 artifact への実参照を検出し、
+   立った候補が **「宣言済み」/「自己」/「(C) で棄却」のいずれかに必ず分類され、
+   規則で処理されない残余がゼロ**であることを検査。
+   → **PASS(残余ゼロ)**。内訳= 宣言済み 3(core 3 unit → M-SCHEMA-013)・
+   自己 1(M-CLI-005)・(C) 棄却 9。
+
+検出シグネチャ(実参照 → 所有 unit): `from "@bomdd/core"` → M-BUILD-CORE-010
+(`packages/core/package.json` の `"main": "./dist/index.js"` による)/ `from "@bomdd/viewer"` →
+M-BUILD-VIEWER-011 / `helpers/run-cli`・`cli/dist` → M-CLI-005(`run-cli.js:10`)/
+`schemas/ref-v0` → M-SCHEMA-013。
+
+> **限界の明示**: CP → test vector ファイルの写像は 33-control-plan が散文(`test_vectors:` が
+> シナリオ名の列)のため機械可読でなく、治具では **unit ごとにファイル名で明示割当**している
+> (割当表は治具のソースに記載)。この割当が誤っていれば検査も誤る。
+> `test_vectors` の機械可読化(ファイル参照化)は本 ECO のスコープ外 — §5 に準じる観察として記録し、
+> ずる CHEAT-ECO-006-F010 に挙げる。
+
+### 8.5 rev3 / rev4 の実測(自己受入)
 
 | 指標 | rev2 | **rev3 予測** | **rev3 実測** | 判定 |
 |---|---|---|---|---|
@@ -421,8 +483,22 @@ never baked into code (INV-007)**」と宣言するとおり、パスを焼き�
 | build / test | 0 / 118 pass | 不変 | **0 / 118 pass・0 fail** | 的中 |
 | `git diff --numstat`(32-mbom) | 158 追加 / **0 削除** | 追加のみ | **176 追加 / 0 削除** | 的中 |
 
+**rev4(第 3 回検査の是正後)の実測** — 追加は A エッジ 2 本と裁定 3 の (C) 明文化のみ:
+
+| 指標 | rev3 | **rev4 予測** | **rev4 実測** | 判定 |
+|---|---|---|---|---|
+| `decomposition.unmapped_files` / `real_under_files` | 0 / 111 | 0 / 111(`depends_on` は写像に無関係) | **0 / 111** | 的中 |
+| `hub_concentration` | 8 unit・合計 111 | 完全不変 | **完全不変**(BUILD-CORE 39 / ORACLE 27 / INGEST 18 / HARNESS 15 / PKGDEF-CORE 4 / SCHEMA-013 3 / CI 3 / CLI 2) | 的中 |
+| lint error / warn | 0 / 0 | 0 / 0(追加先 2 件は定義済み ID) | **0 / 0** | 的中 |
+| lint info | 178 | **178**(M-PKGDEF-* は既に M-BUILD-*/M-CI-012 から被参照= 孤立でない。孤立の増減なし) | **178**(M-* 孤立は `M-CI-012` / `M-SCHEMA-CONTRACT-014` の 2 件で不変) | 的中 |
+| build / test | 0 / 118 pass | 不変 | **0 / 118 pass・0 fail** | 的中 |
+| `git diff --numstat`(32-mbom) | 176 追加 / **0 削除** | 追加のみ | **194 追加 / 0 削除** | 的中 |
+| DAG 検査 / 閉性検査(§8.4) | (未実施) | PASS / PASS | **PASS(循環なし)/ PASS(残余ゼロ)** | 的中 |
+
 `git status --porcelain` は `M bomdd/32-mbom.yaml` / `M bomdd/51-cheat-log.md` /
 `?? bomdd/61-impact-analysis-eco-006.md` の 3 行(bomdd/ のみ)。
 
 > **削除 0** は「既存 unit の他フィールド・文言を 1 文字も変えていない」ことの機械証明である
 > (追記は既存行の間への挿入のみで、既存行の書き換えを含まない)。
+> rev4 で M-CLI-005 の `depends_on` 行を書き換えているが、この行自体が rev3 で新規追加した行であり
+> HEAD には存在しない — したがって HEAD 比較では依然として削除 0 が成立する。

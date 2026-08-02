@@ -78,7 +78,14 @@ mbom:
       #   M-BUILD-VIEWER-011 ← packages/cli/tsconfig.json references[1] {path: ../viewer} / package.json dependencies["@bomdd/viewer"]
       #                         / src/main.ts:18 import { generateView } from "@bomdd/viewer"
       #   M-SCHEMA-013       ← src/main.ts:22-27 defaultSchemaDir() = <repo-root>/schemas/ref-v0(--help の「既定: 同梱」= main.ts:51)
-      depends_on: [M-BUILD-CORE-010, M-BUILD-VIEWER-011, M-SCHEMA-013]
+      # ECO-006 rev4(第 3 回検査の欠落指摘・同じく根拠 A):
+      #   M-PKGDEF-CORE-015   ← tsconfig.json references[0] {path: "../core"} は TS プロジェクト参照= 参照先の
+      #                          tsconfig.json 実体(packages/core/tsconfig.json)を指す / package.json の
+      #                          dependencies["@bomdd/core"] が要求する name+version は packages/core/package.json の宣言
+      #   M-PKGDEF-VIEWER-016 ← 同じく references[1] {path: "../viewer"} → packages/viewer/tsconfig.json /
+      #                          dependencies["@bomdd/viewer"] → packages/viewer/package.json
+      #   (鋳造物 dist と構成 tsconfig/package.json は別 unit の所有物につき両方を直接宣言する — M-CI-012 と同型)
+      depends_on: [M-PKGDEF-CORE-015, M-PKGDEF-VIEWER-016, M-BUILD-CORE-010, M-BUILD-VIEWER-011, M-SCHEMA-013]
       artifact: { path: packages/cli/, type: ts-cli(bin=bomdd-lint) }
       interface_contract:
         main: "main(argv): exitCode 0|1|2  // §2.10 マトリクス。stdout=データ/stderr=ログ"
@@ -140,9 +147,20 @@ mbom:
     #     rev1 は packages/<pkg>/ 全体を取り、著述物(package.json・tsconfig.json)まで吸収して
     #     「人手編集禁止」の契約と矛盾していた。著述側は M-PKGDEF-* として分離した。
     #
-    # 【裁定 3(rev2 新設)】depends_on の意味論 = 「この unit を**再製造する前に成立していなければ
-    #   ならない** unit」(製造順序の前提)。実行時依存ではない(実行時の調達は procurement/K-BOM)。
+    # 【裁定 3(rev2 新設・rev4 で妥当性条件 (C) を追加)】
+    #   depends_on の意味論 = 「この unit を**再製造する前に成立していなければならない** unit」
+    #   (製造順序の前提)。実行時依存ではない(実行時の調達は procurement/K-BOM)。
     #   由来(鋳造元)はこの意味論の部分集合として表現される — dist は src が成立していないと鋳造できない。
+    #   エッジを張ってよいのは検算できるものだけ。証拠は 2 等級で明示する(61 §8.1):
+    #     根拠 A(直接)  = 自 unit の artifact 配下のファイルが相手 unit の artifact を実参照している
+    #     根拠 B(受入経由)= 自 unit の acceptance_refs(CP)の test vector が相手 unit の artifact を読む
+    #                       (A が原理的に取れない場合の代替。等級は証拠の強さの表示であって採否は (C) が決める)
+    #   **(C) 非循環条件(rev4)**: depends_on は製造順序の前提であるから、グラフは非循環でなければ
+    #     ならない(循環があれば「先に成立しているべき順序」自体が定義できず宣言が意味を失う)。
+    #     A/B のいずれで候補が立っても、**相手 unit から自 unit への既存経路がある場合は張らない**。
+    #     そこで成立しているのは依存ではなく**自己受入の構造**(自分の成果物を焼き、それを使って
+    #     自分を検査する)であり、製造の前提ではない。自己ループ(U→U)も同じ理由で張らない。
+    #     この条件により基準は閉じる — 検算は 61 §8.4(DAG 検査+根拠 B 候補の全数処理)。
     #   ※ ref-v0 は depends_on を「family M の参照エッジ」としか規定しておらず意味論は未規定。
     #      本製品の用法として上記を宣言する(スキーマ側への昇格は設計者裁定 — 51 CHEAT-ECO-006-F001/F005)。
     #

@@ -125,4 +125,20 @@
   info 176**(M-SCHEMA-013 の孤立解消 −1・register は rev2 追随 3 unit のまま変更なし)・
   diff= bomdd/ 5 ファイルのみ・**追加のみ(全段通算で既存記録の削除 0)**。
   61 末尾の `</content>` 混入(fix2 起源・検査官指摘)は衛生除去(設計者・宣言つき)。
-- CI 実測は push 後に本欄へ追記(4 値判定)。
+- CI 実測は push 後に本欄へ追記(4 値判定)。fix3 677b43e= **緑**(実測)。
+
+### §5 追記 3(2026-08-02・差戻 3= fix4 — IA-03 の完全クローズ)
+
+- 第 3 回検査(677b43e)= NEW-01 CLOSED・new 0・IA-03 PARTIAL(基準の自己閉包未達 —
+  欠落 2 エッジ+根拠 B の例外未明文化)。両指摘とも突合 CONFIRMED(通算 7/7・誤検出 0)。
+- 差戻 3(工場= claude-opus-5): 欠落 2 エッジ追加(M-CLI-005 → M-PKGDEF-CORE-015 / 016・
+  根拠 A= cli/tsconfig.json references の tsconfig 解決+package.json name/version 宣言実体)
+  = **depends_on 全 11 エッジ**。例外規則は**妥当性条件 (C) 非循環**として本文化(裁定 3・
+  61 §8.1 — 等級 A/B は証拠の強さ・採否は (C) が決める。自己受入サイクル内の依存は製造順序の
+  前提でないことの論証つき)。閉性の機械検査(DAG PASS+根拠 B 候補 7 unit 全数処理= 宣言 3/
+  自己 1/(C) 棄却 9/残余 0)を工場が自作実測(治具はリポ外・納品物でない)。
+  ずる追記 1(F010= 33-control-plan test_vectors が散文でファイル参照でなく、閉性証明の
+  unit→test 割当が手作業= 機械可読化は本 ECO スコープ外の設計者裁定候補)= **累計 10**。
+- **最終受入(fix4 個体・実リポ全再実測)**: 採点器 unmapped 0・real_under 111 不変・
+  118/118 tests・lint error 0/warn 0(info 176)・diff= bomdd/ のみ・numstat 追加のみ削除 0。
+  CI 実測は push 後追記。
