@@ -1,0 +1,9 @@
+ebom:
+  items:
+    - id: E-CORE-001
+      name: sample core part
+      classification: core
+      lifecycle_state: manufacturing-ready
+      requirement_refs: [REQ-001]
+      kbom_refs: [K-TEST]
+      acceptance_refs: [CP-CORE-001]

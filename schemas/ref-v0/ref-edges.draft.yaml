@@ -5,7 +5,17 @@
 #
 # 意味論は縛らない: ここに無いフィールドは自由。ここに有るフィールドも「型と参照先ファミリー」だけを縛る。
 
-edges_version: ref-v0.10
+edges_version: ref-v0.11
+# ref-v0.11(2026-09-29・BomDD harness ECO-085): R-050 の規則文言の是正 — 「所見なし」に証拠能力を戻す。
+#   旧文言「被覆する」は証拠行の有無(cp_ref)だけを要求し、合否値(result)を要求しなかった。実測(BomDD-Plm
+#   6937a66・受入ゲート): result が fail / not-run / blocked / 欄なし / 語彙外 の証拠行でも所見 0・exit 0、
+#   製造記録が無い・空リスト・文書方言(mapping)でも無音で所見 0(測定不能が合格と区別できない)。
+#   実在標本= 製品リポの製造記録に result: fail の行が実在し、受入対象の CP でも所見にならない。
+#   是正= (a) 合格行を要求 (b) 合格以外の行を違反とする (c) 測定不能を error にする (d) 対象 0 件は適用外と明示。
+#   規則文言の変更だけでは挙動は変わらない — 実装は BomDD-Plm 側の ECO(スナップショット同期と同時)。
+#   宣言済み境界(本版で変えない): 「最新」= リスト末尾のエントリ・判定はリポを区別しない・retired の M unit も
+#   対象に数える — いずれも赤を過剰に出す側(偽陽性)であり、「所見なし」の意味は弱めない。文書方言の製造記録に
+#   対する被覆検査そのもの(ECO-029 の宣言済み境界)も本版の範囲外で、(c) は「測れない」と言うところまで。
 # ref-v0.10(2026-08-03・BomDD harness ECO-029): 50-as-built の文書方言(実物が正 7 例目) —
 #   as_built がリスト([]・Plm 実物= AB エントリ形)の宣言しか無く、ViewPrism2 実物の文書形
 #   (as_built: mapping — golden_approvals[]/golden_approved[]/golden_findings[]/eco[] 等)で
@@ -427,9 +437,29 @@ lint_rules:
 
   - id: R-050
     name: acceptance-evidence-coverage
-    rule: 最新 AB エントリの test_evidence_refs が、対象 M unit の acceptance_refs の CP 行を全て被覆する
+    rule: >
+      最新 AB エントリの test_evidence_refs について、次の全てが成り立つ。
+      (a) 対象 M unit の acceptance_refs の CP 行すべてに、result が pass の証拠行が 1 本以上ある。
+      (b) result が pass 以外の証拠行(fail / blocked / not-run・result 欄なし・語彙外の値)が 1 本もない
+      (cp_ref が対象 M unit の acceptance_refs に無い行も含む)。
+      (c) 対象が 1 件以上あるのに as_built をリスト形のエントリとして読めない場合
+      (製造記録ファイルなし・as_built キーなし・空リスト・文書方言)は測定不能として error にする。
+      (d) 対象(acceptance_refs を持つ M unit)が 0 件なら (a)(c) は適用外とし、適用外であることを info で明示する
+      ((b) は対象の件数によらず適用する)。
     gate: acceptance
     severity: error
+    note: >-
+      ref-v0.11(ECO-085)。合否値の語彙は 50-as-built テンプレの pass | fail | blocked | not-run で、
+      合格は文字列 pass の完全一致のみ(語彙外の値は合格に数えない — 語彙の拡張は実物を根拠に別 ECO)。
+      (a)〜(d) の所見はいずれも他の規則と同じく本規則の gate(acceptance)を付けて出す。実行ゲートが
+      それより前なら判定(exit)には効かない — 製造前に製造記録が無いのは正常な状態であり、ゲートがそれを
+      判定から外す(所見を出すゲートを規則ごとに変えない)。severity は (a)(b)(c) が error・(d) が info。
+      「R-050 の所見なし」とは、error の R-050 が無く、抑止(suppress)された R-050 も、(d) の適用外の
+      info も無い状態を指す — 抑止つきの通過と適用外は出力に残る別の状態であり、所見なしとして引用しない。
+      所見なしが支持すること= 最新エントリが、対象の全 CP について合格を申告し、合格以外の申告行を持たない。
+      支持しないこと= 証拠ファイルの中身が合格を示すこと(result は記録者の申告値・evidence_path は実在のみ
+      R-004)/ 証拠が現在の成果物の個体に対するものであること(artifacts_sha256 と現物の照合は本規則の外)/
+      最新エントリより前のエントリの内容 / 本ゲートが製品の判定経路で実行されていること。
   - id: R-051
     name: eco-impact-ids-resolve
     rule: ECO の影響分析に列挙された ID が全て解決できる

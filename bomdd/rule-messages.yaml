@@ -23,7 +23,13 @@ rules:
   - { rule: R-031, message: "固定オラクルの frozen_since / self_test が未記入です",                                 fixTarget: "治具セルフテスト+較正を実施し、凍結 commit/tag を記入する" }
   - { rule: R-040, message: "{targetId} が superseded/retired 品目 {ref} を active 参照しています",                fixTarget: "lineage の後継品目へ再帰属する(テンプレ 64 part-lineage-reattribution)" }
   - { rule: R-041, message: "trace_link {targetId} の from/to({ref})が解決できません",                            fixTarget: "エンドポイントを実在 ID または実在パスへ修正する" }
-  - { rule: R-050, message: "特性 {targetId} が最新 As-Built の test_evidence に被覆されていません",                fixTarget: "50-as-built.yaml の test_evidence_refs に本特性の証跡を追加する" }
+  # R-050(ref-v0.11・ECO-008): 1 規則 1 行のまま、項ごとの理由を {ref} に入れる。理由の語彙(凍結・工場は転記のみ):
+  #   (a) 合格の証跡行がない
+  #   (b) 合格以外の証跡行がある(result=<記録の値>) / 合格以外の証跡行がある(result 欄なし)
+  #   (c) 測定不能(製造記録をリスト形のエントリとして読めない)
+  #   (d) 適用外(受入対象の M unit が 0 件) — severity は info・{targetId} は「(対象なし)」
+  #   (b) で cp_ref を持たない行の {targetId} は「(cp_ref なし)」(所見の targetId フィールドは付けない)
+  - { rule: R-050, message: "受入証跡の検査: 特性 {targetId} — {ref}", fixTarget: "50-as-built.yaml の最新エントリの test_evidence_refs を是正する(合格の証跡行を記録する・合格以外の行は是正と再測定の後に置き換える・製造記録が無ければ作成する)" }
   - { rule: R-051, message: "ECO {targetId} の影響分析に解決できない ID {ref} があります",                          fixTarget: "60-change-register.yaml の affected_refs を実在 ID へ修正する" }
   - { rule: R-052, message: "ECO {targetId} の実 diff にあるファイル {ref} が宣言影響集合(bomdd/+allowed_paths)の外にあります", fixTarget: "影響分析を改訂して allowed_paths へ追加するか、影響外の変更を取り消す(unnecessary modification)" }
   - { rule: X-PARSE-001,    message: "構文エラー: {ref}",                                                          fixTarget: "当該ファイルの構文を修正する(hint がある場合はそれに従う)" }

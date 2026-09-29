@@ -84,8 +84,8 @@ const TABLE: Record<string, MessageTemplate> = {
     fixTarget: "エンドポイントを実在 ID または実在パスへ修正する",
   },
   "R-050": {
-    message: "特性 {targetId} が最新 As-Built の test_evidence に被覆されていません",
-    fixTarget: "50-as-built.yaml の test_evidence_refs に本特性の証跡を追加する",
+    message: "受入証跡の検査: 特性 {targetId} — {ref}",
+    fixTarget: "50-as-built.yaml の最新エントリの test_evidence_refs を是正する(合格の証跡行を記録する・合格以外の行は是正と再測定の後に置き換える・製造記録が無ければ作成する)",
   },
   "R-051": {
     message: "ECO {targetId} の影響分析に解決できない ID {ref} があります",

@@ -187,6 +187,15 @@ BomDD 成果物リポジトリを直読し、参照整合を検査(lint)して�
     設計者が ref-v0 rule note から起草・凍結し、工場はこの表を転記する(文言の創作をしない)。
     表に無い規則の文言は blocker(仕様の穴)。固定オラクルは同じ表を期待値に使う。
     unit 検査は (a) fixTarget 非空 (b) message 非空 (c) rule-messages.yaml との一致、で機械判定する。
+  - **R-050 の項別規定(rev5/ECO-008・ref-v0.11)**: 規則の意味は ref-v0 の R-050(a)〜(d)が正(転記しない)。
+    本仕様が固定するのは実装の裁量次元のみ:
+    severity= (a)(b)(c) error・(d) info(規則文言が項ごとに定める severity に従うものであり、実装側の上書きではない)。
+    所見の粒度= (a)(c) は対象の (M unit, CP) ごとに 1 件・(b) は証跡行ごとに 1 件・(d) は実行ごとに 1 件。
+    file= (a)(b) は最新エントリを持つ製造記録・(c) は当該 M unit を定義する 32-mbom・(d) は先頭の 32-mbom(無ければ先頭の成果物)。
+    targetId= (a)(c) は CP・(b) は当該行の cp_ref(文字列でなければ付けない)・(d) は付けない。(b) は cp_ref の行番号を line に持つ。
+    理由は rule-messages.yaml の R-050 行の上に凍結した語彙を {ref} に入れる(1 規則 1 行を保つ)。
+    「最新エントリ」= リスト形の as_built を持つ最後の成果物の末尾要素(mapping)。読めるものが 1 つも無ければ (c)。
+    所見は他の規則と同じく全ゲートで評価し gate(acceptance)を付ける(本節冒頭・§2.7)。
 - 核/表面: surface(出所: ref-v0 lint_rules。判定ロジックは core)
 - 受入観点: unit — 規則ごとに違反 fixture+クリーン fixture の対で期待所見プロファイル完全一致
   (過検出も過少検出も FAIL)。これが charter の固定オラクルの実体。

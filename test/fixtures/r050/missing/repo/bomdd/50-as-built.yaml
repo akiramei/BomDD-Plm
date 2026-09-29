@@ -1,0 +1,4 @@
+as_built:
+  - id: AB-r050-factory-01
+    lifecycle_state: as-built
+    test_evidence_refs: []

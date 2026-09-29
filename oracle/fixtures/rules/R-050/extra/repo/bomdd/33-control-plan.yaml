@@ -1,0 +1,14 @@
+control_plan:
+  characteristics:
+    - id: CP-CORE-001
+      characteristic: sample
+      verifies: [E-CORE-001, M-CORE-001]
+      requirement_refs: [REQ-001]
+      depth: unit
+      test_vectors: [boundary, midpoint]
+    - id: CP-OTHER-001
+      characteristic: sample (no M unit refers to this row)
+      verifies: [E-CORE-001]
+      requirement_refs: [REQ-001]
+      depth: unit
+      test_vectors: [boundary]

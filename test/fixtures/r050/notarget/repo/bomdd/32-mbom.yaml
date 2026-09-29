@@ -1,0 +1,4 @@
+mbom:
+  manufacturing_units:
+    - id: M-CORE-001
+      ebom_refs: [E-CORE-001]

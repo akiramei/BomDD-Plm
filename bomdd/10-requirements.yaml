@@ -211,7 +211,7 @@ requirements:
   # ============================================================
 
   - id: REQ-010
-    rev: 3   # ECO-005(2026-07-04): diff_audit に head: アンカー — verified 済み ECO の監査が受入後コミットで遡及的に破れない(stale 恒久修正。仕様 §2.17 rev4)。rev2= ECO-002: R-052 の v0 除外を解除
+    rev: 4   # ECO-008(2026-09-29): R-050 が ref-v0.11 へ(合格行の要求・合格以外の行は違反・測定不能は error・適用外は info)— statement は「ref-v0 の忠実な実装」のまま不変で、追随先の版が上がる。rev 3= ECO-005(2026-07-04): diff_audit に head: アンカー — verified 済み ECO の監査が受入後コミットで遡及的に破れない(stale 恒久修正。仕様 §2.17 rev4)。rev2= ECO-002: R-052 の v0 除外を解除
     statement: >-
       ref-v0 リント規則 R-001〜R-052 の全規則を実装する。R-052(eco-diff-within-impact)は
       register の diff_audit フィールドを持つ ECO のみ検査し(opt-in)、git 実行不能時は

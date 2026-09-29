@@ -277,7 +277,7 @@ function emitItemRules(model: Model, out: Finding[]): void {
   // R-040: active-graph-integrity — active refs pointing at superseded/retired items.
   emitR040(model, out);
 
-  // R-050: acceptance-evidence-coverage (latest AB covers M unit's acceptance CP rows).
+  // R-050: acceptance-evidence-coverage (ref-v0.11: pass rows required, non-pass rows are violations).
   emitR050(model, out);
 
   // R-051 handled via dedicated-rule edge in emitRefFinding; if register absent, skip (info) — no finding.
@@ -347,45 +347,132 @@ function emitR040(model: Model, out: Finding[]): void {
   }
 }
 
+// R-050 (ref-v0.11 / ECO-008): the reason vocabulary is frozen in bomdd/rule-messages.yaml
+// (comment block above the R-050 row). Transcribed verbatim — do not paraphrase.
+const R050_REASON_NO_PASS = "合格の証跡行がない";
+const R050_REASON_NON_PASS_NO_FIELD = "合格以外の証跡行がある(result 欄なし)";
+const R050_REASON_NON_PASS_PREFIX = "合格以外の証跡行がある(result=";
+const R050_REASON_NON_PASS_SUFFIX = ")";
+const R050_REASON_UNMEASURABLE = "測定不能(製造記録をリスト形のエントリとして読めない)";
+const R050_REASON_NOT_APPLICABLE = "適用外(受入対象の M unit が 0 件)";
+const R050_NO_TARGET_LABEL = "(対象なし)";
+const R050_NO_CP_LABEL = "(cp_ref なし)";
+
+function r050ReasonNonPass(row: Record<string, unknown> | undefined): string {
+  const has = row !== undefined && Object.prototype.hasOwnProperty.call(row, "result");
+  if (!has) return R050_REASON_NON_PASS_NO_FIELD;
+  return R050_REASON_NON_PASS_PREFIX + String(row["result"]) + R050_REASON_NON_PASS_SUFFIX;
+}
+
+/**
+ * R-050 acceptance-evidence-coverage (ref-v0.11):
+ *  (a) every acceptance CP of every M unit has >=1 evidence row with result === "pass" in the latest AB entry
+ *  (b) the latest AB entry has no evidence row whose result is anything other than "pass"
+ *      (applies regardless of the number of targets, and to rows whose cp_ref is not a target)
+ *  (c) targets exist but no as_built is readable as a list entry => unmeasurable (error), one per target
+ *  (d) no targets => (a)(c) not applicable, stated explicitly as one info finding
+ * All findings carry the rule's gate; the gate is an output-side filter (§2.7), never a reason to skip.
+ * Unchanged on purpose (declared boundary): "latest" = last entry of the last parsed list-form as_built;
+ * no per-repo scoping; retired M units are counted.
+ */
 function emitR050(model: Model, out: Finding[]): void {
   const schema = model.schema;
   const gate = gateOfRule("R-050", schema);
-  // Gather latest AB entry test_evidence cp_refs; M units acceptance CP rows.
-  // v0: if no as-built present, nothing to check.
-  let latestAb: { cpRefs: Set<string>; file: string } | undefined;
+
+  // Targets: (M unit file, CP) pairs from acceptance_refs.
+  const targets: { cp: string; file: string }[] = [];
+  let firstMbomFile: string | undefined;
   for (const pa of model.parsed) {
     const doc = pa.doc as Record<string, unknown> | undefined;
-    const ab = doc?.["as_built"];
-    if (!Array.isArray(ab) || ab.length === 0) continue;
-    const last = ab[ab.length - 1] as Record<string, unknown>;
-    const cpRefs = new Set<string>();
-    const ev = last["test_evidence_refs"];
-    if (Array.isArray(ev)) {
-      for (const e of ev) {
-        if (e && typeof e === "object") {
-          const cp = (e as Record<string, unknown>)["cp_ref"];
-          if (typeof cp === "string") cpRefs.add(cp);
-        }
-      }
-    }
-    latestAb = { cpRefs, file: pa.artifact.canonicalPath };
-  }
-  if (!latestAb) return;
-  // For each M unit acceptance_refs CP row not covered => R-050 on the CP char.
-  for (const pa of model.parsed) {
-    const doc = pa.doc as Record<string, unknown> | undefined;
-    const mbom = doc?.["mbom"] as Record<string, unknown> | undefined;
-    const units = mbom?.["manufacturing_units"];
+    const mbom = doc?.["mbom"];
+    if (!mbom || typeof mbom !== "object" || Array.isArray(mbom)) continue;
+    if (firstMbomFile === undefined) firstMbomFile = pa.artifact.canonicalPath;
+    const units = (mbom as Record<string, unknown>)["manufacturing_units"];
     if (!Array.isArray(units)) continue;
     for (const raw of units) {
       if (!raw || typeof raw !== "object") continue;
       const accs = (raw as Record<string, unknown>)["acceptance_refs"];
       if (!Array.isArray(accs)) continue;
       for (const cp of accs) {
-        if (typeof cp === "string" && !latestAb.cpRefs.has(cp)) {
-          out.push(mk("R-050", "error", gate, latestAb.file, { targetId: cp }, undefined, undefined, cp));
-        }
+        if (typeof cp === "string") targets.push({ cp, file: pa.artifact.canonicalPath });
       }
     }
+  }
+
+  // Latest AB entry: last element of the last parsed as_built that is a non-empty list whose
+  // last element is a mapping. Anything else (absent / mapping dialect / empty list) is unreadable.
+  let latest: { file: string; lineOf: ((path: (string | number)[]) => number | undefined) | undefined; index: number; entry: Record<string, unknown> } | undefined;
+  for (const pa of model.parsed) {
+    const doc = pa.doc as Record<string, unknown> | undefined;
+    const ab = doc?.["as_built"];
+    if (!Array.isArray(ab) || ab.length === 0) continue;
+    const last: unknown = ab[ab.length - 1];
+    if (!last || typeof last !== "object" || Array.isArray(last)) continue;
+    latest = {
+      file: pa.artifact.canonicalPath,
+      lineOf: pa.lineOf,
+      index: ab.length - 1,
+      entry: last as Record<string, unknown>,
+    };
+  }
+
+  // (d) no targets: state it explicitly (info). (b) still applies below.
+  if (targets.length === 0) {
+    const file = firstMbomFile ?? model.parsed[0]?.artifact.canonicalPath;
+    if (file !== undefined) {
+      out.push(mk("R-050", "info", gate, file, { targetId: R050_NO_TARGET_LABEL, ref: R050_REASON_NOT_APPLICABLE }));
+    }
+  }
+
+  // (c) targets exist but nothing readable: unmeasurable, one per target.
+  if (!latest) {
+    for (const t of targets) {
+      out.push(
+        mk("R-050", "error", gate, t.file, { targetId: t.cp, ref: R050_REASON_UNMEASURABLE }, undefined, undefined, t.cp)
+      );
+    }
+    return;
+  }
+
+  const abFile = latest.file;
+  const ev = latest.entry["test_evidence_refs"];
+  const rows: unknown[] = Array.isArray(ev) ? ev : [];
+
+  // (a) every target CP needs >=1 pass row.
+  const passed = new Set<string>();
+  for (const e of rows) {
+    if (!e || typeof e !== "object" || Array.isArray(e)) continue;
+    const r = e as Record<string, unknown>;
+    const cp = r["cp_ref"];
+    if (typeof cp === "string" && r["result"] === "pass") passed.add(cp);
+  }
+  for (const t of targets) {
+    if (!passed.has(t.cp)) {
+      out.push(
+        mk("R-050", "error", gate, abFile, { targetId: t.cp, ref: R050_REASON_NO_PASS }, undefined, undefined, t.cp)
+      );
+    }
+  }
+
+  // (b) no row other than pass — including rows whose cp_ref is not a target.
+  for (let j = 0; j < rows.length; j++) {
+    const e = rows[j];
+    const r = e && typeof e === "object" && !Array.isArray(e) ? (e as Record<string, unknown>) : undefined;
+    if (r !== undefined && r["result"] === "pass") continue;
+    const cpRaw = r !== undefined ? r["cp_ref"] : undefined;
+    const cp = typeof cpRaw === "string" ? cpRaw : undefined;
+    const line = latest.lineOf?.(["as_built", latest.index, "test_evidence_refs", j, "cp_ref"]);
+    out.push(
+      mk(
+        "R-050",
+        "error",
+        gate,
+        abFile,
+        { targetId: cp ?? R050_NO_CP_LABEL, ref: r050ReasonNonPass(r) },
+        line,
+        undefined,
+        cp
+      )
+    );
   }
 }

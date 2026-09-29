@@ -1,0 +1,5 @@
+requirements:
+  - id: REQ-001
+    statement: sample requirement
+    trace_links:
+      - { trace_id: TL-001, from: REQ-001, to: E-CORE-001, relation: satisfies }

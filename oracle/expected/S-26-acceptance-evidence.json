@@ -1,0 +1,254 @@
+{
+  "case": "S-26",
+  "fixture": "fixtures/rules/R-050",
+  "runs": [
+    {
+      "target": "fixtures/rules/R-050/good/repo",
+      "gate": "acceptance",
+      "expect_exit": 0,
+      "findings": [],
+      "note": "正常陰性対照: 全 CP に合格行・合格以外の行なし"
+    },
+    {
+      "target": "fixtures/rules/R-050/fail/repo",
+      "gate": "acceptance",
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/50-as-built.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "合格の証跡行がない"
+        },
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/50-as-built.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "合格以外の証跡行がある(result=fail)"
+        }
+      ],
+      "note": "違反陽性対照: (a) 合格行なし+(b) 不合格行"
+    },
+    {
+      "target": "fixtures/rules/R-050/notrun/repo",
+      "gate": "acceptance",
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/50-as-built.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "合格の証跡行がない"
+        },
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/50-as-built.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "合格以外の証跡行がある(result=not-run)"
+        }
+      ]
+    },
+    {
+      "target": "fixtures/rules/R-050/blocked/repo",
+      "gate": "acceptance",
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/50-as-built.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "合格の証跡行がない"
+        },
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/50-as-built.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "合格以外の証跡行がある(result=blocked)"
+        }
+      ]
+    },
+    {
+      "target": "fixtures/rules/R-050/nofield/repo",
+      "gate": "acceptance",
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/50-as-built.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "合格の証跡行がない"
+        },
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/50-as-built.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "合格以外の証跡行がある(result 欄なし)"
+        }
+      ]
+    },
+    {
+      "target": "fixtures/rules/R-050/unknown/repo",
+      "gate": "acceptance",
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/50-as-built.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "合格の証跡行がない"
+        },
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/50-as-built.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "合格以外の証跡行がある(result=expected-fail)"
+        }
+      ],
+      "note": "語彙外の値は合格に数えない"
+    },
+    {
+      "target": "fixtures/rules/R-050/mixed/repo",
+      "gate": "acceptance",
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/50-as-built.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "合格以外の証跡行がある(result=fail)"
+        }
+      ],
+      "note": "合格行があるので (a) は出ない・(b) のみ"
+    },
+    {
+      "target": "fixtures/rules/R-050/extra/repo",
+      "gate": "acceptance",
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/50-as-built.yaml",
+          "targetId": "CP-OTHER-001",
+          "message_contains": "合格以外の証跡行がある(result=fail)"
+        }
+      ],
+      "note": "受入対象外の CP の不合格行も (b)"
+    },
+    {
+      "target": "fixtures/rules/R-050/missing/repo",
+      "gate": "acceptance",
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/50-as-built.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "合格の証跡行がない"
+        }
+      ],
+      "note": "既存の陽性対照(ref-v0.10 以前から): 証拠行が空"
+    },
+    {
+      "target": "fixtures/rules/R-050/noab/repo",
+      "gate": "acceptance",
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/32-mbom.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "測定不能"
+        }
+      ],
+      "note": "対象欠落チャレンジ: 製造記録ファイルなし"
+    },
+    {
+      "target": "fixtures/rules/R-050/emptylist/repo",
+      "gate": "acceptance",
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/32-mbom.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "測定不能"
+        }
+      ],
+      "note": "対象欠落チャレンジ: as_built が空リスト"
+    },
+    {
+      "target": "fixtures/rules/R-050/docdialect/repo",
+      "gate": "acceptance",
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/32-mbom.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "測定不能"
+        }
+      ],
+      "note": "対象欠落チャレンジ: 文書方言(mapping)"
+    },
+    {
+      "target": "fixtures/rules/R-050/noab/repo",
+      "gate": "G3",
+      "expect_exit": 0,
+      "findings": [],
+      "note": "ゲートの対照: 製造前ゲートでは R-050 は判定に効かない(§2.7)"
+    },
+    {
+      "target": "fixtures/rules/R-050/notarget/repo",
+      "gate": "acceptance",
+      "expect_exit": 0,
+      "findings": [],
+      "infos": [
+        {
+          "rule": "R-050",
+          "severity": "info",
+          "message_contains": "適用外"
+        }
+      ],
+      "note": "適用外: 受入対象の M unit が 0 件 → info で明示"
+    },
+    {
+      "target": "fixtures/rules/R-050/notarget-fail/repo",
+      "gate": "acceptance",
+      "expect_exit": 1,
+      "findings": [
+        {
+          "rule": "R-050",
+          "severity": "error",
+          "file": "repo/bomdd/50-as-built.yaml",
+          "targetId": "CP-CORE-001",
+          "message_contains": "合格以外の証跡行がある(result=fail)"
+        }
+      ],
+      "infos": [
+        {
+          "rule": "R-050",
+          "severity": "info",
+          "message_contains": "適用外"
+        }
+      ],
+      "note": "(b) は対象の件数によらず適用・(d) の適用外は (a)(c) について"
+    }
+  ],
+  "note": "ECO-008: ref-v0.11 の R-050(a)〜(d)。検体は clean fixture から bomdd/50-as-built.yaml だけを差し替えたもの(extra は CP を 1 行追加・notarget 系は M unit の acceptance_refs を除去)"
+}

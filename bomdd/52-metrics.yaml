@@ -116,3 +116,12 @@ eco_006:                             # 2026-08-02: M-BOM 写像被覆ギャッ�
   cheats: "工場 10 件(F001〜F010・全て高粒度。F010= 33-control-plan test_vectors の非機械可読性= 設計者側債務候補)+設計者側記録欠陥 3 件(段階混在クラス — IA-05/NEW-01/NEW-IA03-01)"
   r052_dogfood: "diff_audit{baseline: eco-006-input}で open 窓監査 → verified 時 head: v0.5-eco-006-accepted で窓閉鎖(ECO-005 運用)"
   impact_prediction: { under_inclusion: 0, over_inclusion: 0, note: "工場の影響なし予測はほぼ全的中(唯一の外れ= multi_unit_ecos 5→4 を自己申告)。src/test/oracle/schemas/.github の実体 diff ゼロ・全回帰不変が成立" }
+
+eco_008:                             # 2026-09-29: R-050 を ref-v0.11 へ(受入証跡の合否値を読む — BomDD ECO-085 の実装側)
+  change: "emitR050 を (a) 合格行の要求 (b) 合格以外の行は違反 (c) 測定不能は error (d) 適用外は info へ。R-050 の文言 1 行を理由つきへ改訂。schemas/ref-v0 を ref-v0.11 へ同期"
+  adjudication: "BomDD 側 user DECIDE 2026-09-29「A」(起票)・「1:A 2:A」(未収束の設計の打ち切り採用・実装側は異系統の独立検査を併用)"
+  manufacturing: "claude-fable-5-1(self-reported・設計者適用+全再認証)"
+  calibration: "変更前個体(eco-008-input= 6937a66)で S-26 15 ラン中 13 FAIL・既存 34 PASS"
+  acceptance: "build 0・133/133 tests・オラクル 49/49・治具セルフテスト 13/13・self-hosting --eco error/warn 0・実リポ 11 構成で R-050 以外の所見が変更前後で同一"
+  independent_inspection: "(独立検査の後に記入)"
+  r052_dogfood: "diff_audit{baseline: eco-008-input}で open 窓監査 → verified 時に head: で窓を閉じる(ECO-005 運用)"
