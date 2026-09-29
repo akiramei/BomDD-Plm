@@ -116,3 +116,43 @@ test("R-050 (b) は対象の件数によらず適用: 対象 0 件でも不合�
   assert.ok(r.errors[0].message.includes("合格以外の証跡行がある(result=fail)"));
   assert.equal(r.r050.filter((f) => f.severity === "info").length, 1);
 });
+
+// ---- 独立検査 r1(境界探索)の所見に対応する対照(ECO-008 §6)----
+
+test("R-050 (a) 粒度: 同じ M unit が同じ CP を重ねて挙げても 1 組 → (a) は 1 件(IA-01)", () => {
+  const r = lint("dupref");
+  assert.equal(r.status, 1);
+  assert.equal(r.errors.filter((f) => f.message.includes("合格の証跡行がない")).length, 1);
+  assert.equal(r.errors.filter((f) => f.message.includes("合格以外の証跡行がある")).length, 1);
+  assert.equal(r.errors.length, 2);
+});
+
+test("R-050 (d) の file: 中身が壊れていても型が 32-mbom の成果物を指す(IA-02)", () => {
+  const r = lint("brokenmbom");
+  const info = r.r050.filter((f) => f.severity === "info");
+  assert.equal(info.length, 1);
+  assert.equal(info[0].file, MB);
+  assert.equal(r.errors.length, 0);
+});
+
+test("R-050 (d): 成果物が 0 件のリポでも適用外を 1 件明示する(IA-03)", () => {
+  const r = lint("empty");
+  assert.equal(r.status, 0);
+  assert.equal(r.errors.length, 0);
+  const info = r.r050.filter((f) => f.severity === "info");
+  assert.equal(info.length, 1);
+  assert.equal(info[0].file, MB);
+  assert.ok(info[0].message.includes("適用外"));
+});
+
+test("R-050 (b) の line: cp_ref が無い行・mapping でない行は行要素の行番号を持つ(IA-05)", () => {
+  const r = lint("nocp");
+  assert.equal(r.status, 1);
+  assert.equal(r.errors.length, 2);
+  for (const f of r.errors) {
+    assert.equal(f.targetId, undefined);
+    assert.equal(typeof f.line, "number");
+  }
+  const lines = r.errors.map((f) => f.line).sort((x, y) => x - y);
+  assert.deepEqual(lines, [8, 10]);
+});

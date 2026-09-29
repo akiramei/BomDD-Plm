@@ -319,6 +319,7 @@ const R050_REASON_UNMEASURABLE = "測定不能(製造記録をリスト形のエ
 const R050_REASON_NOT_APPLICABLE = "適用外(受入対象の M unit が 0 件)";
 const R050_NO_TARGET_LABEL = "(対象なし)";
 const R050_NO_CP_LABEL = "(cp_ref なし)";
+const R050_MBOM_ARTIFACT_TYPE = "bomdd/32-mbom.yaml";
 function r050ReasonNonPass(row) {
     const has = row !== undefined && Object.prototype.hasOwnProperty.call(row, "result");
     if (!has)
@@ -339,16 +340,18 @@ function r050ReasonNonPass(row) {
 function emitR050(model, out) {
     const schema = model.schema;
     const gate = gateOfRule("R-050", schema);
-    // Targets: (M unit file, CP) pairs from acceptance_refs.
+    // Targets: (M unit, CP) pairs from acceptance_refs. The same CP listed twice by one M unit is one pair.
     const targets = [];
+    // (d) file anchor: the first artifact typed as 32-mbom, whatever its content (§2.6 rev5).
     let firstMbomFile;
     for (const pa of model.parsed) {
+        if (firstMbomFile === undefined && pa.artifact.type === R050_MBOM_ARTIFACT_TYPE) {
+            firstMbomFile = pa.artifact.canonicalPath;
+        }
         const doc = pa.doc;
         const mbom = doc?.["mbom"];
         if (!mbom || typeof mbom !== "object" || Array.isArray(mbom))
             continue;
-        if (firstMbomFile === undefined)
-            firstMbomFile = pa.artifact.canonicalPath;
         const units = mbom["manufacturing_units"];
         if (!Array.isArray(units))
             continue;
@@ -358,9 +361,12 @@ function emitR050(model, out) {
             const accs = raw["acceptance_refs"];
             if (!Array.isArray(accs))
                 continue;
+            const seen = new Set();
             for (const cp of accs) {
-                if (typeof cp === "string")
-                    targets.push({ cp, file: pa.artifact.canonicalPath });
+                if (typeof cp !== "string" || seen.has(cp))
+                    continue;
+                seen.add(cp);
+                targets.push({ cp, file: pa.artifact.canonicalPath });
             }
         }
     }
@@ -384,7 +390,12 @@ function emitR050(model, out) {
     }
     // (d) no targets: state it explicitly (info). (b) still applies below.
     if (targets.length === 0) {
-        const file = firstMbomFile ?? model.parsed[0]?.artifact.canonicalPath;
+        // file: first 32-mbom artifact; else first artifact; else (no artifact at all) the place where the
+        // first repo's 32-mbom would be — (d) must be stated once per run even for an empty repo.
+        const firstRepo = model.repos[0];
+        const file = firstMbomFile ??
+            model.parsed[0]?.artifact.canonicalPath ??
+            (firstRepo !== undefined ? firstRepo.name + "/" + R050_MBOM_ARTIFACT_TYPE : undefined);
         if (file !== undefined) {
             out.push(mk("R-050", "info", gate, file, { targetId: R050_NO_TARGET_LABEL, ref: R050_REASON_NOT_APPLICABLE }));
         }
@@ -422,7 +433,9 @@ function emitR050(model, out) {
             continue;
         const cpRaw = r !== undefined ? r["cp_ref"] : undefined;
         const cp = typeof cpRaw === "string" ? cpRaw : undefined;
-        const line = latest.lineOf?.(["as_built", latest.index, "test_evidence_refs", j, "cp_ref"]);
+        // line: the cp_ref of the row; a row without cp_ref (or not a mapping) falls back to the row itself.
+        const rowPath = ["as_built", latest.index, "test_evidence_refs", j];
+        const line = (cpRaw !== undefined ? latest.lineOf?.([...rowPath, "cp_ref"]) : undefined) ?? latest.lineOf?.(rowPath);
         out.push(mk("R-050", "error", gate, abFile, { targetId: cp ?? R050_NO_CP_LABEL, ref: r050ReasonNonPass(r) }, line, undefined, cp));
     }
 }

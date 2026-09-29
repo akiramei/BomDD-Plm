@@ -40,7 +40,7 @@
 
 ### CH-3: schemas/ref-v0 スナップショットの同期(0.10 → 0.11)
 
-正本(BomDD `method/schemas/draft/`・commit 2fae78c)から 3 ファイルを byte 複写。内容が変わるのは ref-edges.draft.yaml のみ。
+正本(BomDD `method/schemas/draft/`・commit 4a96cda — r1 是正後。初回製造時は 2fae78c)から 3 ファイルを byte 複写。内容が変わるのは ref-edges.draft.yaml のみ。
 
 ### 採らない(宣言済み境界)
 
@@ -114,4 +114,25 @@
 
 ## 6. 独立検査と受入の記録
 
-(独立検査の後に記入)
+### 6.1 r1(境界探索・2026-09-29)— REJECT・所見 5 件
+
+- 検査官: BomDD 設備台帳 EQ-002(異系統)。対象 revision `5994147`。報告= BomDD `bomdd/reports/eco-085-r050-evidence/independent-inspection-plm-eco-008-r1.md`。
+- 再現 5 項目(build・133 tests・固定オラクル 49・自己監査・変更前個体での較正 13/15 FAIL)と境界探索 17 項目は PASS。検査中の commit 0・作業木の変更 0。
+
+| 所見 | 内容 | 帰属 | 重さ | 是正 |
+|---|---|---|---|---|
+| IA-01 | 同じ M unit が同じ CP を重ねて挙げると (a) が重複 | 製造物 | blocking | 対象を (M unit, CP) の組として重複排除 |
+| IA-02 | (d) の file が、中身の壊れた 32-mbom を指さない | 製造物 | blocking | 成果物の型(32-mbom)で選ぶ |
+| IA-03 | 成果物 0 件のリポで (d) を出せない | 仕様 | blocking | 仕様 §2.6 に file の規定を追加(先頭のリポの 32-mbom の場所)し実装 |
+| IA-04 | 「対象」が acceptance_refs の空リストで読みが分かれる | 規則文言 | non-blocking | BomDD 側で規則文言を是正(4a96cda)→ スナップショット再同期 |
+| IA-05 | cp_ref の無い行に cp_ref の行番号を要求(実装不能) | 仕様 | non-blocking | 仕様 §2.6 に代替(行要素の行番号)を規定し実装 |
+
+- 較正の赤(是正前の個体 5994147): 所見に対応するテスト 4 本(IA-01/02/03/05)を先に足し、**4 本とも FAIL** を確認してから是正した。
+- 是正後の実測(作業木): build 警告 0 / **137/137 tests** / 固定オラクル 49/49(S-26 は較正時から無変更)/ 治具セルフテスト 13/13 / self-hosting `--eco` error 0・warn 0。
+- 実リポの突合(1 回目の実装 → 是正後): 製品リポ 9 構成は所見が**完全に同一**。自リポ 2 構成の差分は、1 回目の測定の後に本 ECO の設計文書(製造記録のエントリ等)を足したことによるもの。
+- 固定オラクルは較正後に凍結しているため、所見に対応する検体は単体テスト側(test/fixtures/r050 の dupref・brokenmbom・empty・nocp)に置いた。
+- 製造者の検体が拾えなかった理由: 検体がすべて M unit 1・CP 1〜2 の最小形で、重複・壊れた成果物・空のリポ・cp_ref の無い行を含まなかった。
+
+### 6.2 r2(是正確認+回帰)
+
+(r2 の後に記入)

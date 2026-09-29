@@ -123,5 +123,5 @@ eco_008:                             # 2026-09-29: R-050 を ref-v0.11 へ(受�
   manufacturing: "claude-fable-5-1(self-reported・設計者適用+全再認証)"
   calibration: "変更前個体(eco-008-input= 6937a66)で S-26 15 ラン中 13 FAIL・既存 34 PASS"
   acceptance: "build 0・133/133 tests・オラクル 49/49・治具セルフテスト 13/13・self-hosting --eco error/warn 0・実リポ 11 構成で R-050 以外の所見が変更前後で同一"
-  independent_inspection: "(独立検査の後に記入)"
+  independent_inspection: "r1(EQ-002・境界探索)= REJECT 所見 5(製造物 2・仕様 2・規則文言 1・blocking 3)。製造者の検体 15 ランは全て緑だった — 所見は全て検体の外(重複・壊れた成果物・空のリポ・cp_ref の無い行・語の定義)"
   r052_dogfood: "diff_audit{baseline: eco-008-input}で open 窓監査 → verified 時に head: で窓を閉じる(ECO-005 運用)"

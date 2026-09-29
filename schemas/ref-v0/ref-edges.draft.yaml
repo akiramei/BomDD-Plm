@@ -439,12 +439,14 @@ lint_rules:
     name: acceptance-evidence-coverage
     rule: >
       最新 AB エントリの test_evidence_refs について、次の全てが成り立つ。
-      (a) 対象 M unit の acceptance_refs の CP 行すべてに、result が pass の証拠行が 1 本以上ある。
+      ここで「対象」とは、M unit とその acceptance_refs が挙げる CP の組をいう(同じ M unit が同じ CP を
+      重ねて挙げても 1 組。acceptance_refs が無い・空の M unit は組を作らない)。
+      (a) 対象の CP すべてに、result が pass の証拠行が 1 本以上ある。
       (b) result が pass 以外の証拠行(fail / blocked / not-run・result 欄なし・語彙外の値)が 1 本もない
-      (cp_ref が対象 M unit の acceptance_refs に無い行も含む)。
+      (cp_ref が対象の CP でない行も含む)。
       (c) 対象が 1 件以上あるのに as_built をリスト形のエントリとして読めない場合
       (製造記録ファイルなし・as_built キーなし・空リスト・文書方言)は測定不能として error にする。
-      (d) 対象(acceptance_refs を持つ M unit)が 0 件なら (a)(c) は適用外とし、適用外であることを info で明示する
+      (d) 対象が 0 件なら (a)(c) は適用外とし、適用外であることを info で明示する
       ((b) は対象の件数によらず適用する)。
     gate: acceptance
     severity: error

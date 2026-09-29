@@ -192,12 +192,12 @@ as_built:
     harness: Claude Code(設計者適用+全再認証 — ECO-004/005 の処置形態。BomDD 設備台帳 EQ-001)
     isolation: なし(設計者適用 — 規則の意味は ref-v0.11 が固定し、実装の裁量次元は仕様 §2.6 rev5 で固定)
     artifact_location: "packages/core/src/rules(evaluate.ts の emitR050・messages.ts)+dist 再生成+test/rules-r050.test.js+test/fixtures/r050+oracle(S-26)+schemas/ref-v0(ref-v0.11)"
-    self_acceptance: "build 警告 0 / node --test 133/133 / 固定オラクル 49/49(回帰 34+S-26 15 ラン)/ 治具セルフテスト 13/13 / self-hosting --eco error+warn 0"
+    self_acceptance: "build 警告 0 / node --test 137/137(r1 是正後。初回製造時は 133/133)/ 固定オラクル 49/49(回帰 34+S-26 15 ラン)/ 治具セルフテスト 13/13 / self-hosting --eco error+warn 0"
     cheats: "なし(設計者適用)。製造者側のテスト欠陥 1 件= 正規表現の括弧を未エスケープ(3 本が偽の赤)— 実装でなくテストの誤りで、製造中に是正"
     inspections:
       calibration_red: "変更前個体(eco-008-input)で S-26 の 15 ラン中 13 が FAIL・既存 34 は PASS(PASS の 2 ラン= 合格の検体・製造前ゲート= 変えない挙動)"
       regression_real_repos: "実リポ 11 構成(自リポ 2・ViewPrism workspace 2・製品リポ 7)で変更前後を突合 — R-050 以外の所見は全構成で同一。R-050 の増分= 文書方言の製品リポで (c) 測定不能・語彙外の合否値を持つ製品リポで (b) 1 件(いずれも BomDD ECO-085 §2 の予測どおり)"
-      independent: "(独立検査の後に記入)"
+      independent: "r1(EQ-002・境界探索・対象 5994147)= REJECT 所見 5(製造物 2・仕様 2・規則文言 1)— 再現 5 項目と境界探索 17 項目は PASS。是正済み(order §6.1)。r2 は是正確認+回帰"
     epistemic_note: >
       resolved model は self-reported(証明ではない)。test_evidence_refs の result は本エントリの記録者(製造者)の申告値であり、
       R-050 が読むのはこの申告値である(ref-v0.11 R-050 note「支持しないこと」)。

@@ -1,0 +1,7 @@
+as_built:
+  - id: AB-r050-factory-01
+    lifecycle_state: as-built
+    test_evidence_refs:
+      - evidence_id: TE-r050-001
+        cp_ref: CP-CORE-001
+        result: fail
