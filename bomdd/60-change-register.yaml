@@ -130,6 +130,9 @@ changes:
     order_ref: bomdd/60-change-order-eco-007.md
     diff_audit:
       baseline: "5c2965b"
+      head: "6937a66"   # 2026-09-29 ECO-008 の製造中に追記: verified 時に窓を閉じていなかった(ECO-005 運用の履行漏れ)。
+                        # 開いた窓のまま次の変更が入り、ECO-008 の 171 ファイルが本 ECO のはみ出しとして検出された(R-052 が正しく機能)。
+                        # 窓 5c2965b..6937a66 の実 diff= schemas/ 3 ファイル+bomdd/ 2 ファイル(allowed_paths の内側)
       allowed_paths: [schemas/, bomdd/]
     affected_refs:
       - M-SCHEMA-013
