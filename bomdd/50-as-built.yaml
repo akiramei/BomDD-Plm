@@ -185,7 +185,7 @@ as_built:
       設備単体の能力値ではない(equip-01 拘束の継承)。
 
   - id: AB-PLM-ECO-008
-    lifecycle_state: as-built        # 製造済み・独立検査と受入の前(受入時に accepted へ)
+    lifecycle_state: accepted        # 2026-09-29 独立検査 r2 ACCEPT+CI success の後に受入
     work_order_ref: bomdd/60-change-order-eco-008.md@eco-008-input
     input_bom_tag: eco-008-input(6937a66 — 変更前の個体。較正の赤はこの個体で測定)
     ai_model: claude-fable-5-1(self-reported)
@@ -197,7 +197,7 @@ as_built:
     inspections:
       calibration_red: "変更前個体(eco-008-input)で S-26 の 15 ラン中 13 が FAIL・既存 34 は PASS(PASS の 2 ラン= 合格の検体・製造前ゲート= 変えない挙動)"
       regression_real_repos: "実リポ 11 構成(自リポ 2・ViewPrism workspace 2・製品リポ 7)で変更前後を突合 — R-050 以外の所見は全構成で同一。R-050 の増分= 文書方言の製品リポで (c) 測定不能・語彙外の合否値を持つ製品リポで (b) 1 件(いずれも BomDD ECO-085 §2 の予測どおり)"
-      independent: "r1(EQ-002・境界探索・対象 5994147)= REJECT 所見 5(製造物 2・仕様 2・規則文言 1)— 再現 5 項目と境界探索 17 項目は PASS。是正済み(order §6.1)。r2 は是正確認+回帰"
+      independent: "r1(EQ-002・境界探索・対象 5994147)= REJECT 所見 5(製造物 2・仕様 2・規則文言 1)— 再現 5 項目と境界探索 17 項目は PASS。是正済み(order §6.1)。r2(対象 4c2556d・是正確認+回帰)= ACCEPT・新しい所見 0(検査官が自分の検体で 5 件の是正を確認)"
     epistemic_note: >
       resolved model は self-reported(証明ではない)。test_evidence_refs の result は本エントリの記録者(製造者)の申告値であり、
       R-050 が読むのはこの申告値である(ref-v0.11 R-050 note「支持しないこと」)。

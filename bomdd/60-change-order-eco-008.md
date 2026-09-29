@@ -135,4 +135,16 @@
 
 ### 6.2 r2(是正確認+回帰)
 
-(r2 の後に記入)
+- 検査官: BomDD 設備台帳 EQ-002(異系統)。対象 revision `4c2556d`。報告= BomDD `bomdd/reports/eco-085-r050-evidence/independent-inspection-plm-eco-008-r2.md`。
+- 判定: **ACCEPT**・新しい所見 0 件。検査中の commit 0・作業木の変更 0。
+- 是正確認: IA-01〜IA-05 の 5 件とも是正済み(検査官が自分の検体で確認 — 製造者のテストの緑は根拠にしていない)。
+  IA-01 は別の M unit が同じ CP を挙げたとき組ごとに出ること(消しすぎていないこと)も確認。IA-02 は壊れ方 4 種・IA-04 は 4 種・IA-03 は単一リポと 2 リポ workspace。
+- 回帰: build 警告 0・137/137 tests・固定オラクル 49/49・自己監査 error 0 warn 0・`oracle/` が r1 の対象から無変更・境界探索の再実行 7 項目 PASS。
+
+### 6.3 受入(2026-09-29)
+
+- CI: 製造 `5994147`= run 36576671759 success / r1 是正 `4c2556d`= run 36580485591 success(いずれも headSha 照合・ubuntu と windows)。
+- register: `implemented → verified`。diff_audit の窓を `head: "4c2556d"` で閉じた(受入 commit は bomdd/ のみ)。
+- 製造記録 AB-PLM-ECO-008: `as-built → accepted`。
+- 独立検査の軌跡: r1 REJECT 5(blocking 3)→ r2 ACCEPT 0。製造者の検体(固定オラクル S-26 の 15 ラン)は r1 の時点で全て緑で、所見 5 件は全てその外にあった。
+- 本 ECO が支持しないことは §5 のとおり(変更なし)。

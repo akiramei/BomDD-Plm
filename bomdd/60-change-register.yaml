@@ -139,11 +139,13 @@ changes:
 
   - id: ECO-008
     title: "R-050 を ref-v0.11 へ — 受入証跡の合否値を読む(合格行の要求・合格以外の行は違反・測定不能は error・適用外は info)+スナップショット同期 0.10→0.11"
-    status: implemented   # 2026-09-29 設計者適用(claude-fable-5-1)・較正の赤= 変更前個体で S-26 13/15 FAIL → 133/133 tests・オラクル 49/49・self-hosting --eco 0。独立検査(異系統)の前 — verified へは検査と受入の後
+    status: verified   # 2026-09-29 設計者適用(claude-fable-5-1)・較正の赤= 変更前個体で S-26 13/15 FAIL → 独立検査 r1(異系統・境界探索)REJECT 5 → 是正(較正の赤= 追加テスト 4 本が是正前に FAIL)→ r2(是正確認+回帰)ACCEPT 0 → 137/137 tests・オラクル 49/49・self-hosting --eco 0・CI success。詳細= order_ref §4・§6
     opened: 2026-09-29
+    closed: 2026-09-29
     order_ref: bomdd/60-change-order-eco-008.md
-    diff_audit:
+    diff_audit:   # verified につき head: で窓を閉じる(ECO-005 運用)
       baseline: eco-008-input
+      head: "4c2556d"
       # packages/cli/tsconfig.tsbuildinfo = 依存先 core の変更で tsc -b が更新しうるビルドキャッシュ(ECO-005 の under-inclusion の再発防止)
       allowed_paths: [packages/core/, packages/cli/tsconfig.tsbuildinfo, schemas/, test/, oracle/]
     affected_refs:
