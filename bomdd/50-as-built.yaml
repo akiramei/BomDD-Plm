@@ -221,3 +221,41 @@ as_built:
       - { evidence_id: TE-ECO8-017, cp_ref: CP-DESIGN-SYSTEM-019, result: pass, evidence_path: test/viewer.test.js }
       - { evidence_id: TE-ECO8-018, cp_ref: CP-SARIF-020, result: pass, evidence_path: oracle/expected/S-23-sarif.json }
       - { evidence_id: TE-ECO8-019, cp_ref: CP-GITDIFF-021, result: pass, evidence_path: oracle/expected/S-22-diff-audit.json }
+
+  - id: AB-PLM-ECO-009
+    lifecycle_state: accepted        # 2026-10-01 独立検査 r2 ACCEPT+CI success の後に受入
+    work_order_ref: bomdd/60-change-order-eco-009.md@7c1e157
+    input_bom_tag: 7c1e157(変更前の個体= ECO-009 起票 commit。較正の赤はこの個体の dist で測定)
+    ai_model: claude-opus-5-5(self-reported・設計と製造。起票は claude-sonnet-5-5 — 設備交代は order の担当設備に記録)
+    harness: Claude Code(設計者適用 — ECO-004/005/008 の処置形態。BomDD 設備台帳 EQ-004)
+    isolation: なし(設計者適用 — 区分の意味は ref-v0.12 measurability が固定し、写像は仕様 §2.6・§2.9・§2.10 rev6 で固定)
+    artifact_location: "packages/core/src(measure/measure.ts 新設・rules/evaluate.ts・resolve/model.ts・types.ts・output/build.ts・output/sarif.ts・lint.ts)+packages/cli/src(main.ts・text.ts)+packages/viewer/src/generate.ts+dist 再生成+schemas(plm-diag-2.schema.json・ref-v0 を ref-v0.12 へ)+test(measurability・resolve-eco-filename ほか)"
+    self_acceptance: "build 警告 0 / node --test 155/155(r1 是正後。製造時は 152/152)/ 固定オラクル 49/49(既存行は無変更)/ 治具セルフテスト 13/13 / self-hosting --eco error+warn 0"
+    cheats: "なし(設計者適用)。製造中の是正 2 件= X-GIT-001 に区分を付けた誤り(ref-v0.7 の fail-open と矛盾 → 例外として宣言)・A2 のコミット時ゲートのテストの空振り(測定不能の存在を先に要求する形へ)"
+    inspections:
+      calibration_red: "変更前個体(7c1e157)の dist で 152 本中 16 本が FAIL(新設 13・版の期待 2・brokenmbom の (d) 1)。r1 IA-01 の是正は新設 3 本中 2 本が是正前に FAIL(1 本は負の対照)"
+      regression_real_repos: "実リポ 7 本×2 ゲート= 14 構成で変更前後を突合(BomDD bomdd/reports/eco-089-measurability/compare-real-repos.md・-ia01.md)— 区分の欄を除いた所見と終了コードは全構成で同一。IA-01 の是正で R-005 info のみ増(LibraryLending +5・Transfer03 +1)"
+      independent: "r1(EQ-002・境界探索・対象 b48a95d)= REJECT 所見 1(IA-01= ファイル名からの候補定義の取り出し・既存の欠陥)— 再現 5 項目と境界探索 23 項目は PASS。是正済み(order §6.1)。r2(対象 e252f69・是正確認+回帰)= ACCEPT・所見なし"
+    epistemic_note: >
+      resolved model は self-reported(証明ではない)。test_evidence_refs の result は本エントリの記録者(製造者)の申告値であり、
+      R-050 が読むのはこの申告値である(ref-v0.11 R-050 note「支持しないこと」)。
+    test_evidence_refs:   # ECO-009 回帰= node --test 155 本+固定オラクル 49 ラン(S-01〜S-26)。automated の 19 CP を再被覆(ECO-008 と同じ集合)
+      - { evidence_id: TE-ECO9-001, cp_ref: CP-READONLY-001, result: pass, evidence_path: oracle/expected/S-01-clean.json, notes: "S-10 read-only 検査(ランナー手続き検査)" }
+      - { evidence_id: TE-ECO9-002, cp_ref: CP-DISCOVER-002, result: pass, evidence_path: oracle/expected/S-01-clean.json }
+      - { evidence_id: TE-ECO9-003, cp_ref: CP-PARSE-003, result: pass, evidence_path: oracle/expected/S-04-parse-broken.json }
+      - { evidence_id: TE-ECO9-004, cp_ref: CP-SCHEMA-004, result: pass, evidence_path: oracle/README.md, notes: "test/schema-load.test.js(同梱スナップショット ref-v0.12 を読む)" }
+      - { evidence_id: TE-ECO9-005, cp_ref: CP-RESOLVE-005, result: pass, evidence_path: oracle/expected/S-02-broken-refs.json, notes: "変更受入: test/resolve-eco-filename.test.js(r1 IA-01)" }
+      - { evidence_id: TE-ECO9-006, cp_ref: CP-WORKSPACE-006, result: pass, evidence_path: oracle/expected/S-12-workspace.json }
+      - { evidence_id: TE-ECO9-007, cp_ref: CP-LINT-007, result: pass, evidence_path: test/measurability.test.js, notes: "変更受入(区分・measurement・R-050 (d) の追随)+回帰(S-26 ほか)" }
+      - { evidence_id: TE-ECO9-008, cp_ref: CP-GATE-008, result: pass, evidence_path: oracle/expected/S-07-gate-matrix.json }
+      - { evidence_id: TE-ECO9-009, cp_ref: CP-SUPPRESS-009, result: pass, evidence_path: oracle/expected/S-08-suppress.json }
+      - { evidence_id: TE-ECO9-010, cp_ref: CP-OUTPUT-010, result: pass, evidence_path: oracle/README.md, notes: "S-09 決定性+plm-diag/2 のキー順(test/output-determinism.test.js)" }
+      - { evidence_id: TE-ECO9-011, cp_ref: CP-CLI-011, result: pass, evidence_path: oracle/expected/S-11-cli-matrix.json, notes: "measurement による exit 1 と text の区分の行(test/measurability.test.js)" }
+      - { evidence_id: TE-ECO9-012, cp_ref: CP-VIEWER-012, result: pass, evidence_path: oracle/README.md, notes: "S-14 自己完結検査(ランナー手続き検査)" }
+      - { evidence_id: TE-ECO9-013, cp_ref: CP-VIEW-FINDINGS-013, result: pass, evidence_path: test/viewer.test.js }
+      - { evidence_id: TE-ECO9-014, cp_ref: CP-VIEW-GRAPH-014, result: pass, evidence_path: test/viewer.test.js }
+      - { evidence_id: TE-ECO9-015, cp_ref: CP-VIEW-TRACE-015, result: pass, evidence_path: test/viewer.test.js }
+      - { evidence_id: TE-ECO9-016, cp_ref: CP-VIEW-LEDGER-016, result: pass, evidence_path: oracle/expected/S-16-ledger.json }
+      - { evidence_id: TE-ECO9-017, cp_ref: CP-DESIGN-SYSTEM-019, result: pass, evidence_path: test/viewer.test.js }
+      - { evidence_id: TE-ECO9-018, cp_ref: CP-SARIF-020, result: pass, evidence_path: oracle/expected/S-23-sarif.json, notes: "properties.outcome(test/measurability・独立検査 r1/r2)" }
+      - { evidence_id: TE-ECO9-019, cp_ref: CP-GITDIFF-021, result: pass, evidence_path: oracle/expected/S-22-diff-audit.json }

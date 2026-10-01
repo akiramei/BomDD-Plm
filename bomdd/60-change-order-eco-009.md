@@ -1,4 +1,4 @@
-# Change Order — ECO-009(測定不能を違反と区別して出す: 区分の出力・上流宣言の実装・R-050 (d) の追随+スナップショット同期 0.11→0.12 — implemented・独立検査の前)
+# Change Order — ECO-009(測定不能を違反と区別して出す: 区分の出力・上流宣言の実装・R-050 (d) の追随+スナップショット同期 0.11→0.12 — verified)
 
 > BomDD ECO-089(契約の規則文言・ref-v0.12)の実装側。裁定: BomDD 側 user DECIDE「2:A」(2026-10-01 — 実装側の ECO を今起票する・連鎖の帰属と終了コードの値を設計入力に持たせる・起票ファイルだけを書きコードは変えない・製造は別裁定)。
 > 目的(BomDD 側 user・要旨): **不良を見つけたのか、測定器が測れなかったのかを混ぜない** — M-BOM / Control Plan の再設計(後続)の前後比較で、「不良が増えた」と「測れなくなった」を区別できる前提にする。
@@ -174,3 +174,20 @@ hook・CI の方針(各製品の判断)/ 受入ゲートの製品判定経路へ
   - 較正の赤: 新設 `test/resolve-eco-filename.test.js` の 3 本のうち 2 本(ECO-999・CAPA-003)が是正前に FAIL。1 本(右端に ID 族が無いファイル名は候補を作らない)は負の対照で、是正前後とも PASS。
   - 是正後の実測(作業木): build 警告 0 / **155/155 tests** / 固定オラクル 49/49 / 治具セルフテスト 13/13 / self-hosting `--eco` error 0・warn 0。
   - 実リポの突合(b48a95d → 是正後・14 構成・BomDD `compare-real-repos-ia01.md`): 増えたのは R-005(孤立定義の info)だけ(LibraryLending +5・Transfer03 +1 — ファイル名から取り出した候補の定義が索引に入った分)。error・warn と終了コードは全構成で不変。
+  - 是正 commit: `e252f69`(CI run 36844800551 success・headSha 照合)。commit 後の自己監査(`--eco`)error 0。
+
+### 6.2 r2(是正確認+回帰・2026-10-01)— ACCEPT・所見なし
+
+- 検査官: EQ-002(異系統)。入口(`bomdd-run`・executor EQ-002・range 是正確認+回帰)経由で起動し、判定語は入口の台帳が **ACCEPT** として回収した(r1 の欠陥を是正: ブリーフで報告の置き場所を「最後のメッセージ」の 1 つに固定)。
+  対象 revision `e252f69`。報告= BomDD `bomdd/reports/eco-089-measurability/independent-inspection-plm-eco-009-r2.md`。検査中の commit 0・作業木は開始・終了とも clean。
+- 是正確認: IA-01 の r1 検体が解決し R-003・測定不能とも 0。ファイル名の境界 7 形(eco-vt-025・capa-003・右端に ID 族なし・ID の後ろに語・正定義との併存・大文字小文字・参照値の大小文字)が仕様 §2.4 (a) どおり。
+- 回帰: build 警告 0・155/155・オラクル 49/49・self-hosting 0/0・区分/抑止/定義サイト/R-050 (d)/measurement と exit/JSON Schema(27 検証)/決定性/SARIF/text・実リポ 3 本の旧新比較(区分を除く所見の差 0)。
+- 検査官は自分の検体で是正を確認した(製造者のテストの緑は根拠にしていない)。
+
+### 6.3 受入(2026-10-01)
+
+- CI: 製造 `b48a95d`= run 36840101961 success / r1 是正 `e252f69`= run 36844800551 success(いずれも headSha 照合)。
+- register: `implemented → verified`。diff_audit の窓を `head: "e252f69"` で閉じた(受入 commit は bomdd/ のみ)。
+- 製造記録 AB-PLM-ECO-009(`accepted`)を 50-as-built に追加 — automated の 19 CP を全回帰で再検証した証跡行(ECO-008 と同じ集合)。
+- 独立検査の軌跡: r1 REJECT 1(blocking 1・既存の欠陥)→ r2 ACCEPT 0。製造者の検体(`test/measurability.test.js`)は r1 の時点で全て緑で、所見 1 件はその外にあった(ファイル名からの候補定義 — ECO-008 と同じ「製造者の検体の外」の型)。
+- 本 ECO が支持しないことは §5 のとおり。加えて宣言済みの限界(A9 のコミット時ゲート)と例外(X-GIT-001)は仕様 §2.6 のとおり。

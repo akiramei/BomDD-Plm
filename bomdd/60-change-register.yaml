@@ -161,11 +161,13 @@ changes:
 
   - id: ECO-009
     title: "BomDD ECO-089 の実装側 — 測定不能を違反と区別して出す(区分の出力 plm-diag/2・上流宣言の実装・R-050 (d) の追随)+スナップショット同期 0.11→0.12"
-    status: implemented   # 2026-10-01 起票 7c1e157(claude-sonnet-5-5・BomDD 側 user DECIDE「2:A」)→ 設計(claude-opus-5-5・未収束 5→2→1)→ 製造裁定「1:A 2:B 3:A 4:A」→ 較正の赤(変更前個体で 16/152 FAIL)→ 設計者適用 → 152/152 tests・オラクル 49/49・セルフテスト 13/13・self-hosting --eco 0・実リポ 14 構成で区分以外の所見と exit が同一・BomDD V5 35/36(A9 always は裁定 2:A で既知の限界)→ 製造 commit b48a95d(CI success)→ 独立検査 r1(EQ-002・境界探索)REJECT IA-01(ファイル名からの候補定義の取り出し・既存の欠陥)→ user 裁定「A」で是正(較正の赤 2/3 → 155/155 tests・オラクル 49/49・実リポは R-005 info のみ増)→ r2 待ち。詳細= order_ref §3c・§4・§6
+    status: verified   # 2026-10-01 起票 7c1e157(claude-sonnet-5-5・BomDD 側 user DECIDE「2:A」)→ 設計(claude-opus-5-5・未収束 5→2→1)→ 製造裁定「1:A 2:B 3:A 4:A」→ 較正の赤(変更前個体で 16/152 FAIL)→ 設計者適用 → 152/152 tests・オラクル 49/49・セルフテスト 13/13・self-hosting --eco 0・実リポ 14 構成で区分以外の所見と exit が同一・BomDD V5 35/36(A9 always は裁定 2:A で既知の限界)→ 製造 commit b48a95d(CI success)→ 独立検査 r1(EQ-002・境界探索)REJECT IA-01(ファイル名からの候補定義の取り出し・既存の欠陥)→ user 裁定「A」で是正(較正の赤 2/3 → 155/155 tests・オラクル 49/49・実リポは R-005 info のみ増)→ e252f69(CI success)→ r2(是正確認+回帰)ACCEPT 所見なし → verified(AB-PLM-ECO-009 accepted・窓閉鎖 head=e252f69)。詳細= order_ref §3c・§4・§6
     opened: 2026-10-01
+    closed: 2026-10-01
     order_ref: bomdd/60-change-order-eco-009.md
-    diff_audit:   # 起票時点の見立て(製造裁定で凍結)。baseline= ECO-008 verified の個体
+    diff_audit:   # verified につき head: で窓を閉じる(ECO-005 運用)。baseline= ECO-008 verified の個体
       baseline: "d02052b"
+      head: "e252f69"
       allowed_paths: [packages/core/, packages/cli/, packages/viewer/, schemas/, test/, oracle/]
     affected_refs:
       - REQ-014
