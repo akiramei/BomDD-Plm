@@ -3,6 +3,7 @@
 import { getMessage } from "./messages.js";
 import { gateOfRule } from "../gate/gate.js";
 import { determineFamily } from "../resolve/family.js";
+import { familySite } from "../measure/measure.js";
 import { cpChars, changeRegisterExists, designSurfaceParts, ebomItems, mbomUnits, traceMapEbomRefs, } from "./context.js";
 const RECORD_FAMILIES = new Set(["TL", "UQ", "DEC", "CHEAT", "GF"]);
 function strictnessSeverity(s) {
@@ -317,6 +318,8 @@ const R050_REASON_NON_PASS_PREFIX = "合格以外の証跡行がある(result=";
 const R050_REASON_NON_PASS_SUFFIX = ")";
 const R050_REASON_UNMEASURABLE = "測定不能(製造記録をリスト形のエントリとして読めない)";
 const R050_REASON_NOT_APPLICABLE = "適用外(受入対象の M unit が 0 件)";
+// ref-v0.12 (ECO-009): (d) with upstream (manufacturing-ready E items) and the M unit definition site not ok.
+const R050_REASON_UNMEASURABLE_SITE = "測定不能(M unit の定義サイトを読めない)";
 const R050_NO_TARGET_LABEL = "(対象なし)";
 const R050_NO_CP_LABEL = "(cp_ref なし)";
 const R050_MBOM_ARTIFACT_TYPE = "bomdd/32-mbom.yaml";
@@ -397,7 +400,16 @@ function emitR050(model, out) {
             model.parsed[0]?.artifact.canonicalPath ??
             (firstRepo !== undefined ? firstRepo.name + "/" + R050_MBOM_ARTIFACT_TYPE : undefined);
         if (file !== undefined) {
-            out.push(mk("R-050", "info", gate, file, { targetId: R050_NO_TARGET_LABEL, ref: R050_REASON_NOT_APPLICABLE }));
+            // ref-v0.12 (d): upstream >= 1 and the M unit definition site not ok => unmeasurable (error).
+            // A readable M-BOM whose units carry no acceptance_refs is not applicable (readable sites are never unmeasurable).
+            const upstream = ebomItems(model.parsed).some((it) => it.lifecycleState === "manufacturing-ready");
+            const mSite = familySite(model, "M");
+            if (upstream && mSite !== undefined && mSite.status !== "ok") {
+                out.push(mk("R-050", "error", gate, file, { targetId: R050_NO_TARGET_LABEL, ref: R050_REASON_UNMEASURABLE_SITE }));
+            }
+            else {
+                out.push(mk("R-050", "info", gate, file, { targetId: R050_NO_TARGET_LABEL, ref: R050_REASON_NOT_APPLICABLE }));
+            }
         }
     }
     // (c) targets exist but nothing readable: unmeasurable, one per target.

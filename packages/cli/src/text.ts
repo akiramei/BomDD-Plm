@@ -27,6 +27,23 @@ export function formatText(diag: Diagnostics, schema: RefSchema): string {
     `所見: error ${err} / warn ${warn} / info ${info} / suppressed ${sup}` +
       `(全所見 ${all.length} / 適用ゲート内 ${inGate.length})`
   );
+  // ECO-009 (ref-v0.12 measurability): RED と測定不能を区別して出す(適用ゲート内・抑止を含む)。
+  let red = 0;
+  let mf = 0;
+  let na = 0;
+  for (const f of inGate) {
+    if (f.outcome === "RED") red++;
+    else if (f.outcome === "MEASUREMENT_FAILURE") mf++;
+    else if (f.outcome === "NOT_APPLICABLE") na++;
+  }
+  lines.push(`区分: RED ${red} / 測定不能 ${mf} / 適用外 ${na}`);
+  const ladder: Record<string, number> = { always: 0, G1: 1, G3: 2, freeze: 3, acceptance: 4 };
+  for (const m of diag.measurement) {
+    const applies = m.gate === "eco" ? diag.run.eco : (ladder[m.gate] ?? 0) <= (ladder[diag.run.gate] ?? 0);
+    if (!applies) continue;
+    const where = [m.rule, m.family !== undefined ? `族 ${m.family}` : undefined, m.file].filter((x) => x !== undefined).join(" ");
+    lines.push(`測定不能の原因: ${m.cause} ${where}`.replace(/\s+$/g, ""));
+  }
 
   if (inGate.length === 0) {
     lines.push("現ゲートで所見なし");

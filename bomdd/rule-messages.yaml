@@ -28,6 +28,8 @@ rules:
   #   (b) 合格以外の証跡行がある(result=<記録の値>) / 合格以外の証跡行がある(result 欄なし)
   #   (c) 測定不能(製造記録をリスト形のエントリとして読めない)
   #   (d) 適用外(受入対象の M unit が 0 件) — severity は info・{targetId} は「(対象なし)」
+  #   (d) 測定不能(M unit の定義サイトを読めない) — ref-v0.12・ECO-009: 上流(manufacturing-ready の E 品目)があり、M unit の
+  #       定義サイトの状態が ok でないとき。severity は error・{targetId} は「(対象なし)」・原因は diagnostics の measurement 節
   #   (b) で cp_ref を持たない行の {targetId} は「(cp_ref なし)」(所見の targetId フィールドは付けない)
   - { rule: R-050, message: "受入証跡の検査: 特性 {targetId} — {ref}", fixTarget: "50-as-built.yaml の最新エントリの test_evidence_refs を是正する(合格の証跡行を記録する・合格以外の行は是正と再測定の後に置き換える・製造記録が無ければ作成する)" }
   - { rule: R-051, message: "ECO {targetId} の影響分析に解決できない ID {ref} があります",                          fixTarget: "60-change-register.yaml の affected_refs を実在 ID へ修正する" }

@@ -198,6 +198,20 @@ BomDD 成果物リポジトリを直読し、参照整合を検査(lint)して�
     理由は rule-messages.yaml の R-050 行の上に凍結した語彙を {ref} に入れる(1 規則 1 行を保つ)。
     「最新エントリ」= リスト形の as_built を持つ最後の成果物の末尾要素(mapping)。読めるものが 1 つも無ければ (c)。
     所見は他の規則と同じく全ゲートで評価し gate(acceptance)を付ける(本節冒頭・§2.7)。
+    **(d) の追随(rev6/ECO-009・ref-v0.12)**: 上流(manufacturing-ready の E 品目)があり M unit の定義サイトの状態が ok でないときは、
+    (d) を severity error・理由「測定不能(M unit の定義サイトを読めない)」で出す(粒度・file・targetId は (d) と同じ)。それ以外は従来どおり info。
+  - **区分の割当(rev6/ECO-009・ref-v0.12 measurability)**: 区分の意味は ref-v0 の `measurability` が正(転記しない)。本仕様は写像だけを固定する。
+    判定を表す所見(error・warn と R-050 (d) の info)に `outcome` を付ける。既存の所見の rule・severity・gate・件数は変えない。
+    MEASUREMENT_FAILURE= X-PARSE-001・X-SCHEMA-001・X-TYPE-001 のうち空文書・R-050 の (c) と測定不能の (d)・
+    M 族の定義サイトが ok でないときの R-012・連鎖の R-003(参照先の族が判定でき、その族に構造化された定義サイトの宣言があり、定義が 0 件で、定義サイトが ok でない)。
+    NOT_APPLICABLE= R-050 の適用外の (d)。それ以外の error・warn= RED(X-SUPPRESS-001/002 を含む)。
+    定義サイトの状態= ok / absent / unreadable / selector-miss / empty(族の宣言済みの非 candidate の構造化セレクタごとに判定し、1 つでも定義が取れれば ok)。
+    原因は所見でなく `measurement` に置く(原因= absent・empty は empty-required-source・unreadable は unreadable-input・selector-miss は selector-miss)。
+    `measurement` の項目と gate: 連鎖の原因= always・R-012= G3・R-011(E の定義サイトが unreadable か selector-miss)= G3・
+    R-014(CP の定義サイトが ok でなく、M unit の acceptance_refs が CP を 1 件以上挙げる)= freeze・R-050 (d) の測定不能= acceptance。
+    宣言済みの限界: 規則の gate より前のゲートでは、その規則の測定不能は出ない(例: 他から参照されない M-BOM のキー改名は、always では対象規則が無く exit 0)。
+    宣言済みの例外: X-GIT-001(git・baseline 不能で R-052 を skip する info)には outcome を付けない — fail-open は ref-v0.7 の裁定で、
+    測定不能の区分を付けると「測定不能を exit 0 にしない」と矛盾するため(扱いの見直しは別 ECO)。
 - 核/表面: surface(出所: ref-v0 lint_rules。判定ロジックは core)
 - 受入観点: unit — 規則ごとに違反 fixture+クリーン fixture の対で期待所見プロファイル完全一致
   (過検出も過少検出も FAIL)。これが charter の固定オラクルの実体。
@@ -234,14 +248,18 @@ BomDD 成果物リポジトリを直読し、参照整合を検査(lint)して�
 ### 2.9 出力と決定性 (REQ-008, REQ-013, REQ-017)
 - 仕様節ID: SPEC-OUTPUT-001
 - 振る舞い:
-  - 出力は**3ファイル**: `diagnostics.json`(`plm-diag/1`)・`graph.json`(`plm-graph/1`)・
+  - 出力は**3ファイル**: `diagnostics.json`(`plm-diag/2` — rev6/ECO-009 で `plm-diag/1` から版上げ)・`graph.json`(`plm-graph/1`)・
     `ledger.json`(`plm-ledger/1`)。各スキーマは本リポ `schemas/` の JSON Schema として管理し、
     出力は自スキーマに適合。非互換変更はメジャー版上げ。SARIF は v0 対象外(UQ-SPEC-001 / DEC-0004)。
   - `diagnostics.json`:
     `{schemaVersion, refSchema: {version}, run: {gate, eco},
     workspace: {repos: [{name, role}]}, stats,
+    measurement: [{cause, gate, family?, rule?, file?}],
     findings: [{rule, severity, gate, file, line?, column?, targetId?, message, fixTarget,
-    suppressed?, suppressReason?, suppressRef?}]}`。
+    outcome?, suppressed?, suppressReason?, suppressRef?}]}`。
+    rev6/ECO-009: `stats` に `outcomes: {red, measurementFailure, notApplicable}`(全所見の区分の件数)・`measurement`(§2.6 の区分の割当)・
+    `findings[].outcome` を追加した(plm-diag/1 は全階層で追加の欄を禁じていたため非互換= メジャー版上げ)。
+    `measurement` のソート= (gate, rule, family, cause, file) の昇順。
     `run` = lint 実行時の `--gate`/`--eco`(viewer の初期ゲートの供給源。入力由来なので INV-003 と両立)。
     `suppressRef` = 一致した suppress 行の位置(`<workspaceファイル正準パス>#suppress[<index>]`)。
     **targetId の意味論(rev1 — 初回製造で2工場が別解釈に分散した未規定次元)**:
@@ -273,7 +291,7 @@ BomDD 成果物リポジトリを直読し、参照整合を検査(lint)して�
   - **決定性の適用範囲**: diagnostics.json・graph.json・plm-view.html(§2.11)・stdout の
     `--format json`/`--format text` 本文。stderr(ログ・進捗)は対象外。
   - **SARIF 追加出力(rev3・ECO-002・DEC-0004 後段)**: `--sarif` 指定時のみ `--out` に **sarif.json** を追加生成
-    (既定は生成しない= 既存出力は不変)。plm-diag/1 が一次契約のまま — SARIF は派生ビューであり情報の追加源泉にしない。
+    (既定は生成しない= 既存出力は不変)。plm-diag/2(rev6 以前は plm-diag/1)が一次契約のまま — SARIF は派生ビューであり情報の追加源泉にしない。
     - top-level **`version: "2.1.0"`**(SARIF 標準のキー名。rev3 当初の「schemaVersion」表記は本製品独自 JSON の
       キー名の流用による記述誤り — 工場2体の一致指摘(CHEAT-ECO02-F01-001/F02-001)により受入時補正)・runs は1件。
       `runs[0].tool.driver = { name: "bomdd-lint", version: <製品版>, informationUri: "https://github.com/akiramei/BomDD-Plm" }`(informationUri は設計者供給値)。
@@ -281,6 +299,7 @@ BomDD 成果物リポジトリを直読し、参照整合を検査(lint)して�
       `message.text`= message(凍結文言・展開済み)/ `locations[0].physicalLocation` =
       `{ artifactLocation: { uri: <正準パス> }, region: { startLine: <line> } }`(line 欠落時は region 省略)。
     - 抑制済み所見(§2.8)は results に含め `suppressions: [{ kind: "external" }]` を付す(SARIF 標準表現)。
+    - rev6/ECO-009: `outcome` を持つ所見は result に `properties: { outcome }` を付す(`measurement` は SARIF に写さない)。
     - `runs[0].tool.driver.rules[]` は**発火した規則のみ**を rule id の UTF-8 バイト列昇順で列挙:
       `{ id, shortDescription.text: <正準 message テンプレート> }`。
     - 決定性: 本ファイルも §2.9 正規シリアライズ規約(UTF-8・LF・2スペース・キー順= 本節記載順・時刻/絶対パス/乱数なし)の対象。
@@ -305,6 +324,10 @@ BomDD 成果物リポジトリを直読し、参照整合を検査(lint)して�
     引数不正(未知のオプション・`--gate`/`--format`/`--fail-on` の不正値)・対象パス不存在・
     出力先がリポ内(§2.0)・出力先へ書込不能・スキーマ読込不能(§2.3)・未捕捉例外。
     `--fail-on warn` で warn(降格後 severity)も exit 1 に昇格。
+    rev6/ECO-009: 適用ゲート内に `measurement` の項目が 1 件以上あれば exit 1(測定不能を exit 0 にしない)。0/1/2 の意味は変えない —
+    製品の hook は exit 1 だけを遮断し他を通す設計のため、測定不能に新しい値(3 など)を割り当てない(INV-006 不変)。
+    text 出力はサマリの次の行に `区分: RED n / 測定不能 m / 適用外 k`(適用ゲート内)と、適用ゲート内の `measurement` を
+    `測定不能の原因: <cause> <rule> 族 <family> <file>` の形で 1 行ずつ出す。
 - 核/表面: surface(出所: POSIX/Node CLI 慣習 → K-BOM 候補 K-NODE-CLI)
 - 受入観点: L2 — 引数×挙動マトリクス(正常系・異常系とも列挙表を fixture 化)全行 pass。
 - E-BOM 候補: E-CLI-011 / CP 候補: CP-CLI-011

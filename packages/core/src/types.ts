@@ -16,6 +16,21 @@ export interface Artifact {
   relPath: string;
 }
 
+/** Measurability outcome of a judged finding (ref-v0.12 measurability.states; ECO-009). */
+export type Outcome = "RED" | "MEASUREMENT_FAILURE" | "NOT_APPLICABLE";
+
+/** Closed cause vocabulary (ref-v0.12 measurability.failure_causes). */
+export type MeasurementCause = "unreadable-input" | "selector-miss" | "empty-required-source" | "tool-failure";
+
+/** A measurement cause, recorded outside the findings (plm-diag/2 `measurement[]`). */
+export interface MeasurementEntry {
+  cause: MeasurementCause;
+  gate: string;
+  family?: string;
+  rule?: string;
+  file?: string;
+}
+
 /** A finding as emitted into diagnostics.json (§2.9). */
 export interface Finding {
   rule: string;
@@ -27,6 +42,7 @@ export interface Finding {
   targetId?: string;
   message: string;
   fixTarget: string;
+  outcome?: Outcome;
   suppressed?: boolean;
   suppressReason?: string;
   suppressRef?: string;
@@ -83,12 +99,23 @@ export interface RunInfo {
   eco: boolean;
 }
 
+export interface OutcomeCounts {
+  red: number;
+  measurementFailure: number;
+  notApplicable: number;
+}
+
+export interface DiagStats extends Stats {
+  outcomes: OutcomeCounts;
+}
+
 export interface Diagnostics {
   schemaVersion: string;
   refSchema: { version: string };
   run: RunInfo;
   workspace: { repos: RepoInfo[] };
-  stats: Stats;
+  stats: DiagStats;
+  measurement: MeasurementEntry[];
   findings: Finding[];
 }
 

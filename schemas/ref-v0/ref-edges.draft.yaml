@@ -5,7 +5,19 @@
 #
 # 意味論は縛らない: ここに無いフィールドは自由。ここに有るフィールドも「型と参照先ファミリー」だけを縛る。
 
-edges_version: ref-v0.11
+edges_version: ref-v0.12
+# ref-v0.12(2026-10-01・BomDD harness ECO-089): 測定不能の扱いの契約化 — 検査の判定を「違反(RED)」と「測れなかった
+#   (MEASUREMENT_FAILURE)」に分ける。実測(BomDD-Plm d02052b の複製 2 構成・8 種の変異): キー改名・構文エラー・空文書は
+#   違反と同じ error で出て(混在)、1 件の改名が R-003 の error 8〜158 件に見え、既知の違反と同じ規則・同じ件数で区別できない。
+#   無音で緑になるのは「M ID が他から参照されない構成」のコミット時ゲートの 1 構成。新節 measurability に 4 状態・
+#   原因の閉語彙・対象 0 件の判定・境界・出力を置き、対象 4 規則(R-011・R-012・R-014・R-050)の上流宣言を宣言した。
+#   R-050 の (d) は上流が非 0 のとき測定不能へ改めた(上流も 0 なら ref-v0.11 どおり適用外)。
+#   製造中の是正(同日・BomDD-Plm ECO-009 の設計で発見): R-014 と R-050 (d) が「対象の空」と「定義サイトの空」を
+#   混同していた(全行 golden の CP・acceptance_refs の無い M unit が測定不能の誤報になる)。測定不能は定義サイトの
+#   状態が ok でないときに限り、読めた定義サイトの上で対象が空なのは適用外と改めた(zero_target_rule・R-014・R-050)。
+#   範囲外(本版で変えない): 連鎖所見の帰属(実装 ECO の設計入力・延長 1 周の実測を measurability.deferred に記録)・
+#   終了コードの値・BomDD-Plm の実装と仕様の凍結行(§2.2 X-PARSE-001 の severity・§2.6 X-* の閉集合・§2.10/INV-006 の
+#   終了コード 0/1/2)・hook と CI の方針・受入ゲートの結線。規則文言の変更だけでは挙動は変わらない — 実装は BomDD-Plm 側の ECO。
 # ref-v0.11(2026-09-29・BomDD harness ECO-085): R-050 の規則文言の是正 — 「所見なし」に証拠能力を戻す。
 #   旧文言「被覆する」は証拠行の有無(cp_ref)だけを要求し、合否値(result)を要求しなかった。実測(BomDD-Plm
 #   6937a66・受入ゲート): result が fail / not-run / blocked / 欄なし / 語彙外 の証拠行でも所見 0・exit 0、
@@ -334,6 +346,69 @@ workspace:
   resolution: "cross_repo: true の参照は、workspace 内の他リポの定義サイトも探索して解決する。"
   note: workspace 未供与の場合、cross_repo 参照は skip(info)とし error にしない。
 
+# ---- 測定可能性契約(ref-v0.12・BomDD harness ECO-089) ----
+# 意味の正本= 本節。検査器が「不良を見つけた」のか「測れなかった」のかを混ぜないための判定語彙。
+# 本節だけでは検査器の挙動は変わらない(実装= BomDD-Plm の別 ECO・Plm 仕様の凍結行の改訂を伴う)。
+measurability:
+  status: candidate
+  states:
+    - { id: PASS, meaning: "対象が 1 件以上あり、測定が完了し、違反が無い" }
+    - { id: RED, meaning: "測定が完了し、違反がある" }
+    - { id: MEASUREMENT_FAILURE, meaning: "測定が完了していない(原因は failure_causes の閉語彙)" }
+    - { id: NOT_APPLICABLE, meaning: "対象が 0 件で、それが上流の宣言と整合しており、適用外と明示されている" }
+  pass_rule: >-
+    「PASS」と書いてよいのは、測定が完了し、MEASUREMENT_FAILURE と RED が 0 のときだけ。
+    MEASUREMENT_FAILURE を PASS や NOT_APPLICABLE と混ぜない・RED と同じ区分に入れない。
+  failure_causes:
+    - { id: unreadable-input, meaning: "入力が読めない(構文エラー・不正な UTF-8)" }
+    - { id: selector-miss, meaning: "入力は読めたが、規則が辿るキーが無い(キー改名・方言の違い)" }
+    - { id: empty-required-source, meaning: "必須の成果物が空・不在で、規則の入力が得られない" }
+    - { id: tool-failure, meaning: "検査器自身の実行障害(出力先・スキーマ・未捕捉例外)" }
+  zero_target_rule: >-
+    対象が 0 件のとき、規則は「その規則の対象が非空であるべき根拠(上流の宣言)」を upstream_declarations に 1 つ宣言する。
+    上流が 1 件以上なのに対象が 0 件なら MEASUREMENT_FAILURE(原因は selector-miss または empty-required-source)、
+    上流も 0 件なら NOT_APPLICABLE(適用外を明示する・ECO-085 の裁定「製造前は製造記録が無いのが正常」と整合)。
+    測定不能と言えるのは、規則が読む**定義サイトの状態**が ok でないとき(なし= empty-required-source・構文エラー= unreadable-input・
+    キーなし= selector-miss・空リスト= empty-required-source)に限る。定義サイトが読めて要素がある上で、規則の対象(絞り込んだ部分集合や組)が
+    0 件なのは NOT_APPLICABLE である(boundary_rule — 読めた定義サイトは測定不能にしない。ECO-089 製造中の是正)。
+    upstream_declarations に無い規則は「宣言なし」である — 空集合の意味を沈黙させない(control-plan「各検査は対象集合が空の場合の意味を宣言する」の履行)。
+    本版の宣言対象は M-BOM / Control Plan / As-Built を読む R-011・R-012・R-014・R-050 のみ。他の規則は未宣言(後続 ECO)。
+  boundary_rule: >-
+    必須の定義サイトが読めない・空・キー空振りは MEASUREMENT_FAILURE であり、RED にしない。
+    RED は「読めた定義サイトの内容が期待と矛盾する」場合だけ。R-050 の (c)(ECO-085: 製造記録が読めない= 測定不能)と同じ向き。
+  output_rule: >-
+    RED と MEASUREMENT_FAILURE は機械可読に区別して出す(所見ごとの区分と、実行全体の件数)。MEASUREMENT_FAILURE は exit 0 にならない。
+    終了コード 0/1/2 の意味を変えない案を第一候補とする(BomDD-Plm 仕様 INV-006 が凍結しており、hook は exit 2 を通す設計のため、
+    規則単位の測定不能に exit 2 を割り当てない)。区分の名前・値の設計は実装 ECO(Plm 仕様の改訂)で裁定する。
+  upstream_declarations:
+    - rule: R-011
+      reads: "30-ebom の ebom.items[]"
+      expectation_source: "なし(manufacturing-ready の品目が 0 件は製造前の正常な状態)"
+      on_empty: "NOT_APPLICABLE。ただし 30-ebom が読めない・items キーが空振りなら MEASUREMENT_FAILURE"
+    - rule: R-012
+      reads: "32-mbom の mbom.manufacturing_units[](実現側)・30-ebom の manufacturing-ready 品目(対象側)"
+      expectation_source: "30-ebom に lifecycle_state が manufacturing-ready の品目が 1 件以上"
+      on_empty: "実現側の M unit が 0 件なら、対象側が 1 件以上のとき MEASUREMENT_FAILURE(32-mbom が読めない・空・キー空振り)・対象側も 0 件なら NOT_APPLICABLE。M unit が 1 件以上ある上で品目を実現していないものは RED"
+    - rule: R-014
+      reads: "33-control-plan の control_plan.characteristics[]"
+      expectation_source: "32-mbom の M unit の acceptance_refs が挙げる CP が 1 件以上"
+      on_empty: "CP の定義サイト(33 の control_plan.characteristics)の状態が ok でなく、上流が 1 件以上なら MEASUREMENT_FAILURE。定義サイトが読めて行がある上で、depth が unit/L2/L3 の行が 0 件なら NOT_APPLICABLE(全行が golden 等は正常)。上流も 0 件なら NOT_APPLICABLE"
+    - rule: R-050
+      reads: "50-as-built の as_built[]・32-mbom の manufacturing_units[].acceptance_refs"
+      expectation_source: "30-ebom に lifecycle_state が manufacturing-ready の品目が 1 件以上"
+      on_empty: "M unit の定義サイト(32-mbom の manufacturing_units)の状態が ok でなく、上流が 1 件以上なら MEASUREMENT_FAILURE(規則 (d))。M unit が読めて存在する上で組が 0 件(acceptance_refs が無い)なら NOT_APPLICABLE(info で明示)。上流も 0 件なら NOT_APPLICABLE。対象が 1 件以上で製造記録が読めないなら MEASUREMENT_FAILURE(規則 (c))"
+  deferred:
+    - id: cascade-attribution
+      meaning: >-
+        連鎖所見の帰属 — 測定不能の結果として生じる派生所見(定義が見えなくなったことによる R-003 の大量の参照不解決など)を、
+        原因の MEASUREMENT_FAILURE 1 件へ従属させ違反として数えない。実装 ECO の設計入力と受入条件(ECO-089 の旧 V6)へ移した。
+        ECO-089 延長 1 周の実測(bomdd/reports/eco-089-measurability/cascade-attribution.md): 「未解決の参照先の族に定義ノードが 1 件も無い」
+        という規則は、人工の不良サンプルでは 100% 分離できたが、実在 7 リポでは測定不能へ回った参照 91 件(族が判定できるもの)のうち字面の定義があるのは 78%・
+        無いのが 22%(曖昧)・族が判定できないものが 6 件。帰属の対象は厳格な族(R-003 が error)に限り、判定できないものは違反側に残す方針。
+        定義サイトが機械可読という族ごとの宣言の持ち方は Plm 側の仕様と id-grammar の持ち分。
+    - id: exit-code-value
+      meaning: "終了コードの値と区分の名前(output_rule の第一候補を実装 ECO で確定する)"
+
 # ---- リントルール台帳 ----
 # gate: always(常時) / G1(要求確定) / G3(BOM ドライラン=製造前) / freeze(オラクル凍結前) /
 #       acceptance(受入時) / eco(変更オーダー時)
@@ -377,11 +452,13 @@ lint_rules:
     rule: lifecycle_state が manufacturing-ready の E 品目は acceptance_refs ≥1
     gate: G3
     severity: error
+    note: "ref-v0.12: 空の意味と上流の宣言は measurability.upstream_declarations(ECO-089)"
   - id: R-012
     name: ebom-realized-by-mbom
     rule: manufacturing-ready の E 品目は ≥1 の M unit の ebom_refs から参照される
     gate: G3
     severity: error
+    note: "ref-v0.12: M unit が 0 件のときの意味(測定不能か適用外か)は measurability.upstream_declarations(ECO-089)"
   - id: R-013
     name: core-surface-origin
     rule: classification:core は requirement_refs ≥1 / surface は external_source_ref または kbom_refs ≥1
@@ -393,6 +470,7 @@ lint_rules:
     rule: depth が unit/L2/L3 の CP 行は test_vectors ≥1(CHEAT-005 対策)
     gate: freeze
     severity: warn
+    note: "ref-v0.12: CP 行が 0 件のときの意味(測定不能か適用外か)は measurability.upstream_declarations(ECO-089)"
 
   - id: R-020
     name: ui-surface-has-cad
@@ -446,7 +524,10 @@ lint_rules:
       (cp_ref が対象の CP でない行も含む)。
       (c) 対象が 1 件以上あるのに as_built をリスト形のエントリとして読めない場合
       (製造記録ファイルなし・as_built キーなし・空リスト・文書方言)は測定不能として error にする。
-      (d) 対象が 0 件なら (a)(c) は適用外とし、適用外であることを info で明示する
+      (d) 対象が 0 件のとき(ref-v0.12): 上流の宣言(measurability.upstream_declarations の R-050 —
+      30-ebom に manufacturing-ready の品目が 1 件以上)が非 0 で、かつ M unit の定義サイト(32-mbom の
+      manufacturing_units)の状態が ok でない(なし・構文エラー・キーなし・空)なら、(c) と同じ測定不能として error にする。
+      M unit が読めて存在する上で対象が 0 件のとき、または上流も 0 件のときは、(a)(c) は適用外とし、適用外であることを info で明示する
       ((b) は対象の件数によらず適用する)。
     gate: acceptance
     severity: error
@@ -455,7 +536,9 @@ lint_rules:
       合格は文字列 pass の完全一致のみ(語彙外の値は合格に数えない — 語彙の拡張は実物を根拠に別 ECO)。
       (a)〜(d) の所見はいずれも他の規則と同じく本規則の gate(acceptance)を付けて出す。実行ゲートが
       それより前なら判定(exit)には効かない — 製造前に製造記録が無いのは正常な状態であり、ゲートがそれを
-      判定から外す(所見を出すゲートを規則ごとに変えない)。severity は (a)(b)(c) が error・(d) が info。
+      判定から外す(所見を出すゲートを規則ごとに変えない)。severity は (a)(b)(c) が error・(d) は上流が非 0 かつ
+      M unit の定義サイトが ok でなければ error(測定不能)・それ以外は info(適用外)。ref-v0.12(ECO-089)で (d) を改訂した — BomDD-Plm の実装
+      (ECO-008・ref-v0.11)が追随するまで、実装は (d) を従来どおり対象 0 件で info(適用外)として出す。
       「R-050 の所見なし」とは、error の R-050 が無く、抑止(suppress)された R-050 も、(d) の適用外の
       info も無い状態を指す — 抑止つきの通過と適用外は出力に残る別の状態であり、所見なしとして引用しない。
       所見なしが支持すること= 最新エントリが、対象の全 CP について合格を申告し、合格以外の申告行を持たない。

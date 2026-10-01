@@ -3,7 +3,7 @@
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath as u2p } from "node:url";
-import { runLint, canonicalJson, appliedRules, buildSarif, SchemaExitError, InputExitError, OutputExitError, validateOutDir, } from "@bomdd/core";
+import { runLint, canonicalJson, appliedRules, LADDER, buildSarif, SchemaExitError, InputExitError, OutputExitError, validateOutDir, } from "@bomdd/core";
 import { generateView } from "@bomdd/viewer";
 import { parseCliArgs, ArgError } from "./args.js";
 import { formatText } from "./text.js";
@@ -63,7 +63,16 @@ function computeExit(diag, schema, failOn) {
         return 1;
     if (failOn === "warn" && hasWarn)
         return 1;
+    // ECO-009 (ref-v0.12 measurability.output_rule): a measurement cause inside the applied gate is never exit 0.
+    // Exit 1 (not a new code): product hooks block only on exit 1 and pass every other code.
+    if (diag.measurement.some((m) => measurementApplied(m.gate, diag.run.gate, diag.run.eco)))
+        return 1;
     return 0;
+}
+function measurementApplied(entryGate, runGate, eco) {
+    if (entryGate === "eco")
+        return eco;
+    return (LADDER[entryGate] ?? 0) <= (LADDER[runGate] ?? 0);
 }
 export function main(argv) {
     let args;

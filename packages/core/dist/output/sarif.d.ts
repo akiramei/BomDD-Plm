@@ -32,6 +32,10 @@ export interface SarifResult {
     suppressions?: {
         kind: "external";
     }[];
+    /** ECO-009: measurability outcome (RED / MEASUREMENT_FAILURE / NOT_APPLICABLE) of the finding. */
+    properties?: {
+        outcome: string;
+    };
 }
 export interface SarifLocation {
     physicalLocation: {

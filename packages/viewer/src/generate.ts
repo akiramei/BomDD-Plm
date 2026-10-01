@@ -12,7 +12,7 @@ import { escapeForScriptTag, escapeHtml } from "./util.js";
 
 /**
  * Generate the self-contained plm-view.html document.
- * @param diagnosticsJson canonical diagnostics.json text (plm-diag/1)
+ * @param diagnosticsJson canonical diagnostics.json text (plm-diag/2)
  * @param graphJson canonical graph.json text (plm-graph/1)
  * @param ledgerJson canonical ledger.json text (plm-ledger/1)
  */
@@ -170,7 +170,7 @@ export function generateView(diagnosticsJson: string, graphJson: string, ledgerJ
   <footer class="runmeta" data-ui-id="region.run-meta">
     <span>input: workspace(${diag.workspace.repos.length} repos)</span>
     <span>schema: ${escapeHtml(diag.refSchema.version)}</span>
-    <span>diagnostics: plm-diag/1</span>
+    <span>diagnostics: plm-diag/2</span>
     <span data-ui-id="component.scan-stats">${diag.stats.files} files / ${diag.stats.ids} IDs / ${diag.stats.refs} refs</span>
   </footer>
 </div>

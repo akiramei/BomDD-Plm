@@ -128,11 +128,14 @@ test("R-050 (a) 粒度: 同じ M unit が同じ CP を重ねて挙げても 1 �
 });
 
 test("R-050 (d) の file: 中身が壊れていても型が 32-mbom の成果物を指す(IA-02)", () => {
+  // ECO-009(ref-v0.12): 上流(製造可能な E 品目)があり M unit の定義サイトが ok でないので、
+  // (d) は適用外の info でなく測定不能の error(outcome= MEASUREMENT_FAILURE)。file の規定(IA-02)は不変。
   const r = lint("brokenmbom");
-  const info = r.r050.filter((f) => f.severity === "info");
-  assert.equal(info.length, 1);
-  assert.equal(info[0].file, MB);
-  assert.equal(r.errors.length, 0);
+  assert.equal(r.r050.filter((f) => f.severity === "info").length, 0);
+  assert.equal(r.errors.length, 1);
+  assert.equal(r.errors[0].file, MB);
+  assert.equal(r.errors[0].outcome, "MEASUREMENT_FAILURE");
+  assert.ok(r.errors[0].message.includes("測定不能"));
 });
 
 test("R-050 (d): 成果物が 0 件のリポでも適用外を 1 件明示する(IA-03)", () => {

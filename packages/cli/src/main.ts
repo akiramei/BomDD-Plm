@@ -8,6 +8,7 @@ import {
   runLint,
   canonicalJson,
   appliedRules,
+  LADDER,
   buildSarif,
   SchemaExitError,
   InputExitError,
@@ -72,7 +73,15 @@ function computeExit(diag: Diagnostics, schema: Parameters<typeof appliedRules>[
   }
   if (hasError) return 1;
   if (failOn === "warn" && hasWarn) return 1;
+  // ECO-009 (ref-v0.12 measurability.output_rule): a measurement cause inside the applied gate is never exit 0.
+  // Exit 1 (not a new code): product hooks block only on exit 1 and pass every other code.
+  if (diag.measurement.some((m) => measurementApplied(m.gate, diag.run.gate, diag.run.eco))) return 1;
   return 0;
+}
+
+function measurementApplied(entryGate: string, runGate: string, eco: boolean): boolean {
+  if (entryGate === "eco") return eco;
+  return (LADDER[entryGate] ?? 0) <= (LADDER[runGate] ?? 0);
 }
 
 export function main(argv: string[]): number {

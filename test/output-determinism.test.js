@@ -55,7 +55,8 @@ test("CP-OUTPUT-010: diagnostics.json keys follow schema-defined order", () => {
     assert.equal(res.status, 0);
     const raw = readFileSync(join(out, "diagnostics.json"), "utf8");
     const topKeyOrder = [...raw.matchAll(/^  "(\w+)":/gm)].map((m) => m[1]);
-    assert.deepEqual(topKeyOrder, ["schemaVersion", "refSchema", "run", "workspace", "stats", "findings"]);
+    // plm-diag/2(ECO-009): stats と findings の間に measurement(schemas/plm-diag-2.schema.json の properties の順)
+    assert.deepEqual(topKeyOrder, ["schemaVersion", "refSchema", "run", "workspace", "stats", "measurement", "findings"]);
   } finally {
     rmSync(out, { recursive: true, force: true });
   }

@@ -106,7 +106,8 @@ control_plan:
       test_vectors: [R-020 複数 trace-map, R-040 lineage 除外, R-010 retired 除外, advisory=warn 止まり, reserved=info,
         "ECO-001 per-file(S-21): per-file 宣言サイトのファイル内重複=R-002 発火 / 別ファイル間同名=非発火(合法)/ 宣言なしサイトのファイル間重複=発火維持 / per-file 対象 ID への参照解決=従来どおり全域索引",
         "ECO-002 R-052(S-22): diff_audit あり+許容内 diff= 所見なし / はみ出し1ファイル=R-052 error 1所見(targetId=ECO id)/ diff_audit なしエントリ= 非起動 / git・baseline 不能= X-GIT-001 info で skip / --eco なし= 非起動(gate)",
-        "ECO-008 R-050(S-26・ref-v0.11): 合格= 所見なし / 不合格・未実行・保留・欄なし・語彙外= (a)+(b) の 2 所見 / 合格と不合格の混在= (b) のみ / 受入対象外の CP の不合格行= (b) / 証拠行が空= (a) / 製造記録なし・空リスト・文書方言= (c) 測定不能 error / 製造前ゲート(G3)= exit に効かない / 受入対象 0 件= (d) 適用外 info / 受入対象 0 件かつ不合格行= (b) error+(d) info / 独立検査 r1 由来(test/rules-r050.test.js): 同じ M unit が同じ CP を重ねて挙げる= (a) 1 件 / 中身の壊れた 32-mbom= (d) の file は 32-mbom / 成果物 0 件= (d) を 1 件 / cp_ref の無い行・mapping でない行= (b) が行要素の行番号を持つ"]
+        "ECO-008 R-050(S-26・ref-v0.11): 合格= 所見なし / 不合格・未実行・保留・欄なし・語彙外= (a)+(b) の 2 所見 / 合格と不合格の混在= (b) のみ / 受入対象外の CP の不合格行= (b) / 証拠行が空= (a) / 製造記録なし・空リスト・文書方言= (c) 測定不能 error / 製造前ゲート(G3)= exit に効かない / 受入対象 0 件= (d) 適用外 info / 受入対象 0 件かつ不合格行= (b) error+(d) info / 独立検査 r1 由来(test/rules-r050.test.js): 同じ M unit が同じ CP を重ねて挙げる= (a) 1 件 / 中身の壊れた 32-mbom= (d) の file は 32-mbom / 成果物 0 件= (d) を 1 件 / cp_ref の無い行・mapping でない行= (b) が行要素の行番号を持つ",
+        "ECO-009 区分(ref-v0.12 measurability・test/measurability.test.js): キー改名・構文エラー・空文書(32-mbom / 33)= 連鎖の R-003・R-012・R-050 (d) が outcome= MEASUREMENT_FAILURE・RED 0・measurement に原因(selector-miss / unreadable-input / empty-required-source)/ 存在しない ID への参照= RED・measurement 空 / 不合格の証跡行= acceptance で RED / 他から参照されない M-BOM の改名= G3 以降で R-012 が測定不能(always は対象規則なし)/ CP が全て golden= 測定不能にしない / acceptance_refs の無い M unit= R-050 (d) が NOT_APPLICABLE の info / M 族の定義が残る上での未解決参照= RED / 中身の壊れた 32-mbom で上流あり= (d) が測定不能 error"]
     - id: CP-GATE-008
       characteristic: ゲート×規則マトリクス+eco 合成+不正値 exit 2
       classification: core

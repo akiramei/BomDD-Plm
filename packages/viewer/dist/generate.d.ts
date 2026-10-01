@@ -1,6 +1,6 @@
 /**
  * Generate the self-contained plm-view.html document.
- * @param diagnosticsJson canonical diagnostics.json text (plm-diag/1)
+ * @param diagnosticsJson canonical diagnostics.json text (plm-diag/2)
  * @param graphJson canonical graph.json text (plm-graph/1)
  * @param ledgerJson canonical ledger.json text (plm-ledger/1)
  */

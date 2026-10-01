@@ -74,7 +74,7 @@ test("CLI: --format json on stdout matches diagnostics.json content written to -
     const res = runCli([FIXTURE, "--format", "json", "--out", out]);
     assert.equal(res.status, 0);
     const diag = JSON.parse(res.stdout);
-    assert.equal(diag.schemaVersion, "plm-diag/1");
+    assert.equal(diag.schemaVersion, "plm-diag/2");
   } finally {
     rmSync(out, { recursive: true, force: true });
   }

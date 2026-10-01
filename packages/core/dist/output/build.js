@@ -37,6 +37,8 @@ function orderFinding(f) {
         ordered["targetId"] = f.targetId;
     ordered["message"] = f.message;
     ordered["fixTarget"] = f.fixTarget;
+    if (f.outcome !== undefined)
+        ordered["outcome"] = f.outcome;
     if (f.suppressed !== undefined)
         ordered["suppressed"] = f.suppressed;
     if (f.suppressReason !== undefined)
@@ -46,16 +48,45 @@ function orderFinding(f) {
     void o;
     return ordered;
 }
+// ---- measurement sort: (gate, rule, family, cause, file) — ECO-009 / plm-diag/2 ----
+function cmpMeasurement(a, b) {
+    return (cmpStr(a.gate, b.gate) ||
+        cmpStr(a.rule, b.rule) ||
+        cmpStr(a.family, b.family) ||
+        cmpStr(a.cause, b.cause) ||
+        cmpStr(a.file, b.file));
+}
+/** Construct a measurement entry with keys in schema property order. */
+function orderMeasurement(m) {
+    const o = { cause: m.cause, gate: m.gate };
+    if (m.family !== undefined)
+        o["family"] = m.family;
+    if (m.rule !== undefined)
+        o["rule"] = m.rule;
+    if (m.file !== undefined)
+        o["file"] = m.file;
+    return o;
+}
 export function buildDiagnostics(input) {
     const findings = input.findings.slice().sort(cmpFinding).map(orderFinding);
+    const measurement = (input.measurement ?? []).slice().sort(cmpMeasurement).map(orderMeasurement);
     const repos = input.repos.map((r) => {
         const o = { name: r.name };
         if (r.role !== undefined)
             o.role = r.role;
         return o;
     });
+    const outcomes = { red: 0, measurementFailure: 0, notApplicable: 0 };
+    for (const f of findings) {
+        if (f.outcome === "RED")
+            outcomes.red++;
+        else if (f.outcome === "MEASUREMENT_FAILURE")
+            outcomes.measurementFailure++;
+        else if (f.outcome === "NOT_APPLICABLE")
+            outcomes.notApplicable++;
+    }
     return {
-        schemaVersion: "plm-diag/1",
+        schemaVersion: "plm-diag/2",
         refSchema: { version: input.refSchemaVersion },
         run: { gate: input.gate, eco: input.eco },
         workspace: { repos },
@@ -63,7 +94,9 @@ export function buildDiagnostics(input) {
             files: input.model.stats.files,
             ids: input.model.stats.ids,
             refs: input.model.stats.refs,
+            outcomes,
         },
+        measurement,
         findings,
     };
 }

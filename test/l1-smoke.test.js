@@ -24,7 +24,7 @@ test("L1 smoke: CLI run produces diagnostics/graph/ledger/view, exit 0", () => {
     assert.ok(existsSync(join(out, "plm-view.html")), "plm-view.html missing");
 
     const diag = JSON.parse(readFileSync(join(out, "diagnostics.json"), "utf8"));
-    assert.equal(diag.schemaVersion, "plm-diag/1");
+    assert.equal(diag.schemaVersion, "plm-diag/2");
     assert.equal(diag.stats.files, 4);
 
     const graph = JSON.parse(readFileSync(join(out, "graph.json"), "utf8"));

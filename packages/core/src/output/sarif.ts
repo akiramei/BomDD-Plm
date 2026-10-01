@@ -1,5 +1,5 @@
 // SARIF 2.1.0 additional output (§2.9 rev3, ECO-002 CH-2 / DEC-0004 後段). Built ONLY when the CLI
-// passes --sarif; plm-diag/1 (diagnostics.json) remains the primary contract — SARIF is a derived
+// passes --sarif; plm-diag/2 (diagnostics.json) remains the primary contract — SARIF is a derived
 // view over the SAME findings, using the SAME sort order as diagnostics.json.
 
 import type { Diagnostics, Finding } from "../types.js";
@@ -35,6 +35,8 @@ export interface SarifResult {
   message: { text: string };
   locations: SarifLocation[];
   suppressions?: { kind: "external" }[];
+  /** ECO-009: measurability outcome (RED / MEASUREMENT_FAILURE / NOT_APPLICABLE) of the finding. */
+  properties?: { outcome: string };
 }
 
 export interface SarifLocation {
@@ -62,6 +64,7 @@ function buildResult(f: Finding): SarifResult {
     locations: [{ physicalLocation }],
   };
   if (f.suppressed) r.suppressions = [{ kind: "external" }];
+  if (f.outcome !== undefined) r.properties = { outcome: f.outcome };
   return r;
 }
 

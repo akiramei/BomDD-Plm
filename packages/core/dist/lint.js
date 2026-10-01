@@ -7,6 +7,7 @@ import { buildModel } from "./resolve/model.js";
 import { evaluate } from "./rules/evaluate.js";
 import { evaluateR052 } from "./rules/r052.js";
 import { applySuppress } from "./suppress/suppress.js";
+import { classify } from "./measure/measure.js";
 import { buildDiagnostics, buildGraph, buildLedger } from "./output/build.js";
 import { resolveWorkspace } from "./workspace/workspace.js";
 export function runLint(opts) {
@@ -28,10 +29,20 @@ export function runLint(opts) {
     // always-evaluate rule set in evaluate() (§2.6 note) and evaluated here instead.
     const r052Findings = evaluateR052(model, workspace.repos, opts.eco);
     const allFindings = [...parseFindings, ...ruleFindings, ...r052Findings];
+    // ECO-009 (ref-v0.12 measurability): outcome on judged findings + measurement causes.
+    // Classified before suppression so a suppressed finding keeps the outcome it was judged with.
+    const measurement = classify(model, allFindings);
     const suppressed = applySuppress(allFindings, workspace.suppress, workspace.workspaceFileCanonical);
+    // Suppression adds its own diagnostics (X-SUPPRESS-001/002) after classification: they judge the
+    // suppress rows themselves (measured and violated) => RED.
+    for (const f of suppressed.findings) {
+        if (f.outcome === undefined && (f.severity === "error" || f.severity === "warn"))
+            f.outcome = "RED";
+    }
     const diagnostics = buildDiagnostics({
         model,
         findings: suppressed.findings,
+        measurement,
         gate: opts.gate,
         eco: opts.eco,
         refSchemaVersion: schema.grammarVersion,

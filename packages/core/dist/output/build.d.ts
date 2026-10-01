@@ -1,9 +1,10 @@
-import type { Diagnostics, Finding, Graph, Ledger, RepoInfo } from "../types.js";
+import type { Diagnostics, Finding, Graph, Ledger, MeasurementEntry, RepoInfo } from "../types.js";
 import type { Model } from "../resolve/model.js";
 import type { RefSchema } from "../schema/types.js";
 export interface BuildInput {
     model: Model;
     findings: Finding[];
+    measurement?: MeasurementEntry[];
     gate: string;
     eco: boolean;
     refSchemaVersion: string;
