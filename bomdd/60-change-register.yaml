@@ -158,3 +158,30 @@ changes:
       - M-SCHEMA-013
       - CP-LINT-007
       - K-REFV0
+
+  - id: ECO-009
+    title: "BomDD ECO-089 の実装側 — 測定不能を違反と区別して出す(区分の出力・上流宣言の実装・R-050 (d) の追随)+スナップショット同期 0.11→0.12(起票のみ)"
+    status: filed   # 2026-10-01 起票のみ(claude-sonnet-5-5・BomDD 側 user DECIDE「2:A」)。設計・製造とも未着手 — コード・仕様・スキーマ・固定オラクルは未変更。製造裁定(収束の扱い・配員・範囲)待ち。詳細= order_ref §0・§1・§3
+    opened: 2026-10-01
+    order_ref: bomdd/60-change-order-eco-009.md
+    diff_audit:   # 起票時点の見立て(製造裁定で凍結)。baseline= ECO-008 verified の個体
+      baseline: "d02052b"
+      allowed_paths: [packages/core/, packages/cli/, packages/viewer/, schemas/, test/, oracle/]
+    affected_refs:
+      - REQ-014
+      - E-CORE-LINT-007
+      - E-CORE-OUTPUT-010
+      - E-CONTRACT-DIAG-018
+      - E-CLI-011
+      - M-CORE-RULES-003
+      - M-CORE-OUTPUT-004
+      - M-CLI-005
+      - M-SCHEMA-013
+      - M-SCHEMA-CONTRACT-014
+      - M-ORACLE-009
+      - M-HARNESS-008
+      - CP-LINT-007
+      - CP-OUTPUT-010
+      - CP-CLI-011
+      - CP-GATE-008
+      - K-REFV0
