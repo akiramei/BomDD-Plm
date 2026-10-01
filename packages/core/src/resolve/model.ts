@@ -113,19 +113,25 @@ function ecoIdFromFilename(relPath: string, families: string[], schema: RefSchem
   const base = relPath.replace(/^.*\//, "").replace(/\.md$/i, "");
   // right-end family ID pattern: uppercase tokens matching family from the right
   const upper = base.toUpperCase();
-  // Try to find the rightmost family-matching token span. Split on non-token chars.
+  // §2.4 (a): the ID is the run of `-`-separated segments at the RIGHT END of the file name that matches
+  // one of the target families (`60-change-order-eco-025` → `ECO-025`). ECO-009 r1 IA-01: the former
+  // implementation matched whole `[A-Za-z0-9._-]+` tokens, so `60-CHANGE-ORDER-ECO-025` (one token) never
+  // matched and no candidate was defined. Scan the right-end suffixes from the longest; the first one
+  // whose family is a target family wins (families are constrained, so leading words like CHANGE/ORDER
+  // cannot be taken unless they are themselves a target-family prefix).
   ID_TOKEN_RE.lastIndex = 0;
-  const tokens: { tok: string; start: number }[] = [];
+  const tokens: string[] = [];
   let m: RegExpExecArray | null;
-  while ((m = ID_TOKEN_RE.exec(upper)) !== null) {
-    tokens.push({ tok: m[0], start: m.index });
-  }
-  // Look from the right for a token that (uppercased) matches one of the target families.
-  for (let i = tokens.length - 1; i >= 0; i--) {
-    const t = tokens[i].tok;
-    const fam = determineFamily(t, schema);
-    if (fam && families.includes(fam.prefix)) {
-      return t;
+  while ((m = ID_TOKEN_RE.exec(upper)) !== null) tokens.push(m[0]);
+  for (let t = tokens.length - 1; t >= 0; t--) {
+    const segs = tokens[t].split("-");
+    for (let i = 0; i < segs.length; i++) {
+      const candidate = segs.slice(i).join("-");
+      if (candidate === "") continue;
+      const fam = determineFamily(candidate, schema);
+      if (fam && families.includes(fam.prefix)) {
+        return candidate;
+      }
     }
   }
   return undefined;
